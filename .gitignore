@@ -1,0 +1,13 @@
+*~
+.dir-locals.el
+
+# Compiled
+*.elc
+
+# Packaging
+.cask
+
+# Added automatically by `eldev init'.
+/.eldev
+/Eldev-local
+logs
