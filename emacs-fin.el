@@ -38,11 +38,11 @@
   "Emacs client to fin"
   :group 'books)
 
-(defface emacs-fin-book-title
+(defface emacs-fin-author-name
   '((t :foreground "aquamarine"
        :weight bold
        :underline t))
-  "Face for book titles."
+  "Face for author names."
   :group 'emacs-fin)
 
 (defface emacs-fin-book-descriptions
@@ -85,25 +85,27 @@
              (insert-book-data appended-alist)))
          ;; Vector to list
          (append data nil))
+  (beginning-of-buffer)
   (org-toggle-inline-images))
 
-
 (defun insert-book-data (book-data-alist)
+  "Insert into the current buffer contents from BOOK-DATA-ALIST."
   (let ((title (alist-get 'title book-data-alist))
+        (author (alist-get 'author book-data-alist))
         (description (alist-get 'description book-data-alist))
         (image-file-name (alist-get 'image-file-name book-data-alist)))
-    (insert (concat "[[" image-file-name "]]"))
-    (insert (concat "  " title "\n"))
-    (overlay-put (make-overlay (1- (point)) (- (point) (length title) 1))
+    (insert (concat "** " title "\n\n"))
+    (insert (concat "[[" image-file-name "]]  " author "\n\n"))
+    (overlay-put (make-overlay (- (point) 2) (- (point) (length author) 2))
                  'face
-                 'emacs-fin-book-title)
+                 'emacs-fin-author-name)
     (insert (concat description "\n\n"))
     (overlay-put (make-overlay (- (point) 2) (- (point) (length description) 2))
                  'face
                  'emacs-fin-book-descriptions)))
 
-(get-data)
-(process-data '(((title . "Flowers for Algernon") (author . "Daniel Keyes") (description . "'A masterpiece of poignant brilliance . . . heartbreaking' Guardian Charlie Gordon, a floor sweeper born with an unusually low IQ, has been chosen as the perfect subject for an experimental surgery that doctors hope will increase his intelligence - a procedure that has been highly successful when tested on a lab mouse named Algernon. All Charlie wants is to be smart and have friends, but the treatement turns him into a genius. Then Algernon begins to fade. What will become of Charlie?") (thumbnailUri . "http://books.google.com/books/content?id=VbOtAQAACAAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api"))))
+;; (get-data)
+;; (process-data '(((title . "Flowers for Algernon") (author . "Daniel Keyes") (description . "'A masterpiece of poignant brilliance . . . heartbreaking' Guardian Charlie Gordon, a floor sweeper born with an unusually low IQ, has been chosen as the perfect subject for an experimental surgery that doctors hope will increase his intelligence - a procedure that has been highly successful when tested on a lab mouse named Algernon. All Charlie wants is to be smart and have friends, but the treatement turns him into a genius. Then Algernon begins to fade. What will become of Charlie?") (thumbnailUri . "http://books.google.com/books/content?id=VbOtAQAACAAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api"))))
 
 (provide 'emacs-fin)
-;;; emacs-fin ends here
+;;; emacs-fin.el ends here
