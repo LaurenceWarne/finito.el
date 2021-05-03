@@ -31,6 +31,7 @@
 (require 'cl-lib)
 (require 'dash)
 (require 'f)
+(require 'org)
 (require 'request)
 (require 's)
 
@@ -50,7 +51,7 @@
   "Face for book descriptions."
   :group 'emacs-fin)
 
-(defun get-data()
+(defun fin-get-data()
   (request "http://localhost:8080/api/graphql"
     :headers '(("Content-Type" . "application/json")
                ("Accept" . "application/json"))
@@ -61,34 +62,35 @@
     	           (message "Got error: %S" error-thrown)))
     :success (cl-function
     	      (lambda (&key data &allow-other-keys)
-                (process-data (cdadar data))))))
+                (fin-process-data (cdadar data))))))
 
-(defun process-data (data)
+(defun fin-process-data (data)
   (switch-to-buffer "Books")
   (org-mode)
-  (print (append data nil))
   (insert "* Books\n\n")
-  (--map (let* ((title (s-replace " " "-" (downcase (alist-get 'title it))))
-                (isbn (alist-get 'isbn it))
-                (img-uri (alist-get 'thumbnailUri it))
-                (image-file-name
-                 (f-join user-emacs-directory
-                         "fin-images/"
-                         (concat title isbn ".jpeg")))
-                (appended-alist `((image-file-name . ,image-file-name) . ,it)))
-           (if (f-exists-p image-file-name)
-               (progn (print "already exists") (insert-book-data appended-alist))
-             (print (concat "Retrieving img: " img-uri))
-             ; this is already a callback so do we need to:
-             ; https://stackoverflow.com/questions/40504796/asynchrous-copy-file-and-copy-directory-in-emacs-lisp
-             (url-copy-file img-uri image-file-name)
-             (insert-book-data appended-alist)))
-         ;; Vector to list
-         (append data nil))
-  (beginning-of-buffer)
+  ;; Vector to list)
+  (-each (append data nil)
+    (lambda (book)
+      (let* ((title (s-replace " " "-" (downcase (alist-get 'title book))))
+             (isbn (alist-get 'isbn book))
+             (img-uri (alist-get 'thumbnailUri book))
+             (image-file-name
+              (f-join user-emacs-directory
+                      "fin-images/"
+                      (concat title isbn ".jpeg")))
+             (appended-alist `((image-file-name . ,image-file-name) . ,book)))
+        (if (f-exists-p image-file-name)
+            (progn (print "already exists")
+                   (fin-insert-book-data appended-alist))
+          (print (concat "Retrieving img: " img-uri))
+          ;; this is already a callback so do we need to:
+          ;; https://stackoverflow.com/questions/40504796/asynchrous-copy-file-and-copy-directory-in-emacs-lisp
+          (url-copy-file img-uri image-file-name)
+          (fin-insert-book-data appended-alist)))))
+  (goto-char (point-min))
   (org-toggle-inline-images))
 
-(defun insert-book-data (book-data-alist)
+(defun fin-insert-book-data (book-data-alist)
   "Insert into the current buffer contents from BOOK-DATA-ALIST."
   (let ((title (alist-get 'title book-data-alist))
         (author (alist-get 'author book-data-alist))
@@ -104,8 +106,8 @@
                  'face
                  'emacs-fin-book-descriptions)))
 
-;; (get-data)
-;; (process-data '(((title . "Flowers for Algernon") (author . "Daniel Keyes") (description . "'A masterpiece of poignant brilliance . . . heartbreaking' Guardian Charlie Gordon, a floor sweeper born with an unusually low IQ, has been chosen as the perfect subject for an experimental surgery that doctors hope will increase his intelligence - a procedure that has been highly successful when tested on a lab mouse named Algernon. All Charlie wants is to be smart and have friends, but the treatement turns him into a genius. Then Algernon begins to fade. What will become of Charlie?") (thumbnailUri . "http://books.google.com/books/content?id=VbOtAQAACAAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api"))))
+;; (fin-get-data)
+;; (fin-process-data '(((title . "Flowers for Algernon") (author . "Daniel Keyes") (description . "'A masterpiece of poignant brilliance . . . heartbreaking' Guardian Charlie Gordon, a floor sweeper born with an unusually low IQ, has been chosen as the perfect subject for an experimental surgery that doctors hope will increase his intelligence - a procedure that has been highly successful when tested on a lab mouse named Algernon. All Charlie wants is to be smart and have friends, but the treatement turns him into a genius. Then Algernon begins to fade. What will become of Charlie?") (thumbnailUri . "http://books.google.com/books/content?id=VbOtAQAACAAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api"))))
 
 (provide 'emacs-fin)
 ;;; emacs-fin.el ends here
