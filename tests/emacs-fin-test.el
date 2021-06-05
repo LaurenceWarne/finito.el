@@ -15,19 +15,17 @@
     (expect (1+ 1) :to-equal 2)))
 
 (describe "fin-insert-book-data"
-          (it "test inserted data is reasonable"
-              (let ((fn-output))
-                (cl-letf* (((symbol-function 'insert)
-                            (lambda (string) (add-to-list 'fn-output string t)))
-                           ((symbol-function 'overlay-put) #'ignore))
-                  (fin-insert-book-data
-                   '((title . "Flowers for Algernon")
-                     (author . "Daniel Keyes")
-                     (description . "A description.")
-                     (image-file-name . "/some/random/image.png"))))
-                (print fn-output)
-                (expect fn-output :to-equal '("foo"))
-                ;; (expect (cl-search "flowers for algernon"
-                ;;                    (downcase (mapconcat #'identity fn-output "\n")))
-                ;;         :not :to-be nil)
-                )))
+  (before-each
+    (spy-on 'insert :and-call-fake #'identity))
+  (it "test inserted data is reasonable"
+    (cl-letf (((symbol-function 'overlay-put) #'ignore))
+      (fin-insert-book-data
+       '((title . "Flowers for Algernon")
+         (author . "Daniel Keyes")
+         (description . "A description.")
+         (image-file-name . "/some/random/image.png")))
+      (expect
+       (downcase
+        (mapconcat #'spy-context-return-value (spy-calls-all 'insert) ""))
+       :to-match
+       "flowers for algernon"))))
