@@ -14,6 +14,9 @@
   (it "test foo"
     (expect (1+ 1) :to-equal 2)))
 
+(defmacro in-modified-environment (printed-vars body)
+  )
+
 (describe "fin-insert-book-data"
   (before-each
     (spy-on 'insert :and-call-fake #'identity))

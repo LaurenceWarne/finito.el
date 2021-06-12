@@ -39,6 +39,12 @@
   "Emacs client to fin"
   :group 'books)
 
+(defcustom fin-insert-book-data
+  #'fin--insert-book-data
+  "A function which takes book data in the form of an alist, should process and insert it into the current buffer in some way, and then return the lines which contain the content."
+  :group 'emacs-fin
+  :type 'function)
+
 (defface emacs-fin-author-name
   '((t :foreground "aquamarine"
        :weight bold
@@ -51,8 +57,11 @@
   "Face for book descriptions."
   :group 'emacs-fin)
 
-(defun fin-get-data()
-  (request "http://localhost:8080/api/graphql"
+(defvar host-uri "http://localhost:8080/api/graphql")
+
+(defun fin-get-data ()
+  "Make a request for book data to `host-uri' and insert the contents into a new buffer after completion."
+  (request host-uri
     :headers '(("Content-Type" . "application/json")
                ("Accept" . "application/json"))
     :data "{\"query\":\"\\nquery {\\n  books(titleKeywords: \\\"harry\\\", authorKeywords: \\\"rowling\\\") {\\n    title\\n    author\\n    description\\n    isbn\\n    thumbnailUri\\n  }\\n}\"}"
@@ -65,6 +74,7 @@
                 (fin-process-data (cdadar data))))))
 
 (defun fin-process-data (data)
+  "Output the book data DATA in a buffer."
   (switch-to-buffer "Books")
   (org-mode)
   (insert "* Books\n\n")
@@ -80,31 +90,38 @@
                       (concat title isbn ".jpeg")))
              (appended-alist `((image-file-name . ,image-file-name) . ,book)))
         (if (f-exists-p image-file-name)
-            (progn (print "already exists")
-                   (fin-insert-book-data appended-alist))
+            (fin-insert-book-data appended-alist)
           (print (concat "Retrieving img: " img-uri))
           ;; this is already a callback so do we need to:
           ;; https://stackoverflow.com/questions/40504796/asynchrous-copy-file-and-copy-directory-in-emacs-lisp
           (url-copy-file img-uri image-file-name)
-          (fin-insert-book-data appended-alist)))))
+          (funcall fin-insert-book-data appended-alist)))))
   (goto-char (point-min))
+  ;; TODO should not be toggle, should be show
   (org-toggle-inline-images))
 
-(defun fin-insert-book-data (book-data-alist)
+(defmacro fin--execute-and-return-start-and-end-lines (body)
+  "Execute BODY and return the position of the cursor in the current buffer before BODY was executed, and the position after it was executed."
+  `(let ((start (line-number-at-pos)))
+     ,body
+     (list start (line-number-at-pos))))
+
+(defun fin--insert-book-data (book-data-alist)
   "Insert into the current buffer contents from BOOK-DATA-ALIST."
-  (let ((title (alist-get 'title book-data-alist))
-        (author (alist-get 'author book-data-alist))
-        (description (alist-get 'description book-data-alist))
-        (image-file-name (alist-get 'image-file-name book-data-alist)))
-    (insert (concat "** " title "\n\n"))
-    (insert (concat "[[" image-file-name "]]  " author "\n\n"))
-    (overlay-put (make-overlay (- (point) 2) (- (point) (length author) 2))
-                 'face
-                 'emacs-fin-author-name)
-    (insert (concat description "\n\n"))
-    (overlay-put (make-overlay (- (point) 2) (- (point) (length description) 2))
-                 'face
-                 'emacs-fin-book-descriptions)))
+  (fin--execute-and-return-start-and-end-lines
+   (let ((title (alist-get 'title book-data-alist))
+         (author (alist-get 'author book-data-alist))
+         (description (alist-get 'description book-data-alist))
+         (image-file-name (alist-get 'image-file-name book-data-alist)))
+     (insert (concat "** " title "\n\n"))
+     (insert (concat "[[" image-file-name "]]  " author "\n\n"))
+     (overlay-put (make-overlay (- (point) 2) (- (point) (length author) 2))
+                  'face
+                  'emacs-fin-author-name)
+     (insert (concat description "\n\n"))
+     (overlay-put (make-overlay (- (point) 2) (- (point) (length description) 2))
+                  'face
+                  'emacs-fin-book-descriptions))))
 
 ;; (fin-get-data)
 ;; (fin-process-data '(((title . "Flowers for Algernon") (author . "Daniel Keyes") (description . "'A masterpiece of poignant brilliance . . . heartbreaking' Guardian Charlie Gordon, a floor sweeper born with an unusually low IQ, has been chosen as the perfect subject for an experimental surgery that doctors hope will increase his intelligence - a procedure that has been highly successful when tested on a lab mouse named Algernon. All Charlie wants is to be smart and have friends, but the treatement turns him into a genius. Then Algernon begins to fade. What will become of Charlie?") (thumbnailUri . "http://books.google.com/books/content?id=VbOtAQAACAAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api"))))
