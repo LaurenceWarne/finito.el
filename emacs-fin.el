@@ -90,7 +90,7 @@
                       (concat title isbn ".jpeg")))
              (appended-alist `((image-file-name . ,image-file-name) . ,book)))
         (if (f-exists-p image-file-name)
-            (fin-insert-book-data appended-alist)
+            (funcall fin-insert-book-data appended-alist)
           (print (concat "Retrieving img: " img-uri))
           ;; this is already a callback so do we need to:
           ;; https://stackoverflow.com/questions/40504796/asynchrous-copy-file-and-copy-directory-in-emacs-lisp
