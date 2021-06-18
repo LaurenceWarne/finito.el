@@ -45,6 +45,12 @@
   :group 'finito
   :type 'function)
 
+(defcustom finito-image-cache-dir
+  (f-join user-emacs-directory "finito-images/")
+  "The directory used to cache images."
+  :group 'finito
+  :type 'string)
+
 (defface finito-author-name
   '((t :foreground "aquamarine"
        :weight bold
@@ -82,30 +88,46 @@
 
 (defun finito-process-data (data)
   "Output the book data DATA in a buffer."
+  (unless (f-dir-p finito-image-cache-dir) (f-mkdir finito-image-cache-dir))
   (switch-to-buffer "Books")
   (org-mode)
   (insert "* Books\n\n")
   ;; Vector to list)
   (-each (append data nil)
     (lambda (book)
-      (let* ((title (s-replace " " "-" (downcase (alist-get 'title book))))
-             (isbn (alist-get 'isbn book))
-             (img-uri (alist-get 'thumbnailUri book))
-             (image-file-name
-              (f-join user-emacs-directory
-                      "finito-images/"
-                      (concat title isbn ".jpeg")))
-             (appended-alist `((image-file-name . ,image-file-name) . ,book)))
-        (if (f-exists-p image-file-name)
-            (funcall finito-insert-book-data appended-alist)
-          (message (concat "Retrieving img: " img-uri))
-          ;; this is already a callback so do we need to:
-          ;; https://stackoverflow.com/questions/40504796/asynchrous-copy-file-and-copy-directory-in-emacs-lisp
-          (url-copy-file img-uri image-file-name)
-          (funcall finito-insert-book-data appended-alist)))))
+      (let ((book-alist (finito--create-book-alist book)))
+        (let-alist book-alist
+          (if (f-exists-p .image-file-name)
+              (funcall finito-insert-book-data book-alist)
+            (message (concat "Retrieving img: " .img-uri))
+            ;; this is already a callback so do we need to:
+            ;; https://stackoverflow.com/questions/40504796/asynchrous-copy-file-and-copy-directory-in-emacs-lisp
+            (url-copy-file .img-uri .image-file-name)
+            (funcall finito-insert-book-data book-alist))))))
   (goto-char (point-min))
   ;; TODO should not be toggle, should be show
   (org-toggle-inline-images))
+
+(defun finito--create-book-alist (book-response)
+  "Return an alist containing book information gleaned from BOOK-RESPONSE.
+
+The alist will contain the following keys:
+title
+author
+description
+isbn
+img-uri
+image-file-name"
+  (let-alist book-response
+    (let* ((title-de-spaced (s-replace " " "-" (downcase .title)))
+           (image-file-name (f-join finito-image-cache-dir
+                                    (concat title-de-spaced .isbn ".jpeg"))))
+      `((title . ,.title)
+        (author . ,.author)
+        (description . ,.description)
+        (isbn . ,.isbn)
+        (img-uri . ,.thumbnailUri)
+        (image-file-name . ,image-file-name)))))
 
 (defun finito--insert-book-data (book-data-alist)
   "Insert into the current buffer contents from BOOK-DATA-ALIST."
@@ -126,13 +148,17 @@
 ;;; Interactive functions
 
 (defun finito-search-for-books (arg title-keywords author-keywords)
+  "Search for books by title and author, and insert the results in a buffer.
+
+Search for books matching TITLE-KEYWORDS and AUTHOR-KEYWORDS.  With any non-nil
+prefix arg ARG, message an equivalent curl instead of sending a request."
   (interactive "P\nsPlease input title keywords: \nsPlease input author keywords: ")
   (if arg
       (kill-new (message "curl -X GET https://www.googleapis.com/books/v1/volumes?q=%s+inauthor:%s&printType=books&langRestrict=en" title-keywords author-keywords))
     (let ((request-plist (finito--get-request-plist title-keywords author-keywords)))
       (finito--make-request request-plist))))
 
-;; (finito-search-for-books nil "torturer" "wolfe")
+;; (finito-search-for-books nil "star" "david-brin")
 ;; (finito-process-data '(((title . "Flowers for Algernon") (author . "Daniel Keyes") (description . "'A masterpiece of poignant brilliance . . . heartbreaking' Guardian Charlie Gordon, a floor sweeper born with an unusually low IQ, has been chosen as the perfect subject for an experimental surgery that doctors hope will increase his intelligence - a procedure that has been highly successful when tested on a lab mouse named Algernon. All Charlie wants is to be smart and have friends, but the treatement turns him into a genius. Then Algernon begins to fade. What will become of Charlie?") (thumbnailUri . "http://books.google.com/books/content?id=VbOtAQAACAAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api"))))
 
 (provide 'finito)
