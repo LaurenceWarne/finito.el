@@ -24,6 +24,7 @@
 ;;; Code:
 
 (require 's)
+(require 'transient)
 
 ;;; Transients
 
@@ -52,17 +53,6 @@
    ("d" "Delete a Collection"     ignore)
    ("i" "Import a Collection"     ignore)
    ("e" "Export a Collection"     ignore)])
-
-(defun finito-request (&optional args)
-  (interactive
-   (list (transient-args 'finito-search)))
-  ;; TODO how can I make this so that I don't have to parse the arg from arg-name=arg?
-  (cl-flet* ((parse-arg (st) (car (last (s-split "=" st))))
-             (get-arg (arg)
-                      (parse-arg (or (--first (s-starts-with-p arg it) args) ""))))
-    (let ((title-kws (get-arg "title"))
-          (author-kws (get-arg "author")))
-      (finito-search-for-books nil title-kws author-kws))))
 
 (provide 'finito-view)
 ;;; finito-view.el ends here

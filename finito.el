@@ -39,7 +39,7 @@
 (require 'finito-view)
 
 (defgroup finito nil
-  "Emacs client to fin"
+  "Emacs client to finito"
   :group 'books)
 
 (defcustom finito-insert-book-data
@@ -150,7 +150,18 @@ image-file-name"
                  'face
                  'finito-book-descriptions)))
 
-;;; Interactive functions
+;;; Commands
+
+(defun finito-request (&optional args)
+  (interactive
+   (list (transient-args 'finito-search)))
+  ;; TODO how can I make this so that I don't have to parse the arg from arg-name=arg?
+  (cl-flet* ((parse-arg (st) (car (last (s-split "=" st))))
+             (get-arg (arg)
+                      (parse-arg (or (--first (s-starts-with-p arg it) args) ""))))
+    (let ((title-kws (get-arg "title"))
+          (author-kws (get-arg "author")))
+      (finito-search-for-books nil title-kws author-kws))))
 
 (defun finito-search-for-books (arg title-keywords author-keywords)
   "Search for books by title and author, and insert the results in a buffer.
@@ -163,9 +174,6 @@ prefix arg ARG, message an equivalent curl instead of sending a request."
         (kill-new (message url)))
     (let ((request-plist (finito--get-request-plist title-keywords author-keywords)))
       (finito--make-request request-plist))))
-
-;; (finito-search-for-books nil "star" "david-brin")
-;; (finito-process-data '(((title . "Flowers for Algernon") (author . "Daniel Keyes") (description . "'A masterpiece of poignant brilliance . . . heartbreaking' Guardian Charlie Gordon, a floor sweeper born with an unusually low IQ, has been chosen as the perfect subject for an experimental surgery that doctors hope will increase his intelligence - a procedure that has been highly successful when tested on a lab mouse named Algernon. All Charlie wants is to be smart and have friends, but the treatement turns him into a genius. Then Algernon begins to fade. What will become of Charlie?") (thumbnailUri . "http://books.google.com/books/content?id=VbOtAQAACAAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api"))))
 
 (provide 'finito)
 ;;; finito.el ends here
