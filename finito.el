@@ -1,4 +1,4 @@
-;;; finito.el --- View books -*- lexical-binding: t -*-
+;;; finito.el --- View and collect books in Emacs -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2021 Laurence Warne
 
@@ -36,6 +36,8 @@
 (require 's)
 (require 'transient)
 
+(require 'finito-view)
+
 (defgroup finito nil
   "Emacs client to fin"
   :group 'books)
@@ -66,27 +68,7 @@
 
 (defvar finito--host-uri "http://localhost:8080/api/graphql")
 
-;;; Transients
-
-(transient-define-prefix finito-search ()
-  "Search for books."
-  ["Variables"
-   ("t" "Title" "title=" read-string)
-   ("a" "Author" "author=" read-string)]
-  ["Actions"
-   ("c" "Copy Curl"     finito-request)
-   ("s" "Search"        finito-request)])
-
-(defun finito-request (&optional args)
-  (interactive
-   (list (transient-args 'finito-search)))
-  ;; TODO how can I make this so that I don't have to parse the arg from arg-name=arg?
-  (cl-flet* ((parse-arg (st) (car (last (s-split "=" st))))
-             (get-arg (arg)
-                      (parse-arg (or (--first (s-starts-with-p arg it) args) ""))))
-    (let ((title-kws (get-arg "title"))
-          (author-kws (get-arg "author")))
-      (finito-search-for-books nil title-kws author-kws))))
+;;; Misc functions
 
 (defun finito--get-request-plist (title-keywords author-keywords)
   "Return a plist with headers and body deduced from TITLE-KEYWORDS and AUTHOR-KEYWORDS."
