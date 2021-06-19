@@ -7,7 +7,7 @@
 ;; Version: 0.1
 ;; Keywords: books
 ;; URL: https://github.com/LaurenceWarne/libro-finito
-;; Package-Requires: ((emacs "27") (dash "2.17.0") (cl-lib "0.3") (request "0.3.2") (f "0.2.0") (s "1.12.0"))
+;; Package-Requires: ((emacs "27") (dash "2.17.0") (cl-lib "0.3") (request "0.3.2") (f "0.2.0") (s "1.12.0") (transient "0.3.5"))
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -34,6 +34,7 @@
 (require 'org)
 (require 'request)
 (require 's)
+(require 'transient)
 
 (defgroup finito nil
   "Emacs client to fin"
@@ -64,6 +65,28 @@
   :group 'finito)
 
 (defvar finito--host-uri "http://localhost:8080/api/graphql")
+
+;;; Transients
+
+(transient-define-prefix finito-search ()
+  "Search for books."
+  ["Variables"
+   ("t" "Title" "title=" read-string)
+   ("a" "Author" "author=" read-string)]
+  ["Actions"
+   ("c" "Copy Curl"     finito-request)
+   ("s" "Search"        finito-request)])
+
+(defun finito-request (&optional args)
+  (interactive
+   (list (transient-args 'finito-search)))
+  ;; TODO how can I make this so that I don't have to parse the arg from arg-name=arg?
+  (cl-flet* ((parse-arg (st) (car (last (s-split "=" st))))
+             (get-arg (arg)
+                      (parse-arg (or (--first (s-starts-with-p arg it) args) ""))))
+    (let ((title-kws (get-arg "title"))
+          (author-kws (get-arg "author")))
+      (finito-search-for-books nil title-kws author-kws))))
 
 (defun finito--get-request-plist (title-keywords author-keywords)
   "Return a plist with headers and body deduced from TITLE-KEYWORDS and AUTHOR-KEYWORDS."
@@ -154,7 +177,8 @@ Search for books matching TITLE-KEYWORDS and AUTHOR-KEYWORDS.  With any non-nil
 prefix arg ARG, message an equivalent curl instead of sending a request."
   (interactive "P\nsPlease input title keywords: \nsPlease input author keywords: ")
   (if arg
-      (kill-new (message "curl -X GET https://www.googleapis.com/books/v1/volumes?q=%s+inauthor:%s&printType=books&langRestrict=en" title-keywords author-keywords))
+      (let ((url (url-hexify-string (format "https://www.googleapis.com/books/v1/volumes?q=%s+inauthor:%s&printType=books&langRestrict=en" title-keywords author-keywords))))
+        (kill-new (message url)))
     (let ((request-plist (finito--get-request-plist title-keywords author-keywords)))
       (finito--make-request request-plist))))
 

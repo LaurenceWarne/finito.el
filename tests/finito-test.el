@@ -10,7 +10,7 @@
 (require 'finito)
 (require 'cl-lib)
 
-(defmacro in-stubbed-buffer (printed-vars body)
+(defmacro in-stubbed-buffer (inserted-var body &rest expectations)
   )
 
 (describe "finito--insert-book-data"
