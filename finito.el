@@ -24,7 +24,7 @@
 
 ;;; Commentary:
 ;;
-;; An Emacs client for finito.
+;; An Emacs interface for viewing and searching for books.
 
 ;;; Code:
 
@@ -44,7 +44,10 @@
 
 (defcustom finito-insert-book-data
   #'finito--insert-book-data
-  "A function which takes book data in the form of an alist, should process and insert it into the current buffer in some way, and then return the lines which contain the content."
+  "Function to insert book data into the current buffer.
+
+The function should take book data in the form of an alist, and insert info
+into the current buffer."
   :group 'finito
   :type 'function)
 
@@ -153,6 +156,7 @@ image-file-name"
 ;;; Commands
 
 (defun finito-request (&optional args)
+  "Send a request to the finito server using transient args ARGS."
   (interactive
    (list (transient-args 'finito-search)))
   ;; TODO how can I make this so that I don't have to parse the arg from arg-name=arg?
