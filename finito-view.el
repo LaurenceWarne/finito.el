@@ -31,8 +31,10 @@
 (transient-define-prefix finito-dispatch ()
   "Search for books."
   ["Actions"
-   ("s" "Search"      finito-search)
-   ("c" "Collections" finito-collection)])
+   ("m" "My Books"          ignore)
+   ("r" "Currently Reading" ignore)
+   ("s" "Search"            finito-search)
+   ("c" "Collections"       finito-collection)])
 
 (transient-define-prefix finito-search ()
   "Search for books."

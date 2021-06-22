@@ -3,4 +3,6 @@
 ;; Autodetermined by `eldev init'.
 (eldev-use-package-archive 'melpa)
 
+(eldev-use-plugin 'undercover)
+
 (setq eldev-test-framework 'buttercup)
