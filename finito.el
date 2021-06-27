@@ -75,11 +75,20 @@ into the current buffer."
 
 (defun finito--get-request-plist (title-keywords author-keywords)
   "Return a plist with headers and body deduced from TITLE-KEYWORDS and AUTHOR-KEYWORDS."
-  `(:headers
-    (("Content-Type" . "application/json")
-     ("Accept" . "application/json"))
-    :data
-    ,(format "{\"query\":\"\\nquery {\\n  books(titleKeywords: \\\"%s\\\", authorKeywords: \\\"%s\\\") {\\n    title\\n    author\\n    description\\n    isbn\\n    thumbnailUri\\n  }\\n}\"}" title-keywords author-keywords)))
+  (let* ((title-keywords-str
+          (when (> (length title-keywords) 0)
+            (format "titleKeywords: \\\"%s\\\"" title-keywords)))
+         (author-keywords-str
+          (when (> (length author-keywords) 0)
+            (format "authorKeywords: \\\"%s\\\"" author-keywords)))
+         (query-str
+          (mapconcat #'identity
+                     (list title-keywords-str author-keywords-str) ",")))
+    `(:headers
+      (("Content-Type" . "application/json")
+       ("Accept" . "application/json"))
+      :data
+      ,(format "{\"query\":\"\\nquery {\\n  books(%s) {\\n    title\\n    authors\\n    description\\n    isbn\\n    thumbnailUri\\n  }\\n}\"}" query-str))))
 
 (defun finito--make-request (request-plist)
   "Make a request for book data to `finito--host-uri' using REQUEST-PLIST and insert the contents into a new buffer after completion."
@@ -92,10 +101,15 @@ into the current buffer."
     	           (message "Got error: %S" error-thrown)))
     :success (cl-function
     	      (lambda (&key data &allow-other-keys)
-                (finito-process-data (cdadar data))))))
+                (let ((response-indicator (caadr data)))
+                  (if (equal response-indicator 'errors)
+                      ;; Error doesn't seem to do anything here
+                      (message "Received error in gql response: %s" (cadr data))
+                    (finito-process-data (cdadar data))))))))
 
 (defun finito-process-data (data)
   "Output the book data DATA in a buffer."
+  (message "Found %s books in response" (length data))
   (unless (f-dir-p finito-image-cache-dir) (f-mkdir finito-image-cache-dir))
   (switch-to-buffer "Books")
   (org-mode)
@@ -121,7 +135,7 @@ into the current buffer."
 
 The alist will contain the following keys:
 title
-author
+authors
 description
 isbn
 img-uri
@@ -131,7 +145,7 @@ image-file-name"
            (image-file-name (f-join finito-image-cache-dir
                                     (concat title-de-spaced .isbn ".jpeg"))))
       `((title . ,.title)
-        (author . ,.author)
+        (authors . ,.authors)
         (description . ,.description)
         (isbn . ,.isbn)
         (img-uri . ,.thumbnailUri)
@@ -139,13 +153,14 @@ image-file-name"
 
 (defun finito--insert-book-data (book-data-alist)
   "Insert into the current buffer contents from BOOK-DATA-ALIST."
-  (let ((title (alist-get 'title book-data-alist))
-        (author (alist-get 'author book-data-alist))
-        (description (alist-get 'description book-data-alist))
-        (image-file-name (alist-get 'image-file-name book-data-alist)))
+  (let* ((title (alist-get 'title book-data-alist))
+         (authors (alist-get 'authors book-data-alist))
+         (authors-str (mapconcat #'identity authors ", "))
+         (description (alist-get 'description book-data-alist))
+         (image-file-name (alist-get 'image-file-name book-data-alist)))
     (insert (concat "** " title "\n\n"))
-    (insert (concat "[[" image-file-name "]]  " author "\n\n"))
-    (overlay-put (make-overlay (- (point) 2) (- (point) (length author) 2))
+    (insert (concat "[[" image-file-name "]]  " authors-str "\n\n"))
+    (overlay-put (make-overlay (- (point) 2) (- (point) (length authors-str) 2))
                  'face
                  'finito-author-name)
     (insert (concat description "\n\n"))
