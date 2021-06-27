@@ -7,7 +7,7 @@
 ;; Version: 0.1
 ;; Keywords: books
 ;; URL: https://github.com/LaurenceWarne/libro-finito
-;; Package-Requires: ((emacs "27") (dash "2.17.0") (cl-lib "0.3") (request "0.3.2") (f "0.2.0") (s "1.12.0") (transient "0.3.5"))
+;; Package-Requires: ((emacs "27") (dash "2.17.0") (cl-lib "0.3") (request "0.3.2") (f "0.2.0") (s "1.12.0") (transient "0.3.5") (graphql "0.1.1"))
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -35,6 +35,7 @@
 (require 'request)
 (require 's)
 (require 'transient)
+(require 'graphql)
 
 (require 'finito-view)
 
@@ -57,6 +58,17 @@ into the current buffer."
   :group 'finito
   :type 'string)
 
+(defconst finito--search-query
+  (graphql-query
+   ((books
+     :arguments ((authorKeywords . ($ authorKeywords))
+                 (titleKeywords . ($ titleKeywords))
+                 (maxResults . ($ maxResults)))
+     title authors description isbn thumbnailUri))))
+
+(defconst finito--search-query-variables
+  "{\"$authorKeywords\": \"%s\", \"$titleKeywords\": \"%s\", \"$maxResults\": \"%s\"}")
+
 (defface finito-author-name
   '((t :foreground "aquamarine"
        :weight bold
@@ -73,24 +85,21 @@ into the current buffer."
 
 ;;; Misc functions
 
-(defun finito--get-search-request-plist (title-keywords author-keywords)
-  "Return a plist with headers and body deduced from TITLE-KEYWORDS and AUTHOR-KEYWORDS."
-  (let* ((title-keywords-str
-          (when (> (length title-keywords) 0)
-            (format "titleKeywords: \\\"%s\\\"" title-keywords)))
-         (author-keywords-str
-          (when (> (length author-keywords) 0)
-            (format "authorKeywords: \\\"%s\\\"" author-keywords)))
-         (query-str
-          (mapconcat #'identity
-                     (list title-keywords-str author-keywords-str) ",")))
-    (unless (or title-keywords-str author-keywords-str)
-      (error "At least one of title-keywords and author-keywords must be specified and be nonempty"))
+(defun finito--get-search-request-plist
+    (title-keywords author-keywords &optional max-results)
+  "Return a plist with headers and body deduced from TITLE-KEYWORDS, AUTHOR-KEYWORDS and MAX-RESULTS."
+  (let* ((query-variable-str
+          (format finito--search-query-variables
+                  (if (> (length author-keywords) 0) author-keywords "null")
+                  (if (> (length title-keywords) 0) title-keywords "null")
+                  (or max-results "null"))))
     `(:headers
       (("Content-Type" . "application/json")
        ("Accept" . "application/json"))
       :data
-      ,(format "{\"query\":\"\\nquery {\\n  books(%s) {\\n    title\\n    authors\\n    description\\n    isbn\\n    thumbnailUri\\n  }\\n}\"}" query-str))))
+      ,(format "{\"query\":\"%s\", \"variables\": %s\}"
+               finito--search-query
+               query-variable-str))))
 
 (defun finito--make-request (request-plist)
   "Make a request for book data to `finito--host-uri' using REQUEST-PLIST and insert the contents into a new buffer after completion."

@@ -14,10 +14,6 @@
   )
 
 (describe "finito--get-search-request-plist"
-  (it "test error when title and author keywords empty strings"
-    (expect (finito--get-search-request-plist "" "") :to-throw))
-  (it "test error when title and author keywords both nil"
-    (expect (finito--get-search-request-plist nil nil) :to-throw))
   (it "test plist has headers and data"
     (let ((plist (finito--get-search-request-plist "foo" "bar")))
       (expect (plist-get plist :headers))
