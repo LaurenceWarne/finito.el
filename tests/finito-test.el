@@ -13,6 +13,16 @@
 (defmacro in-stubbed-buffer (inserted-var body &rest expectations)
   )
 
+(describe "finito--get-search-request-plist"
+  (it "test error when title and author keywords empty strings"
+    (expect (finito--get-search-request-plist "" "") :to-throw))
+  (it "test error when title and author keywords both nil"
+    (expect (finito--get-search-request-plist nil nil) :to-throw))
+  (it "test plist has headers and data"
+    (let ((plist (finito--get-search-request-plist "foo" "bar")))
+      (expect (plist-get plist :headers))
+      (expect (plist-get plist :data)))))
+
 (describe "finito--insert-book-data"
   (before-each
     (spy-on 'insert :and-call-fake #'identity))
@@ -20,7 +30,7 @@
     (cl-letf (((symbol-function 'overlay-put) #'ignore))
       (finito--insert-book-data
        '((title . "Flowers for Algernon")
-         (author . "Daniel Keyes")
+         (authors . ["Daniel Keyes"])
          (description . "A description.")
          (image-file-name . "/some/random/image.png")))
       (expect
@@ -33,14 +43,14 @@
   (it "test book alist contains all keys with correct values"
     (let ((finito-image-cache-dir "cache/directory")
           (response-alist '((title . "Foo Title")
-                            (author . "bar")
+                            (authors . ["bar"])
                             (description . "foo description")
                             (isbn . "isbn")
                             (thumbnailUri . "https://random-url"))))
       (expect (finito--create-book-alist response-alist)
               :to-equal
               '((title . "Foo Title")
-                (author . "bar")
+                (authors . ["bar"])
                 (description . "foo description")
                 (isbn . "isbn")
                 (img-uri . "https://random-url")

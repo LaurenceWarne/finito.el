@@ -73,7 +73,7 @@ into the current buffer."
 
 ;;; Misc functions
 
-(defun finito--get-request-plist (title-keywords author-keywords)
+(defun finito--get-search-request-plist (title-keywords author-keywords)
   "Return a plist with headers and body deduced from TITLE-KEYWORDS and AUTHOR-KEYWORDS."
   (let* ((title-keywords-str
           (when (> (length title-keywords) 0)
@@ -84,6 +84,8 @@ into the current buffer."
          (query-str
           (mapconcat #'identity
                      (list title-keywords-str author-keywords-str) ",")))
+    (unless (or title-keywords-str author-keywords-str)
+      (error "At least one of title-keywords and author-keywords must be specified and be nonempty"))
     `(:headers
       (("Content-Type" . "application/json")
        ("Accept" . "application/json"))
@@ -191,7 +193,7 @@ prefix arg ARG, message an equivalent curl instead of sending a request."
   (if arg
       (let ((url (url-hexify-string (format "https://www.googleapis.com/books/v1/volumes?q=%s+inauthor:%s&printType=books&langRestrict=en" title-keywords author-keywords))))
         (kill-new (message url)))
-    (let ((request-plist (finito--get-request-plist title-keywords author-keywords)))
+    (let ((request-plist (finito--get-search-request-plist title-keywords author-keywords)))
       (finito--make-request request-plist))))
 
 (provide 'finito)
