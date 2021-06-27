@@ -35,8 +35,8 @@
 (require 'request)
 (require 's)
 (require 'transient)
-(require 'graphql)
 
+(require 'finito-graphql)
 (require 'finito-view)
 
 (defgroup finito nil
@@ -57,17 +57,6 @@ into the current buffer."
   "The directory used to cache images."
   :group 'finito
   :type 'string)
-
-(defconst finito--search-query
-  (graphql-query
-   ((books
-     :arguments ((authorKeywords . ($ authorKeywords))
-                 (titleKeywords . ($ titleKeywords))
-                 (maxResults . ($ maxResults)))
-     title authors description isbn thumbnailUri))))
-
-(defconst finito--search-query-variables
-  "{\"$authorKeywords\": \"%s\", \"$titleKeywords\": \"%s\", \"$maxResults\": \"%s\"}")
 
 (defface finito-author-name
   '((t :foreground "aquamarine"
@@ -93,6 +82,9 @@ into the current buffer."
                   (if (> (length author-keywords) 0) author-keywords "null")
                   (if (> (length title-keywords) 0) title-keywords "null")
                   (or max-results "null"))))
+    (print (format "{\"query\":\"%s\", \"variables\": %s\}"
+               finito--search-query
+               query-variable-str))
     `(:headers
       (("Content-Type" . "application/json")
        ("Accept" . "application/json"))
@@ -185,15 +177,11 @@ image-file-name"
   "Send a request to the finito server using transient args ARGS."
   (interactive
    (list (transient-args 'finito-search)))
-  ;; TODO how can I make this so that I don't have to parse the arg from arg-name=arg?
-  (cl-flet* ((parse-arg (st) (car (last (s-split "=" st))))
-             (get-arg (arg)
-                      (parse-arg (or (--first (s-starts-with-p arg it) args) ""))))
-    (let ((title-kws (get-arg "title"))
-          (author-kws (get-arg "author")))
-      (finito-search-for-books nil title-kws author-kws))))
+  (cl-multiple-value-bind (title-kws author-kws isbn) args
+    (finito-search-for-books nil title-kws author-kws)))
 
-(defun finito-search-for-books (arg title-keywords author-keywords)
+(defun finito-search-for-books
+    (arg title-keywords author-keywords &optional max-results)
   "Search for books by title and author, and insert the results in a buffer.
 
 Search for books matching TITLE-KEYWORDS and AUTHOR-KEYWORDS.  With any non-nil
@@ -202,7 +190,8 @@ prefix arg ARG, message an equivalent curl instead of sending a request."
   (if arg
       (let ((url (url-hexify-string (format "https://www.googleapis.com/books/v1/volumes?q=%s+inauthor:%s&printType=books&langRestrict=en" title-keywords author-keywords))))
         (kill-new (message url)))
-    (let ((request-plist (finito--get-search-request-plist title-keywords author-keywords)))
+    (let ((request-plist
+           (finito--get-search-request-plist title-keywords author-keywords max-results)))
       (finito--make-request request-plist))))
 
 (provide 'finito)

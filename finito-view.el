@@ -28,6 +28,50 @@
 
 ;;; Transients
 
+(defclass finito--transient-argument (transient-argument) ())
+
+(cl-defmethod transient-format-value ((obj finito--transient-argument))
+  (let ((value (oref obj value)))
+    (propertize (concat (oref obj argument)
+                        (if (listp value)
+                            (mapconcat #'identity value ",")
+                          value))
+                'face (if value
+                          'transient-value
+                        'transient-inactive-value))))
+
+;; We always want a value to show up in ARGS for a transient arg function, so
+;; we return the empty string instead of nil, since nil implies an unspecified
+;; value
+;; TODO can I get an alist/plist instead?
+(cl-defmethod transient-infix-value ((obj finito--transient-argument))
+  "Return the value of OBJ's `value' slot."
+  (or (oref obj value) ""))
+
+;;; Infix Arguments
+
+(define-infix-argument finito--title-arg ()
+  :class 'finito--transient-argument
+  :key "t"
+  :argument "title=")
+
+(define-infix-argument finito--author-arg ()
+  :class 'finito--transient-argument
+  :key "a"
+  :argument "author=")
+
+(define-infix-argument finito--isbn-arg ()
+  :class 'finito--transient-argument
+  :key "i"
+  :argument "isbn=")
+
+(define-infix-argument finito--max-results-arg ()
+  :class 'finito--transient-argument
+  :key "n"
+  :argument "max results=")
+
+;;; Prefixes
+
 (transient-define-prefix finito-dispatch ()
   "Search for books."
   ["Actions"
@@ -39,9 +83,10 @@
 (transient-define-prefix finito-search ()
   "Search for books."
   ["Variables"
-   ("t" "Title"  "title="  read-string)
-   ("a" "Author" "author=" read-string)
-   ("i" "isbn"   "isbn="   read-string)]
+   (finito--title-arg :description "Title" :prompt "Title: ")
+   (finito--author-arg :description "Author" :prompt "Author: ")
+   (finito--isbn-arg :description "ISBN" :prompt "ISBN: ")
+   (finito--max-results-arg :description "Max Results" :prompt "Max results: ")]
   ["Actions"
    ;("c" "Copy Curl"     finito-request)
    ("s" "Search"        finito-request)])
