@@ -13,9 +13,9 @@
 (defmacro in-stubbed-buffer (inserted-var body &rest expectations)
   )
 
-(describe "finito--get-search-request-plist"
+(describe "finito--search-request-plist"
   (it "test plist has headers and data"
-    (let ((plist (finito--get-search-request-plist "foo" "bar")))
+    (let ((plist (finito--search-request-plist "foo" "bar")))
       (expect (plist-get plist :headers))
       (expect (plist-get plist :data)))))
 
@@ -50,4 +50,4 @@
                 (description . "foo description")
                 (isbn . "isbn")
                 (img-uri . "https://random-url")
-                (image-file-name . "cache/directory/foo-titleisbn.jpeg"))))))
+                (image-file-name . "cache/directory/footitleisbn.jpeg"))))))

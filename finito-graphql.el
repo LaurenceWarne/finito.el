@@ -46,11 +46,11 @@
   (graphql-query
    (:arguments
     (($isbn . String!))
-    (books
+    (book
      :arguments ((isbn . ($ isbn)))
      title authors description isbn thumbnailUri))))
 
-(defconst finito--isbn-query-variables "{\"isbn\": %d}")
+(defconst finito--isbn-query-variables "{\"isbn\": \"%s\"}")
 
 (provide 'finito-graphql)
 ;;; finito-graphql.el ends here

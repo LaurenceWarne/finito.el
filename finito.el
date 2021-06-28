@@ -7,7 +7,7 @@
 ;; Version: 0.1
 ;; Keywords: books
 ;; URL: https://github.com/LaurenceWarne/libro-finito
-;; Package-Requires: ((emacs "27") (dash "2.17.0") (cl-lib "0.3") (request "0.3.2") (f "0.2.0") (s "1.12.0") (transient "0.3.5") (graphql "0.1.1"))
+;; Package-Requires: ((emacs "27") (dash "2.17.0") (cl-lib "0.3") (request "0.3.2") (f "0.2.0") (s "1.12.0") (transient "0.3.5") (graphql "0.1.1") (fn "0.1.2"))
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -31,6 +31,7 @@
 (require 'cl-lib)
 (require 'dash)
 (require 'f)
+(require 'fn)
 (require 'org)
 (require 'request)
 (require 's)
@@ -80,7 +81,7 @@ into the current buffer."
 
 ;;; Misc functions
 
-(defun finito--get-search-request-plist
+(defun finito--search-request-plist
     (title-keywords author-keywords &optional max-results)
   "Return a plist with headers and body deduced from TITLE-KEYWORDS, AUTHOR-KEYWORDS and MAX-RESULTS."
   (let* ((query-variable-str
@@ -98,8 +99,20 @@ into the current buffer."
                finito--search-query
                query-variable-str))))
 
-(defun finito--make-request (request-plist)
-  "Make a request for book data to `finito--host-uri' using REQUEST-PLIST and insert the contents into a new buffer after completion."
+(defun finito--isbn-request-plist (isbn)
+  "Return a plist with headers and body deduced from ISBN."
+  `(:headers
+    (("Content-Type" . "application/json")
+     ("Accept" . "application/json"))
+    :data
+    ,(format "{\"query\":\"%s\", \"variables\": %s\}"
+             finito--isbn-query
+             (format finito--isbn-query-variables isbn))))
+
+(defun finito--make-request (request-plist callback)
+  "Make a request to `finito--host-uri' using REQUEST-PLIST.
+
+CALLBACK is called with the parsed json if the request is successful."
   (request finito--host-uri
     :headers (plist-get request-plist :headers)
     :data (plist-get request-plist :data)
@@ -113,30 +126,45 @@ into the current buffer."
                   (if (equal response-indicator 'errors)
                       ;; Error doesn't seem to do anything here
                       (message "Received error in gql response: %s" (cadr data))
-                    (finito-process-data (cdadar data))))))))
+                    (funcall callback (cdadar data))))))))
 
-(defun finito-process-data (data)
-  "Output the book data DATA in a buffer."
-  (message "Found %s books in response" (length data))
-  (unless (f-dir-p finito-image-cache-dir) (f-mkdir finito-image-cache-dir))
-  (switch-to-buffer (generate-new-buffer-name "Books"))
-  (finito-book-view-mode)
+(defun finito--process-books-data (data)
+  "Insert the books data DATA into a buffer."
+  (finito--process
+   data
+   ;; Vector to list)
+   (fn (-each (append <> nil) #'finito--process-book-data))))
+
+(defun finito--process-single-book (data)
+  "Insert the book data DATA into a buffer."
+  (finito--process data (fn (finito--process-book-data <>))))
+
+(defun finito--process (data callback)
+  "Set up a finito book view buffer, and then call CALLBACK with DATA."
+  (finito--buffer-create)
   (let ((inhibit-read-only t))
     (insert "* Books\n\n")
-    ;; Vector to list)
-    (-each (append data nil)
-      (lambda (book)
-        (add-to-list 'finito--buffer-books `(,(line-number-at-pos) . ,book))
-        (let ((book-alist (finito--create-book-alist book)))
-          (let-alist book-alist
-            (unless (f-exists-p .image-file-name)
-              (message (concat "Retrieving img: " .img-uri))
-              ;; this is already a callback so do we need to:
-              ;; https://stackoverflow.com/questions/40504796/asynchrous-copy-file-and-copy-directory-in-emacs-lisp
-              (url-copy-file .img-uri .image-file-name))
-            (funcall finito-insert-book-data book-alist))))))
+    (funcall callback data))
   (goto-char (point-min))
   (org-display-inline-images))
+
+(defun finito--buffer-create ()
+  "Create and switch to a finito book view buffer."
+  (unless (f-dir-p finito-image-cache-dir) (f-mkdir finito-image-cache-dir))
+  (switch-to-buffer (generate-new-buffer-name "Books"))
+  (finito-book-view-mode))
+
+(defun finito--process-book-data (book)
+  "Insert data for BOOK into the current buffer."
+  (add-to-list 'finito--buffer-books `(,(line-number-at-pos) . ,book))
+  (let ((book-alist (finito--create-book-alist book)))
+    (let-alist book-alist
+      (unless (f-exists-p .image-file-name)
+        (message (concat "Retrieving img: " .img-uri))
+        ;; this is already a callback so do we need to:
+        ;; https://stackoverflow.com/questions/40504796/asynchrous-copy-file-and-copy-directory-in-emacs-lisp
+        (url-copy-file .img-uri .image-file-name))
+      (funcall finito-insert-book-data book-alist))))
 
 (defun finito--create-book-alist (book-response)
   "Return an alist containing book information gleaned from BOOK-RESPONSE.
@@ -191,9 +219,13 @@ image-file-name"
   "Send a request to the finito server using transient args ARGS."
   (interactive
    (list (transient-args 'finito-search)))
-  (cl-multiple-value-bind (title-kws author-kws isbn max-results) args
-    (finito-search-for-books
-     nil title-kws author-kws (if (string= max-results "") nil max-results))))
+  (cl-multiple-value-bind (title-kws author-kws max-results isbn) args
+    (if (string= isbn "")
+        (finito-search-for-books
+         nil title-kws author-kws (if (string= max-results "") nil max-results))
+      (finito--make-request
+       (finito--isbn-request-plist isbn)
+       (fn (finito--process-single-book <>))))))
 
 (defun finito-search-for-books
     (arg title-keywords author-keywords &optional max-results)
@@ -206,8 +238,8 @@ prefix arg ARG, message an equivalent curl instead of sending a request."
       (let ((url (url-hexify-string (format "https://www.googleapis.com/books/v1/volumes?q=%s+inauthor:%s&printType=books&langRestrict=en" title-keywords author-keywords))))
         (kill-new (message url)))
     (let ((request-plist
-           (finito--get-search-request-plist title-keywords author-keywords max-results)))
-      (finito--make-request request-plist))))
+           (finito--search-request-plist title-keywords author-keywords max-results)))
+      (finito--make-request request-plist #'finito--process-books-data))))
 
 (provide 'finito)
 ;;; finito.el ends here
