@@ -72,6 +72,12 @@ into the current buffer."
 
 (defvar finito--host-uri "http://localhost:8080/api/graphql")
 
+;;; Buffer local variables
+
+(defvar-local finito--buffer-books
+  nil
+  "An alist associating books to buffer lines they begin.")
+
 ;;; Misc functions
 
 (defun finito--get-search-request-plist
@@ -113,24 +119,24 @@ into the current buffer."
   "Output the book data DATA in a buffer."
   (message "Found %s books in response" (length data))
   (unless (f-dir-p finito-image-cache-dir) (f-mkdir finito-image-cache-dir))
-  (switch-to-buffer "Books")
-  (org-mode)
-  (insert "* Books\n\n")
-  ;; Vector to list)
-  (-each (append data nil)
-    (lambda (book)
-      (let ((book-alist (finito--create-book-alist book)))
-        (let-alist book-alist
-          (if (f-exists-p .image-file-name)
-              (funcall finito-insert-book-data book-alist)
-            (message (concat "Retrieving img: " .img-uri))
-            ;; this is already a callback so do we need to:
-            ;; https://stackoverflow.com/questions/40504796/asynchrous-copy-file-and-copy-directory-in-emacs-lisp
-            (url-copy-file .img-uri .image-file-name)
+  (switch-to-buffer (generate-new-buffer-name "Books"))
+  (finito-book-view-mode)
+  (let ((inhibit-read-only t))
+    (insert "* Books\n\n")
+    ;; Vector to list)
+    (-each (append data nil)
+      (lambda (book)
+        (add-to-list 'finito--buffer-books `(,(line-number-at-pos) . ,book))
+        (let ((book-alist (finito--create-book-alist book)))
+          (let-alist book-alist
+            (unless (f-exists-p .image-file-name)
+              (message (concat "Retrieving img: " .img-uri))
+              ;; this is already a callback so do we need to:
+              ;; https://stackoverflow.com/questions/40504796/asynchrous-copy-file-and-copy-directory-in-emacs-lisp
+              (url-copy-file .img-uri .image-file-name))
             (funcall finito-insert-book-data book-alist))))))
   (goto-char (point-min))
-  ;; TODO should not be toggle, should be show
-  (org-toggle-inline-images))
+  (org-display-inline-images))
 
 (defun finito--create-book-alist (book-response)
   "Return an alist containing book information gleaned from BOOK-RESPONSE.
@@ -143,9 +149,10 @@ isbn
 img-uri
 image-file-name"
   (let-alist book-response
-    (let* ((title-de-spaced (s-replace " " "-" (downcase .title)))
+    (let* ((title-sanitized
+            (replace-regexp-in-string "[^A-Za-z0-9._-]" "" (s-downcase .title)))
            (image-file-name (f-join finito-image-cache-dir
-                                    (concat title-de-spaced .isbn ".jpeg"))))
+                                    (concat title-sanitized .isbn ".jpeg"))))
       `((title . ,.title)
         (authors . ,.authors)
         (description . ,.description)
@@ -157,7 +164,7 @@ image-file-name"
   "Insert into the current buffer contents from BOOK-DATA-ALIST."
   (let* ((title (alist-get 'title book-data-alist))
          (authors (alist-get 'authors book-data-alist))
-         (authors-str (mapconcat #'identity authors ", "))
+         (authors-str (s-join ", " authors))
          (description (alist-get 'description book-data-alist))
          (image-file-name (alist-get 'image-file-name book-data-alist)))
     (insert (concat "** " title "\n\n"))
@@ -170,6 +177,14 @@ image-file-name"
                  'face
                  'finito-book-descriptions)))
 
+;;; Modes
+
+(define-derived-mode finito-book-view-mode org-mode "finito-book-view"
+  "A mode for showing Books."
+  (setq buffer-read-only     t
+        finito--buffer-books nil)
+  (buffer-disable-undo))
+
 ;;; Commands
 
 (defun finito-request (&optional args)
@@ -177,7 +192,8 @@ image-file-name"
   (interactive
    (list (transient-args 'finito-search)))
   (cl-multiple-value-bind (title-kws author-kws isbn max-results) args
-    (finito-search-for-books nil title-kws author-kws max-results)))
+    (finito-search-for-books
+     nil title-kws author-kws (if (string= max-results "") nil max-results))))
 
 (defun finito-search-for-books
     (arg title-keywords author-keywords &optional max-results)
