@@ -82,11 +82,13 @@
 
 (transient-define-prefix finito-search ()
   "Search for books."
-  ["Variables"
+  :incompatible '(("isbn=" "author=") ("isbn=" "title=") ("isbn=" "max results="))
+  ["By Keywords"
    (finito--title-arg :description "Title" :prompt "Title: ")
    (finito--author-arg :description "Author" :prompt "Author: ")
-   (finito--isbn-arg :description "ISBN" :prompt "ISBN: ")
    (finito--max-results-arg :description "Max Results" :prompt "Max results: ")]
+  ["Direct Lookup"
+   (finito--isbn-arg :description "ISBN" :prompt "ISBN: ")]
   ["Actions"
    ;("c" "Copy Curl"     finito-request)
    ("s" "Search"        finito-request)])
