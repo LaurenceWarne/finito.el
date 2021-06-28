@@ -213,6 +213,17 @@ image-file-name"
         finito--buffer-books nil)
   (buffer-disable-undo))
 
+(defvar finito-book-view-mode-map
+  (let ((map (make-sparse-keymap)))
+    (suppress-keymap map t)
+    (define-key map "a" #'finito-add-book)
+    (define-key map "c" #'finito-add-to-collection)
+    (define-key map "A" #'finito-same-author)
+    (define-key map "n" #'finito-next-entry)
+    (define-key map "p" #'finito-previous-entry)
+    (define-key map "o" #'finito-to-org-buffer)
+    map))
+
 ;;; Commands
 
 (defun finito-request (&optional args)
