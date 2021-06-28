@@ -79,10 +79,10 @@ into the current buffer."
   "Return a plist with headers and body deduced from TITLE-KEYWORDS, AUTHOR-KEYWORDS and MAX-RESULTS."
   (let* ((query-variable-str
           (format finito--search-query-variables
-                  (if (> (length author-keywords) 0)
-                      (s-wrap  author-keywords "\"") "null")
                   (if (> (length title-keywords) 0)
                       (s-wrap title-keywords "\"") "null")
+                  (if (> (length author-keywords) 0)
+                      (s-wrap  author-keywords "\"") "null")
                   (or max-results "null"))))
     `(:headers
       (("Content-Type" . "application/json")
@@ -176,8 +176,8 @@ image-file-name"
   "Send a request to the finito server using transient args ARGS."
   (interactive
    (list (transient-args 'finito-search)))
-  (cl-multiple-value-bind (title-kws author-kws isbn) args
-    (finito-search-for-books nil title-kws author-kws)))
+  (cl-multiple-value-bind (title-kws author-kws isbn max-results) args
+    (finito-search-for-books nil title-kws author-kws max-results)))
 
 (defun finito-search-for-books
     (arg title-keywords author-keywords &optional max-results)
