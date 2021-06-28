@@ -79,12 +79,11 @@ into the current buffer."
   "Return a plist with headers and body deduced from TITLE-KEYWORDS, AUTHOR-KEYWORDS and MAX-RESULTS."
   (let* ((query-variable-str
           (format finito--search-query-variables
-                  (if (> (length author-keywords) 0) author-keywords "null")
-                  (if (> (length title-keywords) 0) title-keywords "null")
+                  (if (> (length author-keywords) 0)
+                      (s-wrap  author-keywords "\"") "null")
+                  (if (> (length title-keywords) 0)
+                      (s-wrap title-keywords "\"") "null")
                   (or max-results "null"))))
-    (print (format "{\"query\":\"%s\", \"variables\": %s\}"
-               finito--search-query
-               query-variable-str))
     `(:headers
       (("Content-Type" . "application/json")
        ("Accept" . "application/json"))

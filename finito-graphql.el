@@ -37,8 +37,10 @@
                  (maxResults . ($ maxResults)))
      title authors description isbn thumbnailUri))))
 
+;; We don't add quotes around %s since null is a value that could potentially
+;; be placing, and we shouldn't quote that
 (defconst finito--search-query-variables
-  "{\"$titleKeywords\": \"%s\", \"$authorKeywords\": \"%s\", \"$maxResults\": %s}")
+  "{\"titleKeywords\": %s, \"authorKeywords\": %s, \"maxResults\": %s}")
 
 (defconst finito--isbn-query
   (graphql-query
@@ -48,7 +50,7 @@
      :arguments ((isbn . ($ isbn)))
      title authors description isbn thumbnailUri))))
 
-(defconst finito--isbn-query-variables "{\"$isbn\": \"%s\"}")
+(defconst finito--isbn-query-variables "{\"isbn\": %d}")
 
 (provide 'finito-graphql)
 ;;; finito-graphql.el ends here
