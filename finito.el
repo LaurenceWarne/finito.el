@@ -210,7 +210,7 @@ image-file-name"
   (when-let* ((line (line-number-at-pos))
               ;; Alist may not be ordered
               (books-before (--filter (<= (car it) line) finito--buffer-books)))
-    (--max-by (> (car it) (car other)) books-before)))
+    (cdr (--max-by (> (car it) (car other)) books-before))))
 
 ;;; Modes
 

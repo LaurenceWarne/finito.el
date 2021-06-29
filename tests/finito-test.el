@@ -7,8 +7,11 @@
 ;;; Code:
 
 (require 'buttercup)
-(require 'finito)
 (require 'cl-lib)
+(require 'fn)
+
+(require 'finito)
+
 
 (defmacro in-stubbed-buffer (inserted-var body &rest expectations)
   )
@@ -51,3 +54,19 @@
                 (isbn . "isbn")
                 (img-uri . "https://random-url")
                 (image-file-name . "cache/directory/footitleisbn.jpeg"))))))
+
+(describe "finito--book-at-point"
+  :var ((books-alist '((3 . book-one) (4 . book-two) (20 . book-three))))
+  (it "test book at point returns nil before all books"
+    (cl-letf (((symbol-function 'line-number-at-pos) #'ignore)
+              (finito--buffer-books books-alist))
+      (expect (finito--book-at-point) :to-be nil)))
+  (it "test book at point returns book on line where it starts"
+    (cl-letf (((symbol-function 'line-number-at-pos) (fn 3))
+              (finito--buffer-books books-alist))
+      (expect (finito--book-at-point) :to-equal 'book-one)))
+  (it "test book at point returns book on line after it starts"
+    (cl-letf (((symbol-function 'line-number-at-pos) (fn 15))
+              (finito--buffer-books books-alist))
+      (expect (finito--book-at-point) :to-equal 'book-two))))
+
