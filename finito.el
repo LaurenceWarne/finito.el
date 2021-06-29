@@ -205,6 +205,13 @@ image-file-name"
                  'face
                  'finito-book-descriptions)))
 
+(defun finito--book-at-point ()
+  "Get the book at the current point in the buffer."
+  (when-let* ((line (line-number-at-pos))
+              ;; Alist may not be ordered
+              (books-before (--filter (<= (car it) line) finito--buffer-books)))
+    (--max-by (> (car it) (car other)) books-before)))
+
 ;;; Modes
 
 (define-derived-mode finito-book-view-mode org-mode "finito-book-view"
@@ -219,8 +226,8 @@ image-file-name"
     (define-key map "a" #'finito-add-book)
     (define-key map "c" #'finito-add-to-collection)
     (define-key map "A" #'finito-same-author)
-    (define-key map "n" #'finito-next-entry)
-    (define-key map "p" #'finito-previous-entry)
+    (define-key map "n" #'outline-next-heading)
+    (define-key map "p" #'outline-previous-heading)
     (define-key map "o" #'finito-to-org-buffer)
     map))
 
