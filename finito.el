@@ -33,6 +33,7 @@
 (require 'f)
 (require 'llama)
 (require 'org)
+(require 'outline)
 (require 'request)
 (require 's)
 (require 'transient)
@@ -214,12 +215,6 @@ image-file-name"
 
 ;;; Modes
 
-(define-derived-mode finito-book-view-mode org-mode "finito-book-view"
-  "A mode for showing Books."
-  (setq buffer-read-only     t
-        finito--buffer-books nil)
-  (buffer-disable-undo))
-
 (defvar finito-book-view-mode-map
   (let ((map (make-sparse-keymap)))
     (suppress-keymap map t)
@@ -231,7 +226,40 @@ image-file-name"
     (define-key map "o" #'finito-to-org-buffer)
     map))
 
+(define-derived-mode finito-book-view-mode org-mode "finito-book-view"
+  "A mode for showing Books.
+
+The following commands are available in this mode:
+\\{finito-book-view-mode-map}"
+  (setq buffer-read-only     t
+        finito--buffer-books nil)
+  (buffer-disable-undo)
+  (use-local-map finito-book-view-mode-map))
+
 ;;; Commands
+
+(defun finito-same-author ()
+  "Find books by the author at point."
+  (interactive)
+  (let* ((book (finito--book-at-point))
+         (authors (s-join " " (alist-get 'authors book))))
+    (message "Searching for author(s) '%s'" authors)
+    (finito-search-for-books nil nil authors)))
+
+(defun add-book ()
+  "Add the book at point."
+  (interactive)
+  nil)
+
+(defun add-book-to-collection ()
+  "Add the book at point to a collection."
+  (interactive)
+  nil)
+
+(defun finito-to-org-buffer ()
+  "Open the current buffer as a normal org mode buffer."
+  (interactive)
+  nil)
 
 (defun finito-request (&optional args)
   "Send a request to the finito server using transient args ARGS."
