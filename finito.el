@@ -7,7 +7,7 @@
 ;; Version: 0.1
 ;; Keywords: books
 ;; URL: https://github.com/LaurenceWarne/libro-finito
-;; Package-Requires: ((emacs "27") (dash "2.17.0") (cl-lib "0.3") (request "0.3.2") (f "0.2.0") (s "1.12.0") (transient "0.3.5") (graphql "0.1.1") (fn "0.1.2"))
+;; Package-Requires: ((emacs "27") (dash "2.17.0") (cl-lib "0.3") (request "0.3.2") (f "0.2.0") (s "1.12.0") (transient "0.3.5") (graphql "0.1.1") (llama "0.1.1"))
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -31,7 +31,7 @@
 (require 'cl-lib)
 (require 'dash)
 (require 'f)
-(require 'fn)
+(require 'llama)
 (require 'org)
 (require 'request)
 (require 's)
@@ -133,11 +133,11 @@ CALLBACK is called with the parsed json if the request is successful."
   (finito--process
    data
    ;; Vector to list)
-   (fn (-each (append <> nil) #'finito--process-book-data))))
+   (##-each (append % nil) #'finito--process-book-data)))
 
 (defun finito--process-single-book (data)
   "Insert the book data DATA into a buffer."
-  (finito--process data (fn (finito--process-book-data <>))))
+  (finito--process data (##finito--process-book-data %)))
 
 (defun finito--process (data callback)
   "Set up a finito book view buffer, and then call CALLBACK with DATA."
@@ -243,7 +243,7 @@ image-file-name"
          nil title-kws author-kws (if (string= max-results "") nil max-results))
       (finito--make-request
        (finito--isbn-request-plist isbn)
-       (fn (finito--process-single-book <>))))))
+       (##finito--process-single-book %)))))
 
 (defun finito-search-for-books
     (arg title-keywords author-keywords &optional max-results)

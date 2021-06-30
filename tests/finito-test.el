@@ -8,7 +8,6 @@
 
 (require 'buttercup)
 (require 'cl-lib)
-(require 'fn)
 
 (require 'finito)
 
@@ -62,11 +61,11 @@
               (finito--buffer-books books-alist))
       (expect (finito--book-at-point) :to-be nil)))
   (it "test book at point returns book on line where it starts"
-    (cl-letf (((symbol-function 'line-number-at-pos) (fn 3))
+    (cl-letf (((symbol-function 'line-number-at-pos) (lambda () 3))
               (finito--buffer-books books-alist))
       (expect (finito--book-at-point) :to-equal 'book-one)))
   (it "test book at point returns book on line after it starts"
-    (cl-letf (((symbol-function 'line-number-at-pos) (fn 15))
+    (cl-letf (((symbol-function 'line-number-at-pos) (lambda () 15))
               (finito--buffer-books books-alist))
       (expect (finito--book-at-point) :to-equal 'book-two))))
 
