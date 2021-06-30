@@ -184,12 +184,12 @@ image-file-name"
             (replace-regexp-in-string "[^A-Za-z0-9._-]" "" (s-downcase .title)))
            (image-file-name (f-join finito-image-cache-dir
                                     (concat title-sanitized .isbn ".jpeg"))))
-      `((title . ,.title)
-        (authors . ,.authors)
-        (description . ,.description)
-        (isbn . ,.isbn)
-        (img-uri . ,.thumbnailUri)
-        (image-file-name . ,image-file-name)))))
+      (list (cons 'title .title)
+            (cons 'authors .authors)
+            (cons 'description .description)
+            (cons 'isbn .isbn)
+            (cons 'img-uri .thumbnailUri)
+            (cons 'image-file-name image-file-name)))))
 
 (defun finito--insert-book-data (book-data-alist)
   "Insert into the current buffer contents from BOOK-DATA-ALIST."
