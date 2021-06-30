@@ -41,6 +41,8 @@
 (require 'finito-graphql)
 (require 'finito-view)
 
+(eval-when-compile (require 'let-alist))
+
 (defgroup finito nil
   "Emacs client to finito"
   :group 'books)
