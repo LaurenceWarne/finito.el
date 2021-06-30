@@ -236,14 +236,16 @@ image-file-name"
 (defun finito-request (&optional args)
   "Send a request to the finito server using transient args ARGS."
   (interactive
-   (list (transient-args 'finito-search)))
-  (cl-multiple-value-bind (title-kws author-kws max-results isbn) args
-    (if (string= isbn "")
-        (finito-search-for-books
-         nil title-kws author-kws (if (string= max-results "") nil max-results))
+   (list (finito--transient-args-plist 'finito-search)))
+  (if-let (isbn (plist-get args :isbn))
       (finito--make-request
        (finito--isbn-request-plist isbn)
-       (##finito--process-single-book %)))))
+       (##finito--process-single-book %))
+    (finito-search-for-books
+     nil
+     (plist-get args :title)
+     (plist-get args :author)
+     (plist-get args :max-results))))
 
 (defun finito-search-for-books
     (arg title-keywords author-keywords &optional max-results)

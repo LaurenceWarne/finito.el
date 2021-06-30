@@ -28,7 +28,8 @@
 
 ;;; Transients
 
-(defclass finito--transient-argument (transient-argument) ())
+(defclass finito--transient-argument (transient-argument)
+  ((plist-key :initarg :plist-key)))
 
 (cl-defmethod transient-format-value ((obj finito--transient-argument))
   (let ((value (oref obj value)))
@@ -53,21 +54,25 @@
 (define-infix-argument finito--title-arg ()
   :class 'finito--transient-argument
   :key "t"
+  :plist-key ':title
   :argument "title=")
 
 (define-infix-argument finito--author-arg ()
   :class 'finito--transient-argument
   :key "a"
+  :plist-key ':author
   :argument "author=")
 
 (define-infix-argument finito--isbn-arg ()
   :class 'finito--transient-argument
   :key "i"
+  :plist-key ':isbn
   :argument "isbn=")
 
 (define-infix-argument finito--max-results-arg ()
   :class 'finito--transient-argument
   :key "n"
+  :plist-key ':max-results
   :argument "max results=")
 
 ;;; Prefixes
@@ -102,6 +107,14 @@
    ("d" "Delete a Collection"     ignore)
    ("i" "Import a Collection"     ignore)
    ("e" "Export a Collection"     ignore)])
+
+;;; Misc functions
+
+(defun finito--transient-args-plist (prefix)
+  "Return the infixes of PREFIX as a plist."
+  (-flatten-n 1 (--map (list (oref it plist-key) (oref it value))
+                       (-filter #'finito--transient-argument-p
+                                (transient-suffixes prefix)))))
 
 (provide 'finito-view)
 ;;; finito-view.el ends here
