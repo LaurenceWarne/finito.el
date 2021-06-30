@@ -248,12 +248,12 @@ The following commands are available in this mode:
     (message "Searching for author(s) '%s'" authors)
     (finito-search-for-books nil nil authors)))
 
-(defun add-book ()
+(defun finito-add-book ()
   "Add the book at point."
   (interactive)
   nil)
 
-(defun add-book-to-collection ()
+(defun finito-add-to-collection ()
   "Add the book at point to a collection."
   (interactive)
   nil)

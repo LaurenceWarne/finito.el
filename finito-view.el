@@ -23,6 +23,7 @@
 
 ;;; Code:
 
+(require 'dash)
 (require 's)
 (require 'transient)
 
