@@ -105,7 +105,7 @@
    ;("c" "Copy Curl"     finito-request)
    ("n" "Create a new Collection" finito-create-collection)
    ("o" "Open a Collection"       finito-open-collection)
-   ("d" "Delete a Collection"     ignore)
+   ("d" "Delete a Collection"     finito-delete-collection)
    ("i" "Import a Collection"     ignore)
    ("e" "Export a Collection"     ignore)])
 

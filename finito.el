@@ -133,12 +133,24 @@ NAME should be the name of the collection to query for."
     ,(format "{\"query\":\"%s\"}" finito--collections-query)))
 
 (defun finito--create-collection-request-plist (name)
-  "Return a plist with headers and body deduced from NAME."
+  "Return a plist with headers and body suitable for a collection request.
+
+NAME should be the name of the collection to create."
   `(:headers ,finito--headers
     :data
     ,(format "{\"query\":\"%s\", \"variables\": %s\}"
              finito--create-collection-mutation
              (format finito--create-collection-mutation-variables name))))
+
+(defun finito--delete-collection-request-plist (name)
+  "Return a plist with headers and body suitable for a delete request.
+
+NAME should be the name of the collection to delete."
+  `(:headers ,finito--headers
+    :data
+    ,(format "{\"query\":\"%s\", \"variables\": %s\}"
+             finito--delete-collection-mutation
+             (format finito--delete-collection-mutation-variables name))))
 
 (defun finito--make-request (request-plist callback)
   "Make a request to `finito--host-uri' using REQUEST-PLIST.
@@ -344,6 +356,21 @@ _ARGS does nothing and is needed to appease transient."
        (finito--make-request
         (finito--collection-request-plist chosen-collection)
         (##finito--process-books-data (cdar %)))))))
+
+(defun finito-delete-collection (&optional _args)
+  "Prompt the user for a collection and delete it.
+
+_ARGS does nothing and is needed to appease transient."
+  (interactive)
+  (finito--make-request
+   (finito--collections-request-plist)
+   (lambda (response)
+     (let* ((all-collections (-map #'cdar response))
+            (chosen-collection (completing-read "Choose: " all-collections)))
+       (finito--make-request
+        (finito--delete-collection-request-plist chosen-collection)
+        (lambda (_)
+          (message "Successfully deleted collection '%s'" chosen-collection)))))))
 
 (provide 'finito)
 ;;; finito.el ends here
