@@ -103,7 +103,7 @@
   "Search for books."
   ["Actions"
    ;("c" "Copy Curl"     finito-request)
-   ("n" "Create a new Collection" ignore)
+   ("n" "Create a new Collection" finito-create-collection)
    ("o" "Open a Collection"       ignore)
    ("d" "Delete a Collection"     ignore)
    ("i" "Import a Collection"     ignore)

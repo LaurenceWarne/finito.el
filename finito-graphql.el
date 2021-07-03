@@ -52,5 +52,34 @@
 
 (defconst finito--isbn-query-variables "{\"isbn\": \"%s\"}")
 
+(defconst finito--collections-query
+  (graphql-query
+   (collections
+    (nil name))))
+
+(defconst finito--create-collection-mutation
+  (graphql-mutation
+   (:arguments
+    (($name . String!))
+    (createCollection
+     :arguments ((name . ($ name)))
+     name))))
+
+(defconst finito--create-collection-mutation-variables "{\"name\": \"%s\"}")
+
+(defconst finito--add-book-to-collection-mutation
+  (graphql-mutation
+   (:arguments
+    (($name . String!)
+     ($book . Book!))
+    (addBookToCollection
+     :arguments ((name . ($ name))
+                 (book . ($ book)))
+     name))))
+
+(defconst finito--add-book-to-collection-mutation-variables
+  "{\"name\": \"%s\", \"book\": %s}")
+
+
 (provide 'finito-graphql)
 ;;; finito-graphql.el ends here

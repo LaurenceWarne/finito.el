@@ -74,6 +74,10 @@ into the current buffer."
   "Face for book descriptions."
   :group 'finito)
 
+(defconst finito--headers
+  '(("Content-Type" . "application/json")
+    ("Accept" . "application/json")))
+
 (defvar finito--host-uri "http://localhost:8080/api/graphql")
 
 ;;; Buffer local variables
@@ -94,9 +98,7 @@ into the current buffer."
                   (if (> (length author-keywords) 0)
                       (s-wrap  author-keywords "\"") "null")
                   (or max-results "null"))))
-    `(:headers
-      (("Content-Type" . "application/json")
-       ("Accept" . "application/json"))
+    `(:headers ,finito--headers
       :data
       ,(format "{\"query\":\"%s\", \"variables\": %s\}"
                finito--search-query
@@ -104,13 +106,25 @@ into the current buffer."
 
 (defun finito--isbn-request-plist (isbn)
   "Return a plist with headers and body deduced from ISBN."
-  `(:headers
-    (("Content-Type" . "application/json")
-     ("Accept" . "application/json"))
+  `(:headers ,finito--headers
     :data
     ,(format "{\"query\":\"%s\", \"variables\": %s\}"
              finito--isbn-query
              (format finito--isbn-query-variables isbn))))
+
+(defun finito--create-collection-request-plist (name)
+  "Return a plist with headers and body deduced from NAME."
+  `(:headers ,finito--headers
+    :data
+    ,(format "{\"query\":\"%s\", \"variables\": %s\}"
+             finito--create-collection-mutation
+             (format finito--create-collection-mutation-variables name))))
+
+(defun finito--collections-request-plist ()
+  "Return a plist with headers and body suitable for a collectoins query."
+  `(:headers ,finito--headers
+    :data
+    ,(format "{\"query\":\"%s\"}" finito--collections-query)))
 
 (defun finito--make-request (request-plist callback)
   "Make a request to `finito--host-uri' using REQUEST-PLIST.
@@ -290,6 +304,22 @@ prefix arg ARG, message an equivalent curl instead of sending a request."
     (let ((request-plist
            (finito--search-request-plist title-keywords author-keywords max-results)))
       (finito--make-request request-plist #'finito--process-books-data))))
+
+(defun finito-create-collection (&optional args)
+  "Send a request to the finito server using transient args ARGS."
+  (interactive)
+  (if-let* ((name (read-string "Collection name: "))
+            (request-plist (finito--create-collection-request-plist name)))
+      (finito--make-request
+       request-plist
+       (##message "Successfully created collection '%s'" (cdar %1)))))
+
+(defun finito-list-collections (&optional args)
+  "Send a request to the finito server using transient args ARGS."
+  (interactive)
+  (finito--make-request
+   (finito--collections-request-plist)
+   (##message "Found %s" (-map #'cdar %1))))
 
 (provide 'finito)
 ;;; finito.el ends here
