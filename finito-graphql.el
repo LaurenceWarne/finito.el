@@ -52,6 +52,16 @@
 
 (defconst finito--isbn-query-variables "{\"isbn\": \"%s\"}")
 
+(defconst finito--collection-query
+  (graphql-query
+   (:arguments
+    (($name . String!))
+    (collection
+     :arguments ((name . ($ name)))
+     (books title authors description isbn thumbnailUri)))))
+
+(defconst finito--collection-query-variables "{\"name\": \"%s\"}")
+
 (defconst finito--collections-query
   (graphql-query
    (collections

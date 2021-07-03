@@ -90,7 +90,9 @@ into the current buffer."
 
 (defun finito--search-request-plist
     (title-keywords author-keywords &optional max-results)
-  "Return a plist with headers and body deduced from TITLE-KEYWORDS, AUTHOR-KEYWORDS and MAX-RESULTS."
+  "Return a plist with headers and body suitable for a search query.
+
+The body will be deduced from TITLE-KEYWORDS, AUTHOR-KEYWORDS and MAX-RESULTS."
   (let* ((query-variable-str
           (format finito--search-query-variables
                   (if (> (length title-keywords) 0)
@@ -105,12 +107,30 @@ into the current buffer."
                query-variable-str))))
 
 (defun finito--isbn-request-plist (isbn)
-  "Return a plist with headers and body deduced from ISBN."
+  "Return a plist with headers and body suitable for an isbn request.
+
+ISBN should be isbn of the book to query for."
   `(:headers ,finito--headers
     :data
     ,(format "{\"query\":\"%s\", \"variables\": %s\}"
              finito--isbn-query
              (format finito--isbn-query-variables isbn))))
+
+(defun finito--collection-request-plist (name)
+  "Return a plist with headers and body suitable for a collection request.
+
+NAME should be the name of the collection to query for."
+  `(:headers ,finito--headers
+    :data
+    ,(format "{\"query\":\"%s\", \"variables\": %s\}"
+             finito--collection-query
+             (format finito--collection-query-variables name))))
+
+(defun finito--collections-request-plist ()
+  "Return a plist with headers and body suitable for a collections query."
+  `(:headers ,finito--headers
+    :data
+    ,(format "{\"query\":\"%s\"}" finito--collections-query)))
 
 (defun finito--create-collection-request-plist (name)
   "Return a plist with headers and body deduced from NAME."
@@ -119,12 +139,6 @@ into the current buffer."
     ,(format "{\"query\":\"%s\", \"variables\": %s\}"
              finito--create-collection-mutation
              (format finito--create-collection-mutation-variables name))))
-
-(defun finito--collections-request-plist ()
-  "Return a plist with headers and body suitable for a collectoins query."
-  `(:headers ,finito--headers
-    :data
-    ,(format "{\"query\":\"%s\"}" finito--collections-query)))
 
 (defun finito--make-request (request-plist callback)
   "Make a request to `finito--host-uri' using REQUEST-PLIST.
@@ -320,6 +334,20 @@ prefix arg ARG, message an equivalent curl instead of sending a request."
   (finito--make-request
    (finito--collections-request-plist)
    (##message "Found %s" (-map #'cdar %1))))
+
+(defun finito-open-collection (&optional args)
+  "Prompt the user for a collection and open it.
+
+ARGS does nothing."
+  (interactive)
+  (finito--make-request
+   (finito--collections-request-plist)
+   (lambda (response)
+     (let* ((all-collections (-map #'cdar response))
+            (chosen-collection (completing-read "Choose: " all-collections)))
+       (finito--make-request
+        (finito--collection-request-plist chosen-collection)
+        (##finito--process-books-data (cdar %)))))))
 
 (provide 'finito)
 ;;; finito.el ends here
