@@ -11,9 +11,17 @@
 
 (require 'finito)
 
-
-(defmacro in-stubbed-buffer (inserted-var body &rest expectations)
-  )
+(defmacro in-buffer (&rest body)
+  "Execute BODY in a stubbed buffer."
+  (cl-labels
+      ((replace (expr)
+                (pcase expr
+                  (`(,car . ,cdr)    (cons (replace car) (replace cdr)))
+                  ('.buffer-text     '(buffer-substring-no-properties
+                                     (point-min) (point-max)))
+                  (_                 expr))))
+    `(with-temp-buffer
+       ,@(replace body))))
 
 (describe "finito--search-request-plist"
   (it "test plist has headers and data"
@@ -22,20 +30,14 @@
       (expect (plist-get plist :data)))))
 
 (describe "finito--insert-book-data"
-  (before-each
-    (spy-on 'insert :and-call-fake #'identity))
   (it "test inserted data is reasonable"
-    (cl-letf (((symbol-function 'overlay-put) #'ignore))
-      (finito--insert-book-data
+    (in-buffer
+     (finito--insert-book-data
        '((title . "Flowers for Algernon")
          (authors . ["Daniel Keyes"])
          (description . "A description.")
          (image-file-name . "/some/random/image.png")))
-      (expect
-       (downcase
-        (mapconcat #'spy-context-return-value (spy-calls-all 'insert) ""))
-       :to-match
-       "flowers for algernon"))))
+     (expect (downcase .buffer-text) :to-match "flowers for algernon"))))
 
 (describe "finito--create-book-alist"
   (it "test book alist contains all keys with correct values"
