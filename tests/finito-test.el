@@ -12,13 +12,16 @@
 (require 'finito)
 
 (defmacro in-buffer (&rest body)
-  "Execute BODY in a stubbed buffer."
+  "Execute BODY in a throw-away buffer.
+
+Occurrences of `.buffer-text' will be replaced by:
+`(buffer-substring-no-properties (point-min) (point-max))'"
   (cl-labels
       ((replace (expr)
                 (pcase expr
                   (`(,car . ,cdr)    (cons (replace car) (replace cdr)))
                   ('.buffer-text     '(buffer-substring-no-properties
-                                     (point-min) (point-max)))
+                                       (point-min) (point-max)))
                   (_                 expr))))
     `(with-temp-buffer
        ,@(replace body))))
@@ -26,6 +29,36 @@
 (describe "finito--search-request-plist"
   (it "test plist has headers and data"
     (let ((plist (finito--search-request-plist "foo" "bar")))
+      (expect (plist-get plist :headers))
+      (expect (plist-get plist :data)))))
+
+(describe "finito--isbn-request-plist"
+  (it "test plist has headers and data"
+    (let ((plist (finito--isbn-request-plist "isbn")))
+      (expect (plist-get plist :headers))
+      (expect (plist-get plist :data)))))
+
+(describe "finito--collection-request-plist"
+  (it "test plist has headers and data"
+    (let ((plist (finito--collection-request-plist "foo")))
+      (expect (plist-get plist :headers))
+      (expect (plist-get plist :data)))))
+
+(describe "finito--collections-request-plist"
+  (it "test plist has headers and data"
+    (let ((plist (finito--collections-request-plist)))
+      (expect (plist-get plist :headers))
+      (expect (plist-get plist :data)))))
+
+(describe "finito--create-collection-request-plist"
+  (it "test plist has headers and data"
+    (let ((plist (finito--create-collection-request-plist "name")))
+      (expect (plist-get plist :headers))
+      (expect (plist-get plist :data)))))
+
+(describe "finito--delete-collection-request-plist"
+  (it "test plist has headers and data"
+    (let ((plist (finito--delete-collection-request-plist "name")))
       (expect (plist-get plist :headers))
       (expect (plist-get plist :data)))))
 
