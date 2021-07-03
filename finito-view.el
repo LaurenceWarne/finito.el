@@ -52,25 +52,25 @@
 
 ;;; Infix Arguments
 
-(define-infix-argument finito--title-arg ()
+(transient-define-argument finito--title-arg ()
   :class 'finito--transient-argument
   :key "t"
   :plist-key ':title
   :argument "title=")
 
-(define-infix-argument finito--author-arg ()
+(transient-define-argument finito--author-arg ()
   :class 'finito--transient-argument
   :key "a"
   :plist-key ':author
   :argument "author=")
 
-(define-infix-argument finito--isbn-arg ()
+(transient-define-argument finito--isbn-arg ()
   :class 'finito--transient-argument
   :key "i"
   :plist-key ':isbn
   :argument "isbn=")
 
-(define-infix-argument finito--max-results-arg ()
+(transient-define-argument finito--max-results-arg ()
   :class 'finito--transient-argument
   :key "n"
   :plist-key ':max-results

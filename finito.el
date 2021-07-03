@@ -150,7 +150,7 @@ CALLBACK is called with the parsed json if the request is successful."
     :parser 'json-read
     :error
     (cl-function (lambda (&rest args &key error-thrown &allow-other-keys)
-    	           (message "Got error: %S" error-thrown)))
+    	           (message "Got error: '%s', is the server up?" error-thrown)))
     :success (cl-function
     	      (lambda (&key data &allow-other-keys)
                 (let ((response-indicator (caadr data)))
@@ -254,6 +254,7 @@ image-file-name"
     (define-key map "n" #'outline-next-heading)
     (define-key map "p" #'outline-previous-heading)
     (define-key map "o" #'finito-to-org-buffer)
+    (define-key map "q" #'kill-current-buffer)
     map))
 
 (define-derived-mode finito-book-view-mode org-mode "finito-book-view"
@@ -319,8 +320,10 @@ prefix arg ARG, message an equivalent curl instead of sending a request."
            (finito--search-request-plist title-keywords author-keywords max-results)))
       (finito--make-request request-plist #'finito--process-books-data))))
 
-(defun finito-create-collection (&optional args)
-  "Send a request to the finito server using transient args ARGS."
+(defun finito-create-collection (&optional _args)
+  "Send a request to the finito server to create a new collection.
+
+_ARGS does nothing and is needed to appease transient."
   (interactive)
   (if-let* ((name (read-string "Collection name: "))
             (request-plist (finito--create-collection-request-plist name)))
@@ -328,17 +331,10 @@ prefix arg ARG, message an equivalent curl instead of sending a request."
        request-plist
        (##message "Successfully created collection '%s'" (cdar %1)))))
 
-(defun finito-list-collections (&optional args)
-  "Send a request to the finito server using transient args ARGS."
-  (interactive)
-  (finito--make-request
-   (finito--collections-request-plist)
-   (##message "Found %s" (-map #'cdar %1))))
-
-(defun finito-open-collection (&optional args)
+(defun finito-open-collection (&optional _args)
   "Prompt the user for a collection and open it.
 
-ARGS does nothing."
+_ARGS does nothing and is needed to appease transient."
   (interactive)
   (finito--make-request
    (finito--collections-request-plist)
