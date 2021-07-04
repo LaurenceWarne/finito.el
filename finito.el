@@ -152,6 +152,24 @@ NAME should be the name of the collection to delete."
              finito--delete-collection-mutation
              (format finito--delete-collection-mutation-variables name))))
 
+(defun finito--add-book-request-plist (name book)
+  "Return a plist with headers and body for an add to collection request.
+
+NAME should be the name of the collection, and BOOK should be the book (as an
+alist) to add to it."
+  `(:headers ,finito--headers
+    :data ,(format "{\"query\":\"%s\", \"variables\": %s\}"
+             finito--add-book-mutation
+             (let-alist book
+               (format
+                finito--add-book-mutation-variables
+                name
+                (s-replace "\"" "'" .title)
+                (concat "[" (mapconcat (##format "\"%s\"" %1) .authors ",") "]")
+                (s-replace "\"" "'" .description)
+                (s-replace "\"" "'" .isbn)
+                (s-replace "\"" "'" .thumbnailUri))))))
+
 (defun finito--make-request (request-plist callback)
   "Make a request to `finito--host-uri' using REQUEST-PLIST.
 
@@ -260,13 +278,14 @@ image-file-name"
 (defvar finito-book-view-mode-map
   (let ((map (make-sparse-keymap)))
     (suppress-keymap map t)
-    (define-key map "a" #'finito-add-book)
-    (define-key map "c" #'finito-add-to-collection)
+    (define-key map "a" #'finito-add-book-at-point)  ; to default collection
+    (define-key map "c" #'finito-add-book-at-point)
     (define-key map "A" #'finito-same-author)
     (define-key map "n" #'outline-next-heading)
     (define-key map "p" #'outline-previous-heading)
     (define-key map "o" #'finito-to-org-buffer)
     (define-key map "q" #'kill-current-buffer)
+    (define-key map "k" #'kill-current-buffer)
     map))
 
 (define-derived-mode finito-book-view-mode org-mode "finito-book-view"
@@ -289,23 +308,13 @@ The following commands are available in this mode:
     (message "Searching for author(s) '%s'" authors)
     (finito-search-for-books nil nil authors)))
 
-(defun finito-add-book ()
-  "Add the book at point."
-  (interactive)
-  nil)
-
-(defun finito-add-to-collection ()
-  "Add the book at point to a collection."
-  (interactive)
-  nil)
-
 (defun finito-to-org-buffer ()
   "Open the current buffer as a normal org mode buffer."
   (interactive)
   nil)
 
 (defun finito-request (&optional args)
-  "Send a request to the finito server using transient args ARGS."
+  "Send a search request to the finito server using transient args ARGS."
   (interactive
    (list (finito--transient-args-plist 'finito-search)))
   (if-let (isbn (plist-get args :isbn))
@@ -371,6 +380,24 @@ _ARGS does nothing and is needed to appease transient."
         (finito--delete-collection-request-plist chosen-collection)
         (lambda (_)
           (message "Successfully deleted collection '%s'" chosen-collection)))))))
+
+(defun finito-add-book-at-point (&optional _args)
+  "Prompt the user for a collection, and add the book at point to it.
+
+_ARGS does nothing and is needed to appease transient."
+  (interactive)
+  (let ((book (finito--book-at-point)))
+    (finito--make-request
+     (finito--collections-request-plist)
+     (lambda (response)
+       (let* ((all-collections (-map #'cdar response))
+              (chosen-collection (completing-read "Choose: " all-collections)))
+         (finito--make-request
+          (finito--add-book-request-plist chosen-collection book)
+          (lambda (_)
+            (message "Successfully added '%s' to '%s'"
+                     (alist-get 'title book)
+                     chosen-collection))))))))
 
 (provide 'finito)
 ;;; finito.el ends here

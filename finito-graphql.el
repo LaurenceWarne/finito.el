@@ -77,18 +77,26 @@
 
 (defconst finito--create-collection-mutation-variables "{\"name\": \"%s\"}")
 
-(defconst finito--add-book-to-collection-mutation
+(defconst finito--add-book-mutation
   (graphql-mutation
    (:arguments
     (($name . String!)
-     ($book . Book!))
-    (addBookToCollection
+     ($title . String!)
+     ($authors . String!)
+     ($description . String!)
+     ($isbn . String!)
+     ($thumbnailUri . String!))
+    (addBook
      :arguments ((name . ($ name))
-                 (book . ($ book)))
+                 (book (title . ($ title))
+                       (authors . ($ authors))
+                       (description . ($ description))
+                       (isbn . ($ isbn))
+                       (thumbnailUri . ($ thumbnailUri))))
      name))))
 
-(defconst finito--add-book-to-collection-mutation-variables
-  "{\"name\": \"%s\", \"book\": %s}")
+(defconst finito--add-book-mutation-variables
+  "{\"name\": \"%s\", \"title\": \"%s\", \"authors\": %s, \"description\": \"%s\", \"isbn\": \"%s\", \"thumbnailUri\": \"%s\"}")
 
 (defconst finito--delete-collection-mutation
   (graphql-mutation
