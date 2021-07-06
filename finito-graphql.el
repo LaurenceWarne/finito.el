@@ -107,5 +107,17 @@
 
 (defconst finito--delete-collection-mutation-variables "{\"name\": \"%s\"}")
 
+(defconst finito--remove-book-mutation
+  (graphql-mutation
+   (:arguments
+    (($collection . String!)
+     ($isbn . String!))
+    (removeBook
+     :arguments ((collection . ($ collection))
+                 (isbn . ($ isbn)))))))
+
+(defconst finito--remove-book-mutation-variables
+  "{\"collection\": \"%s\", \"isbn\": \"%s\"}")
+
 (provide 'finito-graphql)
 ;;; finito-graphql.el ends here

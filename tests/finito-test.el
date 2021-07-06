@@ -11,7 +11,7 @@
 
 (require 'finito)
 
-(defmacro in-buffer (&rest body)
+(defmacro finito--in-buffer (&rest body)
   "Execute BODY in a throw-away buffer.
 
 Occurrences of `.buffer-text' will be replaced by:
@@ -25,6 +25,7 @@ Occurrences of `.buffer-text' will be replaced by:
                   (_                 expr))))
     `(with-temp-buffer
        ,@(replace body))))
+
 
 (describe "finito--search-request-plist"
   (it "test plist has headers and data"
@@ -75,7 +76,7 @@ Occurrences of `.buffer-text' will be replaced by:
 
 (describe "finito--insert-book-data"
   (it "test inserted data is reasonable"
-    (in-buffer
+    (finito--in-buffer
      (finito--insert-book-data
        '((title . "Flowers for Algernon")
          (authors . ["Daniel Keyes"])
