@@ -96,8 +96,8 @@
   ["Direct Lookup"
    (finito--isbn-arg :description "ISBN" :prompt "ISBN: ")]
   ["Actions"
-   ;("c" "Copy Curl"     finito-request)
-   ("s" "Search"        finito-request)])
+   ;("c" "Copy Curl"     finito-search-request)
+   ("s" "Search"        finito-search-request)])
 
 (transient-define-prefix finito-collection ()
   "Search for books."

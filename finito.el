@@ -62,6 +62,14 @@ into the current buffer."
   :group 'finito
   :type 'string)
 
+(defcustom finito-browse-function
+  #'finito--browse-function
+  "Function used by `finito-browse-book-at-point'.
+
+It should take a book alist as a parameter."
+  :group 'finito
+  :type 'function)
+
 (defface finito-author-name
   '((t :foreground "aquamarine"
        :weight bold
@@ -273,6 +281,20 @@ image-file-name"
               (books-before (--filter (<= (car it) line) finito--buffer-books)))
     (cdr (--max-by (> (car it) (car other)) books-before))))
 
+(defun finito--select-collection (callback)
+  "Prompt for a collection, and then call CALLBACK with that collection."
+  (finito--make-request
+     (finito--collections-request-plist)
+     (lambda (response)
+       (let* ((all-collections (-map #'cdar response))
+              (chosen-collection (completing-read "Choose: " all-collections)))
+         (funcall callback chosen-collection)))))
+
+(defun finito--browse-function (book-alist)
+  "Open a openlibrary page of a book, using it's isbn from BOOK-ALIST."
+  (browse-url
+   (concat "https://openlibrary.org/isbn/" (alist-get 'isbn book-alist))))
+
 ;;; Modes
 
 (defvar finito-book-view-mode-map
@@ -286,6 +308,8 @@ image-file-name"
     (define-key map "o" #'finito-to-org-buffer)
     (define-key map "q" #'kill-current-buffer)
     (define-key map "k" #'kill-current-buffer)
+    (define-key map "b" #'finito-browse-book-at-point)
+    (define-key map "D" #'finito-delete-book-at-point)
     map))
 
 (define-derived-mode finito-book-view-mode org-mode "finito-book-view"
@@ -313,7 +337,7 @@ The following commands are available in this mode:
   (interactive)
   nil)
 
-(defun finito-request (&optional args)
+(defun finito-search-request (&optional args)
   "Send a search request to the finito server using transient args ARGS."
   (interactive
    (list (finito--transient-args-plist 'finito-search)))
@@ -357,47 +381,41 @@ _ARGS does nothing and is needed to appease transient."
 
 _ARGS does nothing and is needed to appease transient."
   (interactive)
-  (finito--make-request
-   (finito--collections-request-plist)
-   (lambda (response)
-     (let* ((all-collections (-map #'cdar response))
-            (chosen-collection (completing-read "Choose: " all-collections)))
-       (finito--make-request
-        (finito--collection-request-plist chosen-collection)
-        (##finito--process-books-data (cdar %)))))))
+  (finito--select-collection
+   (lambda (chosen-collection)
+     (finito--make-request
+      (finito--collection-request-plist chosen-collection)
+      (##finito--process-books-data (cdar %))))))
 
 (defun finito-delete-collection (&optional _args)
   "Prompt the user for a collection and delete it.
 
 _ARGS does nothing and is needed to appease transient."
   (interactive)
-  (finito--make-request
-   (finito--collections-request-plist)
-   (lambda (response)
-     (let* ((all-collections (-map #'cdar response))
-            (chosen-collection (completing-read "Choose: " all-collections)))
+  (finito--select-collection
+     (lambda (chosen-collection)
        (finito--make-request
         (finito--delete-collection-request-plist chosen-collection)
         (lambda (_)
-          (message "Successfully deleted collection '%s'" chosen-collection)))))))
+          (message "Successfully deleted collection '%s'" chosen-collection))))))
 
-(defun finito-add-book-at-point (&optional _args)
-  "Prompt the user for a collection, and add the book at point to it.
-
-_ARGS does nothing and is needed to appease transient."
+(defun finito-add-book-at-point ()
+  "Prompt the user for a collection, and add the book at point to it."
   (interactive)
   (let ((book (finito--book-at-point)))
-    (finito--make-request
-     (finito--collections-request-plist)
-     (lambda (response)
-       (let* ((all-collections (-map #'cdar response))
-              (chosen-collection (completing-read "Choose: " all-collections)))
-         (finito--make-request
-          (finito--add-book-request-plist chosen-collection book)
-          (lambda (_)
-            (message "Successfully added '%s' to '%s'"
-                     (alist-get 'title book)
-                     chosen-collection))))))))
+    (finito--select-collection
+     (lambda (chosen-collection)
+       (finito--make-request
+        (finito--add-book-request-plist chosen-collection book)
+        (lambda (_)
+          (message "Successfully added '%s' to '%s'"
+                   (alist-get 'title book)
+                   chosen-collection)))))))
+
+(defun finito-browse-book-at-point ()
+  "Browse the book at point."
+  (interactive)
+  (funcall finito-browse-function (finito--book-at-point)))
 
 (provide 'finito)
 ;;; finito.el ends here
