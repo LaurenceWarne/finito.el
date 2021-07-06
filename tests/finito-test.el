@@ -75,9 +75,10 @@ Occurrences of `.buffer-text' will be replaced by:
       (expect (plist-get plist :data)))))
 
 (describe "finito--insert-book-data"
+  :var ((writer (finito-book-writer)))
   (it "test inserted data is reasonable"
     (finito--in-buffer
-     (finito--insert-book-data
+     (finito-insert-book writer
        '((title . "Flowers for Algernon")
          (authors . ["Daniel Keyes"])
          (description . "A description.")

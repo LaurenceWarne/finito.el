@@ -38,23 +38,20 @@
 (require 's)
 (require 'transient)
 
+(require 'finito-buffer)
+(require 'finito-core)
 (require 'finito-graphql)
 (require 'finito-view)
 
 (eval-when-compile (require 'let-alist))
 
-(defgroup finito nil
-  "Emacs client to finito"
-  :group 'books)
+(defcustom finito-writer-instance
+  (finito-book-writer)
+  "`finito-book-writer' instance to be used.
 
-(defcustom finito-insert-book-data
-  #'finito--insert-book-data
-  "Function to insert book data into the current buffer.
-
-The function should take book data in the form of an alist, and insert info
-into the current buffer."
+This instance will be used to write books in finito buffers."
   :group 'finito
-  :type 'function)
+  :type 'object)
 
 (defcustom finito-image-cache-dir
   (f-join user-emacs-directory "finito-images/")
@@ -69,18 +66,6 @@ into the current buffer."
 It should take a book alist as a parameter."
   :group 'finito
   :type 'function)
-
-(defface finito-author-name
-  '((t :foreground "aquamarine"
-       :weight bold
-       :underline t))
-  "Face for author names."
-  :group 'finito)
-
-(defface finito-book-descriptions
-  '((t :italic t))
-  "Face for book descriptions."
-  :group 'finito)
 
 (defconst finito--headers
   '(("Content-Type" . "application/json")
@@ -233,7 +218,7 @@ CALLBACK is called with the parsed json if the request is successful."
         ;; this is already a callback so do we need to:
         ;; https://stackoverflow.com/questions/40504796/asynchrous-copy-file-and-copy-directory-in-emacs-lisp
         (url-copy-file .img-uri .image-file-name))
-      (funcall finito-insert-book-data book-alist))))
+      (finito-insert-book finito-book-writer-instance book-alist))))
 
 (defun finito--create-book-alist (book-response)
   "Return an alist containing book information gleaned from BOOK-RESPONSE.
