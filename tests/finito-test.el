@@ -104,16 +104,29 @@ Occurrences of `.buffer-text' will be replaced by:
 
 (describe "finito--book-at-point"
   :var ((books-alist '((3 . book-one) (4 . book-two) (20 . book-three))))
-  (it "test book at point returns nil before all books"
+  (it "test returns nil before all books"
     (cl-letf (((symbol-function 'line-number-at-pos) #'ignore)
               (finito--buffer-books books-alist))
       (expect (finito--book-at-point) :to-be nil)))
-  (it "test book at point returns book on line where it starts"
+  (it "test returns book on line where it starts"
     (cl-letf (((symbol-function 'line-number-at-pos) (lambda () 3))
               (finito--buffer-books books-alist))
       (expect (finito--book-at-point) :to-equal 'book-one)))
-  (it "test book at point returns book on line after it starts"
+  (it "test returns book on line after it starts"
     (cl-letf (((symbol-function 'line-number-at-pos) (lambda () 15))
               (finito--buffer-books books-alist))
       (expect (finito--book-at-point) :to-equal 'book-two))))
 
+(describe "finito--books-filter"
+  :var ((books-alist
+         '((3 . book-one) (4 . book-two) (20 . book-four) (15 . book-three))))
+  (it "test all positive filter gives list with same elements"
+    (let ((alist-response (finito--books-filter (lambda (_) t) books-alist)))
+      (expect (--all-p (-contains-p alist-response it) alist-response))))
+  (it "test element removed and value correctly subtracted"
+    (let ((alist-response (finito--books-filter
+                           (lambda (e) (not (eq e 'book-two))) books-alist)))
+      (expect (length alist-response) :to-equal 3)
+      (expect alist-response :to-contain '(3 . book-one))
+      (expect alist-response :to-contain '(11 . book-three))
+      (expect alist-response :to-contain '(16 . book-four)))))

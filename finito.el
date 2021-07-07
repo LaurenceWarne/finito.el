@@ -85,7 +85,12 @@ This instance will be used to initialise a buffer after a keyword search."
 
 (defvar-local finito--buffer-books
   nil
-  "An alist associating books to buffer lines they begin.")
+  "An alist associating books to buffer lines they begin.
+
+It's elements should be of the form (KEY . VALUE) where KEY is an integer
+representing the start of where information starts about a particular book
+in the current buffer.  VALUE is itself an alist containing information
+about the corresponding book.")
 
 (defvar-local finito--collection
   nil
@@ -273,6 +278,20 @@ image-file-name"
               ;; Alist may not be ordered
               (books-before (--filter (<= (car it) line) finito--buffer-books)))
     (cdr (--max-by (> (car it) (car other)) books-before))))
+
+(defun finito--books-filter (pred books)
+  "Remove books matching PRED from BOOKS.
+
+BOOKS is expected to be in the format of `finito--buffer-books.'"
+  (cdr (-reduce-from
+        (lambda (acc book-cons)
+          (-let (((index . book) book-cons)
+                 ((sub-acc . books-acc) acc))
+            (if (funcall pred book)
+                (cons sub-acc (-snoc books-acc (cons (- index sub-acc) book)))
+              (cons (+ index sub-acc) books-acc))))
+        '(0 . nil)
+        (--sort (< (car it) (car other)) books))))
 
 (defun finito--select-collection (callback)
   "Prompt for a collection, and then call CALLBACK with that collection."
