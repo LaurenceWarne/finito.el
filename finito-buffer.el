@@ -78,5 +78,29 @@
                  'face
                  'finito-book-descriptions))
 
+(defclass finito-buffer-info ()
+  ((title :initarg :title
+          :type string
+          :custom string
+          :documentation "The title of the finito buffer.")
+   (mode :initarg :mode
+         :type function
+         :custom function
+         :documentation "The mode the finito buffer should use."))
+  "A class for holding information about a finito buffer.")
+
+(cl-defmethod finito-init-buffer ((buffer-info finito-buffer-info))
+  "Initialise the current buffer according to the properties of BUFFER-INFO."
+  (funcall (oref buffer-info mode)))
+
+(defclass finito-collection-buffer-info (finito-buffer-info)
+  nil
+  "A class for holding information about a finito collection buffer.")
+
+(cl-defmethod finito-init-buffer ((buffer-info finito-collection-buffer-info))
+  "Initialise the current buffer according to the properties of BUFFER-INFO."
+  (cl-call-next-method)
+  (setq finito--collection (oref buffer-info title)))
+
 (provide 'finito-buffer)
 ;;; finito-buffer.el ends here

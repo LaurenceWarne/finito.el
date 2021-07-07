@@ -67,6 +67,14 @@ It should take a book alist as a parameter."
   :group 'finito
   :type 'function)
 
+(defcustom finito-keyword-search-buffer-init-instance
+  (finito-buffer-info :title "Books" :mode (lambda () (finito-search-view-mode)))
+  "`finito-buffer-info' instance to be used.
+
+This instance will be used to initialise a buffer after a keyword search."
+  :group 'finito
+  :type 'object)
+
 (defconst finito--headers
   '(("Content-Type" . "application/json")
     ("Accept" . "application/json")))
@@ -186,43 +194,44 @@ CALLBACK is called with the parsed json if the request is successful."
                       (message "Received error in gql response: %s" (cadr data))
                     (funcall callback (cdadar data))))))))
 
-(defun finito--process-books-data (data)
-  "Insert the books data DATA into a buffer."
+(defun finito--process-books-data (data init-obj)
+  "Insert the books data DATA into a buffer.
+
+Use INIT-OBJ, an instance of `finito-buffer-init' to initialize the buffer."
   (finito--process
    data
+   init-obj
    ;; Vector to list)
-   (##-each (append % nil) #'finito--process-book-data)))
+   (##-each (append % nil) #'finito--layout-book-data)))
 
-(defun finito--process-single-book (data)
-  "Insert the book data DATA into a buffer."
-  (finito--process data (##finito--process-book-data %)))
+(defun finito--process-single-book (data init-obj)
+  "Insert the book data DATA into a buffer.
 
-(defun finito--process (data callback)
-  "Set up a finito book view buffer, and then call CALLBACK with DATA."
-  (finito--buffer-create)
+Use INIT-OBJ, an instance of `finito-buffer-init' to initialize the buffer."
+  (finito--process data init-obj (##finito--layout-book-data %)))
+
+(defun finito--process (data init-obj callback)
+  "Set up a finito buffer using INIT-OBJ, then call CALLBACK with DATA."
+  (unless (f-dir-p finito-image-cache-dir) (f-mkdir finito-image-cache-dir))
+  (switch-to-buffer (generate-new-buffer-name "Books"))
+  (finito-init-buffer init-obj)
   (let ((inhibit-read-only t))
-    (insert "* Books\n\n")
+    (insert (format "* %s\n\n" (oref init-obj title)))
     (funcall callback data))
   (goto-char (point-min))
   (org-display-inline-images))
 
-(defun finito--buffer-create ()
-  "Create and switch to a finito book view buffer."
-  (unless (f-dir-p finito-image-cache-dir) (f-mkdir finito-image-cache-dir))
-  (switch-to-buffer (generate-new-buffer-name "Books"))
-  (finito-search-view-mode))
-
-(defun finito--process-book-data (book)
+(defun finito--layout-book-data (book)
   "Insert data for BOOK into the current buffer."
   (add-to-list 'finito--buffer-books `(,(line-number-at-pos) . ,book))
   (let ((book-alist (finito--create-book-alist book)))
     (let-alist book-alist
       (unless (f-exists-p .image-file-name)
         (message (concat "Retrieving img: " .img-uri))
-        ;; this is already a callback so do we need to:
+        ;; TODO this is already a callback so do we need to:
         ;; https://stackoverflow.com/questions/40504796/asynchrous-copy-file-and-copy-directory-in-emacs-lisp
         (url-copy-file .img-uri .image-file-name))
-      (finito-insert-book finito-book-writer-instance book-alist))))
+      (finito-insert-book finito-writer-instance book-alist))))
 
 (defun finito--create-book-alist (book-response)
   "Return an alist containing book information gleaned from BOOK-RESPONSE.
@@ -245,23 +254,6 @@ image-file-name"
             (cons 'isbn .isbn)
             (cons 'img-uri .thumbnailUri)
             (cons 'image-file-name image-file-name)))))
-
-(defun finito--insert-book-data (book-data-alist)
-  "Insert into the current buffer contents from BOOK-DATA-ALIST."
-  (let* ((title (alist-get 'title book-data-alist))
-         (authors (alist-get 'authors book-data-alist))
-         (authors-str (s-join ", " authors))
-         (description (alist-get 'description book-data-alist))
-         (image-file-name (alist-get 'image-file-name book-data-alist)))
-    (insert (concat "** " title "\n\n"))
-    (insert (concat "[[" image-file-name "]]  " authors-str "\n\n"))
-    (overlay-put (make-overlay (- (point) 2) (- (point) (length authors-str) 2))
-                 'face
-                 'finito-author-name)
-    (insert (concat description "\n\n"))
-    (overlay-put (make-overlay (- (point) 2) (- (point) (length description) 2))
-                 'face
-                 'finito-book-descriptions)))
 
 (defun finito--book-at-point ()
   "Get the book at the current point in the buffer."
@@ -299,6 +291,7 @@ image-file-name"
     (define-key map "k" #'kill-current-buffer)
     (define-key map "b" #'finito-browse-book-at-point)
     (define-key map "D" #'finito-delete-book-at-point)
+    (define-key map "g" #'ignore)  ; will be refresh buffer
     map))
 
 (define-derived-mode finito-search-view-mode org-mode "finito-search-view"
@@ -317,7 +310,9 @@ The following commands are available in this mode:
     (define-key map "D" #'finito-delete-book-at-point)
     map))
 
-(define-derived-mode finito-collection-view-mode org-mode "finito-collection-view"
+(define-derived-mode finito-collection-view-mode
+  finito-search-view-mode
+  "finito-collection-view"
   "A mode for showing collections.
 
 The following commands are available in this mode:
@@ -348,7 +343,10 @@ The following commands are available in this mode:
   (if-let (isbn (plist-get args :isbn))
       (finito--make-request
        (finito--isbn-request-plist isbn)
-       (##finito--process-single-book %))
+       (##finito--process-single-book
+        %
+        (finito-buffer-info :title (concat "ISBN: " isbn)
+                            :mode #'finito-search-view-mode)))
     (finito-search-for-books
      nil
      (plist-get args :title)
@@ -367,7 +365,11 @@ prefix arg ARG, message an equivalent curl instead of sending a request."
         (kill-new (message url)))
     (let ((request-plist
            (finito--search-request-plist title-keywords author-keywords max-results)))
-      (finito--make-request request-plist #'finito--process-books-data))))
+      (finito--make-request
+       request-plist
+       (lambda (data) (finito--process-books-data
+                       data
+                       finito-keyword-search-buffer-init-instance))))))
 
 (defun finito-create-collection (&optional _args)
   "Send a request to the finito server to create a new collection.
@@ -389,7 +391,10 @@ _ARGS does nothing and is needed to appease transient."
    (lambda (chosen-collection)
      (finito--make-request
       (finito--collection-request-plist chosen-collection)
-      (##finito--process-books-data (cdar %))))))
+      (##finito--process-books-data
+       (cdar %)
+       (finito-buffer-info :title chosen-collection
+                           :mode #'finito-collection-view-mode))))))
 
 (defun finito-delete-collection (&optional _args)
   "Prompt the user for a collection and delete it.
