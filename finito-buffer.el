@@ -55,24 +55,24 @@
     (finito-insert-author writer authors)
     (finito-insert-description writer description)))
 
-(cl-defmethod finito-insert-title ((writer finito-book-writer) title)
-  "Insert TITLE into the current buffer using WRITER."
+(cl-defmethod finito-insert-title ((_writer finito-book-writer) title)
+  "Insert TITLE into the current buffer using _WRITER."
   (insert (concat "** " title "\n\n")))
 
-(cl-defmethod finito-insert-image ((writer finito-book-writer) image)
-  "Insert IMAGE (an image file name) into the current buffer using WRITER."
+(cl-defmethod finito-insert-image ((_writer finito-book-writer) image)
+  "Insert IMAGE (an image file name) into the current buffer using _WRITER."
   (insert (concat "[[" image "]]  ")))
 
-(cl-defmethod finito-insert-author ((writer finito-book-writer) authors)
-  "Insert AUTHORS into the current buffer using WRITER."
+(cl-defmethod finito-insert-author ((_writer finito-book-writer) authors)
+  "Insert AUTHORS into the current buffer using _WRITER."
   (let ((authors-str (s-join ", " authors)))
     (insert (concat authors-str "\n\n"))
     (overlay-put (make-overlay (- (point) 2) (- (point) (length authors-str) 2))
                  'face
                  'finito-author-name)))
 
-(cl-defmethod finito-insert-description ((writer finito-book-writer) description)
-  "Insert DESCRIPTION into the current buffer using WRITER."
+(cl-defmethod finito-insert-description ((_writer finito-book-writer) description)
+  "Insert DESCRIPTION into the current buffer using _WRITER."
   (insert (concat description "\n\n"))
     (overlay-put (make-overlay (- (point) 2) (- (point) (length description) 2))
                  'face

@@ -175,6 +175,18 @@ alist) to add to it."
                 (s-replace "\"" "'" .isbn)
                 (s-replace "\"" "'" .thumbnailUri))))))
 
+(defun finito--remove-book-request-plist (collection isbn)
+  "Return a plist with headers and body for a remove book request.
+
+COLLECTION should be the name of the collection, and ISBN should be the isbn
+of the book to remove."
+  `(:headers ,finito--headers
+    :data ,(format "{\"query\":\"%s\", \"variables\": %s\}"
+                   finito--remove-book-mutation
+                   (format finito--remove-book-mutation-variables
+                           collection
+                           isbn))))
+
 (defun finito--make-request (request-plist callback)
   "Make a request to `finito--host-uri' using REQUEST-PLIST.
 
@@ -290,8 +302,6 @@ image-file-name"
     (define-key map "q" #'kill-current-buffer)
     (define-key map "k" #'kill-current-buffer)
     (define-key map "b" #'finito-browse-book-at-point)
-    (define-key map "D" #'finito-delete-book-at-point)
-    (define-key map "g" #'ignore)  ; will be refresh buffer
     map))
 
 (define-derived-mode finito-search-view-mode org-mode "finito-search-view"
@@ -307,7 +317,8 @@ The following commands are available in this mode:
 (defvar finito-collection-view-mode-map
   (let ((map (make-sparse-keymap)))
     (suppress-keymap map t)
-    (define-key map "D" #'finito-delete-book-at-point)
+    (define-key map "g" #'finito-refresh-collection)
+    (define-key map "D" #'finito-remove-book-at-point)
     map))
 
 (define-derived-mode finito-collection-view-mode
@@ -393,8 +404,8 @@ _ARGS does nothing and is needed to appease transient."
       (finito--collection-request-plist chosen-collection)
       (##finito--process-books-data
        (cdar %)
-       (finito-buffer-info :title chosen-collection
-                           :mode #'finito-collection-view-mode))))))
+       (finito-collection-buffer-info :title chosen-collection
+                                      :mode #'finito-collection-view-mode))))))
 
 (defun finito-delete-collection (&optional _args)
   "Prompt the user for a collection and delete it.
@@ -420,6 +431,32 @@ _ARGS does nothing and is needed to appease transient."
           (message "Successfully added '%s' to '%s'"
                    (alist-get 'title book)
                    chosen-collection)))))))
+
+(defun finito-remove-book-at-point ()
+  "Remove the book at point from the current collection."
+  (interactive)
+  (let* ((book (finito--book-at-point))
+         (isbn (alist-get 'isbn book)))
+    ;; TODO don't refresh here, isntead just delete lines
+    (finito--make-request
+     (finito--remove-book-request-plist finito--collection isbn)
+     (lambda (_) (finito-refresh-collection)))))
+
+(defun finito-refresh-collection ()
+  "Refresh the current collection."
+  (interactive)
+  (let ((collection finito--collection)
+        (old-point (point)))
+    (kill-current-buffer)
+    ;; TODO make this blocking/synchronous
+    (finito--make-request
+     (finito--collection-request-plist collection)
+     (lambda (data)
+       (finito--process-books-data
+        (cdar data)
+        (finito-collection-buffer-info :title collection
+                                       :mode #'finito-collection-view-mode))
+       (goto-char (min old-point (point-max)))))))
 
 (defun finito-browse-book-at-point ()
   "Browse the book at point."
