@@ -79,6 +79,10 @@ It should take a book alist as a parameter."
   nil
   "An alist associating books to buffer lines they begin.")
 
+(defvar-local finito--collection
+  nil
+  "The name of the current collection.")
+
 ;;; Misc functions
 
 (defun finito--search-request-plist
@@ -206,7 +210,7 @@ CALLBACK is called with the parsed json if the request is successful."
   "Create and switch to a finito book view buffer."
   (unless (f-dir-p finito-image-cache-dir) (f-mkdir finito-image-cache-dir))
   (switch-to-buffer (generate-new-buffer-name "Books"))
-  (finito-book-view-mode))
+  (finito-search-view-mode))
 
 (defun finito--process-book-data (book)
   "Insert data for BOOK into the current buffer."
@@ -282,7 +286,7 @@ image-file-name"
 
 ;;; Modes
 
-(defvar finito-book-view-mode-map
+(defvar finito-search-view-mode-map
   (let ((map (make-sparse-keymap)))
     (suppress-keymap map t)
     (define-key map "a" #'finito-add-book-at-point)  ; to default collection
@@ -297,15 +301,30 @@ image-file-name"
     (define-key map "D" #'finito-delete-book-at-point)
     map))
 
-(define-derived-mode finito-book-view-mode org-mode "finito-book-view"
-  "A mode for showing Books.
+(define-derived-mode finito-search-view-mode org-mode "finito-search-view"
+  "A mode for showing book search results.
 
 The following commands are available in this mode:
-\\{finito-book-view-mode-map}"
+\\{finito-search-view-mode-map}"
   (setq buffer-read-only     t
         finito--buffer-books nil)
   (buffer-disable-undo)
-  (use-local-map finito-book-view-mode-map))
+  (use-local-map finito-search-view-mode-map))
+
+(defvar finito-collection-view-mode-map
+  (let ((map (make-sparse-keymap)))
+    (suppress-keymap map t)
+    (define-key map "D" #'finito-delete-book-at-point)
+    map))
+
+(define-derived-mode finito-collection-view-mode org-mode "finito-collection-view"
+  "A mode for showing collections.
+
+The following commands are available in this mode:
+\\{finito-collection-view-mode-map}"
+  (setq finito--collection nil)
+  (buffer-disable-undo)
+  (use-local-map finito-collection-view-mode-map))
 
 ;;; Commands
 
