@@ -81,21 +81,6 @@ This instance will be used to initialise a buffer after a keyword search."
 
 (defvar finito--host-uri "http://localhost:8080/api/graphql")
 
-;;; Buffer local variables
-
-(defvar-local finito--buffer-books
-  nil
-  "An alist associating books to buffer lines they begin.
-
-It's elements should be of the form (KEY . VALUE) where KEY is an integer
-representing the start of where information starts about a particular book
-in the current buffer.  VALUE is itself an alist containing information
-about the corresponding book.")
-
-(defvar-local finito--collection
-  nil
-  "The name of the current collection.")
-
 ;;; Misc functions
 
 (defun finito--search-request-plist

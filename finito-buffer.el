@@ -28,6 +28,8 @@
 
 (require 'finito-core)
 
+;;; Faces
+
 (defface finito-author-name
   '((t :foreground "aquamarine"
        :weight bold
@@ -39,6 +41,23 @@
   '((t :italic t))
   "Face for book descriptions."
   :group 'finito)
+
+;;; Buffer local variables
+
+(defvar-local finito--buffer-books
+  nil
+  "An alist associating books to buffer lines they begin.
+
+It's elements should be of the form (KEY . VALUE) where KEY is an integer
+representing the start of where information starts about a particular book
+in the current buffer.  VALUE is itself an alist containing information
+about the corresponding book.")
+
+(defvar-local finito--collection
+  nil
+  "The name of the current collection.")
+
+;;; Classes for working with buffers
 
 (defclass finito-book-writer ()
   nil
