@@ -283,15 +283,26 @@ image-file-name"
   "Remove books matching PRED from BOOKS.
 
 BOOKS is expected to be in the format of `finito--buffer-books.'"
-  (cdr (-reduce-from
-        (lambda (acc book-cons)
-          (-let (((index . book) book-cons)
-                 ((sub-acc . books-acc) acc))
-            (if (funcall pred book)
-                (cons sub-acc (-snoc books-acc (cons (- index sub-acc) book)))
-              (cons (+ index sub-acc) books-acc))))
-        '(0 . nil)
-        (--sort (< (car it) (car other)) books))))
+  (let ((diffs (finito--diffs (-map #'car books)))
+        (sorted-books (--sort (< (car it) (car other)) books)))
+    (cdr (-reduce-from
+          (lambda (acc book-cons)
+            (-let (((index . book) book-cons)
+                   ((sub-acc . books-acc) acc))
+              (if (funcall pred book)
+                  (cons sub-acc (-snoc books-acc (cons (- index sub-acc) book)))
+                (let ((diff (nth (-elem-index book-cons sorted-books) diffs)))
+                  (cons (+ diff sub-acc) books-acc)))))
+          '(0 . nil)
+          sorted-books))))
+
+(defun finito--diffs (list)
+  "Return a list of diffs of LIST."
+  (car (--reduce-from
+        (-let (((acc-list . prev) acc))
+          (cons (-snoc acc-list (- it prev)) it))
+        '(nil . 0)
+        list)))
 
 (defun finito--select-collection (callback)
   "Prompt for a collection, and then call CALLBACK with that collection."
@@ -383,6 +394,7 @@ The following commands are available in this mode:
      (plist-get args :author)
      (plist-get args :max-results))))
 
+;;;###autoload
 (defun finito-search-for-books
     (arg title-keywords author-keywords &optional max-results)
   "Search for books by title and author, and insert the results in a buffer.
@@ -401,6 +413,7 @@ prefix arg ARG, message an equivalent curl instead of sending a request."
                        data
                        finito-keyword-search-buffer-init-instance))))))
 
+;;;###autoload
 (defun finito-create-collection (&optional _args)
   "Send a request to the finito server to create a new collection.
 
@@ -412,6 +425,7 @@ _ARGS does nothing and is needed to appease transient."
        request-plist
        (##message "Successfully created collection '%s'" (cdar %1)))))
 
+;;;###autoload
 (defun finito-open-collection (&optional _args)
   "Prompt the user for a collection and open it.
 
@@ -426,6 +440,7 @@ _ARGS does nothing and is needed to appease transient."
        (finito-collection-buffer-info :title chosen-collection
                                       :mode #'finito-collection-view-mode))))))
 
+;;;###autoload
 (defun finito-delete-collection (&optional _args)
   "Prompt the user for a collection and delete it.
 
@@ -454,12 +469,29 @@ _ARGS does nothing and is needed to appease transient."
 (defun finito-remove-book-at-point ()
   "Remove the book at point from the current collection."
   (interactive)
-  (let* ((book (finito--book-at-point))
-         (isbn (alist-get 'isbn book)))
-    ;; TODO don't refresh here, isntead just delete lines
+  (let* ((line (line-number-at-pos))
+         (book (finito--book-at-point))
+         (isbn (alist-get 'isbn book))
+         (books finito--buffer-books))
+    (unless book (error "Cursor is not at a book!"))
     (finito--make-request
      (finito--remove-book-request-plist finito--collection isbn)
-     (lambda (_) (finito-refresh-collection)))))
+     (lambda (_)
+       (message "Removed '%s' from %s" (alist-get 'title book) finito--collection)
+       (let* ((inhibit-read-only t)
+              (indices (-sort #'< (-map #'car books)))
+              (idx (--find-last-index (<= it line) indices))
+              (book-start-line (nth idx indices)))
+         ;; There's got to be a better way...
+         (goto-char (point-min))
+         (forward-line (1- book-start-line))
+         (--dotimes (- (or (nth (1+ idx) indices)
+                           (line-number-at-pos (point-max)))
+                       book-start-line)
+           (delete-region (point) (1+ (line-end-position)))))
+       (setq finito--buffer-books
+             (finito--books-filter (##not (eq (alist-get 'isbn %) isbn))
+                                   books))))))
 
 (defun finito-refresh-collection ()
   "Refresh the current collection."
