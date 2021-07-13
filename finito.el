@@ -36,7 +36,6 @@
 (require 'outline)
 (require 'request)
 (require 's)
-(require 'transient)
 
 (require 'finito-buffer)
 (require 'finito-core)
@@ -49,7 +48,7 @@
   (finito-book-writer)
   "`finito-book-writer' instance to be used.
 
-This instance will be used to write books in finito buffers."
+This object will be used to write books in finito buffers."
   :group 'finito
   :type 'object)
 
@@ -72,6 +71,27 @@ It should take a book alist as a parameter."
   "`finito-buffer-info' instance to be used.
 
 This instance will be used to initialise a buffer after a keyword search."
+  :group 'finito
+  :type 'object)
+
+;;; Custom variables
+
+(defcustom finito-my-books-collection
+  "My Books"
+  "The name of the \"default\" collection.
+
+ This collection will be opened when the \"My Books\" suffix is invoked from
+the `finito-dispatch' prefix command.  Typically this collection will hold all
+books which have been added at some point to some collection."
+  :group 'finito
+  :type 'string)
+
+(defcustom finito-currently-reading-collection
+  "Currently Reading"
+  "The name of the collection which holds books being currently read.
+
+ This collection will be opened when the \"Currently Reading\" suffix is
+invoked from the `finito-dispatch' prefix command."
   :group 'finito
   :type 'object)
 
@@ -303,6 +323,15 @@ BOOKS is expected to be in the format of `finito--buffer-books.'"
   (browse-url
    (concat "https://openlibrary.org/isbn/" (alist-get 'isbn book-alist))))
 
+(defun finito--open-specified-collection (collection)
+  "Open the collection COLLECTION in a view buffer."
+  (finito--make-request
+   (finito--collection-request-plist collection)
+   (##finito--process-books-data
+    (cdar %)
+    (finito-collection-buffer-info :title collection
+                                   :mode #'finito-collection-view-mode))))
+
 ;;; Modes
 
 (defvar finito-search-view-mode-map
@@ -416,14 +445,23 @@ _ARGS does nothing and is needed to appease transient."
 
 _ARGS does nothing and is needed to appease transient."
   (interactive)
-  (finito--select-collection
-   (lambda (chosen-collection)
-     (finito--make-request
-      (finito--collection-request-plist chosen-collection)
-      (##finito--process-books-data
-       (cdar %)
-       (finito-collection-buffer-info :title chosen-collection
-                                      :mode #'finito-collection-view-mode))))))
+  (finito--select-collection (##finito--open-specified-collection %1)))
+
+;;;###autoload
+(defun finito-my-books (&optional _args)
+  "Open \"My Books\".
+
+_ARGS does nothing and is needed to appease transient."
+  (interactive)
+  (finito--open-specified-collection finito-my-books-collection))
+
+;;;###autoload
+(defun finito-currently-reading (&optional _args)
+  "Open \"Currently Reading\".
+
+_ARGS does nothing and is needed to appease transient."
+  (interactive)
+  (finito--open-specified-collection finito-currently-reading-collection))
 
 ;;;###autoload
 (defun finito-delete-collection (&optional _args)

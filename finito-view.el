@@ -81,8 +81,8 @@
 (transient-define-prefix finito-dispatch ()
   "Search for books."
   ["Actions"
-   ("m" "My Books"          ignore)
-   ("r" "Currently Reading" ignore)
+   ("m" "My Books"          finito-my-books)
+   ("r" "Currently Reading" finito-currently-reading)
    ("s" "Search"            finito-search)
    ("c" "Collections"       finito-collection)])
 
