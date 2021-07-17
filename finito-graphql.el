@@ -119,5 +119,68 @@
 (defconst finito--remove-book-mutation-variables
   "{\"collection\": \"%s\", \"isbn\": \"%s\"}")
 
+(defconst finito--rate-book-mutation
+  (graphql-mutation
+   (:arguments
+    (($rating . Int!)
+     ($title . String!)
+     ($authors . String!)
+     ($description . String!)
+     ($isbn . String!)
+     ($thumbnailUri . String!))
+    (startBook
+     :arguments ((rating . ($ rating))
+                 (book (title . ($ title))
+                       (authors . ($ authors))
+                       (description . ($ description))
+                       (isbn . ($ isbn))
+                       (thumbnailUri . ($ thumbnailUri))))
+     isbn))))
+
+(defconst finito--rate-book-mutation-variables
+  "{\"rating\": \"%s\", \"title\": \"%s\", \"authors\": %s, \"description\": \"%s\", \"isbn\": \"%s\", \"thumbnailUri\": \"%s\"}")
+
+(defconst finito--start-reading-mutation
+  (graphql-mutation
+   (:arguments
+    (($date . DateTime)
+     ($title . String!)
+     ($authors . String!)
+     ($description . String!)
+     ($isbn . String!)
+     ($thumbnailUri . String!))
+    (startReading
+     :arguments ((date . ($ date))
+                 (book (title . ($ title))
+                       (authors . ($ authors))
+                       (description . ($ description))
+                       (isbn . ($ isbn))
+                       (thumbnailUri . ($ thumbnailUri))))
+     isbn))))
+
+(defconst finito--start-reading-mutation-variables
+  "{\"date\": \"%s\", \"title\": \"%s\", \"authors\": %s, \"description\": \"%s\", \"isbn\": \"%s\", \"thumbnailUri\": \"%s\"}")
+
+(defconst finito--finish-reading-mutation
+  (graphql-mutation
+   (:arguments
+    (($date . DateTime)
+     ($title . String!)
+     ($authors . String!)
+     ($description . String!)
+     ($isbn . String!)
+     ($thumbnailUri . String!))
+    (finishReading
+     :arguments ((date . ($ date))
+                 (book (title . ($ title))
+                       (authors . ($ authors))
+                       (description . ($ description))
+                       (isbn . ($ isbn))
+                       (thumbnailUri . ($ thumbnailUri))))
+     isbn))))
+
+(defconst finito--finish-reading-mutation-variables
+  "{\"date\": \"%s\", \"title\": \"%s\", \"authors\": %s, \"description\": \"%s\", \"isbn\": \"%s\", \"thumbnailUri\": \"%s\"}")
+
 (provide 'finito-graphql)
 ;;; finito-graphql.el ends here
