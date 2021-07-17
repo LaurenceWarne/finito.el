@@ -26,6 +26,13 @@ Occurrences of `.buffer-text' will be replaced by:
     `(with-temp-buffer
        ,@(replace body))))
 
+(defun lw--fn-from-list (ls)
+  (let ((calls 0))
+    (lambda (&rest)
+      (when (>= calls (length ls))
+        (error "Stubbed function called more times than allowed"))
+      (cl-incf calls)
+      (nth (1- calls) ls))))
 
 (describe "finito--search-request-plist"
   (it "test plist has headers and data"
@@ -71,6 +78,12 @@ Occurrences of `.buffer-text' will be replaced by:
                    (isbn . "740253425430.")
                    (thumbnailUri . "image.png")))
            (plist (finito--add-book-request-plist "name" book)))
+      (expect (plist-get plist :headers))
+      (expect (plist-get plist :data)))))
+
+(describe "finito--remove-book-request-plist"
+  (it "test plist has headers and data"
+    (let* ((plist (finito--remove-book-request-plist "collection" "isbn")))
       (expect (plist-get plist :headers))
       (expect (plist-get plist :data)))))
 
@@ -135,3 +148,11 @@ Occurrences of `.buffer-text' will be replaced by:
   :var ((ls '(3 4 15 20)))
   (it "test diffs are correct"
     (expect (finito--diffs '(3 4 15 20)) :to-equal '(3 1 11 5))))
+
+(describe "finito--select-collection"
+  (it "test gets collections and prompts the user"
+    (cl-letf (((symbol-function 'completing-read)
+               (lambda (&rest _) "my collection"))
+              ((symbol-function 'finito--make-request)
+               (lambda (plist callback) (funcall callback nil))))
+      (expect (finito--select-collection #'identity) :to-equal "my collection"))))

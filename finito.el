@@ -316,10 +316,11 @@ BOOKS is expected to be in the format of `finito--buffer-books.'"
      (lambda (response)
        (let* ((all-collections (-map #'cdar response))
               (chosen-collection (completing-read "Choose: " all-collections)))
+         (print chosen-collection)
          (funcall callback chosen-collection)))))
 
 (defun finito--browse-function (book-alist)
-  "Open a openlibrary page of a book, using it's isbn from BOOK-ALIST."
+  "Open an openlibrary page of a book, using the isbn in BOOK-ALIST."
   (browse-url
    (concat "https://openlibrary.org/isbn/" (alist-get 'isbn book-alist))))
 
