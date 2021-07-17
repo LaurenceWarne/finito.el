@@ -347,6 +347,11 @@ BOOKS is expected to be in the format of `finito--buffer-books.'"
     (define-key map "q" #'kill-current-buffer)
     (define-key map "k" #'kill-current-buffer)
     (define-key map "b" #'finito-browse-book-at-point)
+    (define-key map "r" #'finito-rate-book-at-point)
+    (define-key map "s" #'finito-start-book-at-point)
+    (define-key map "S" #'finito-start-and-date-book-at-point)
+    (define-key map "f" #'finito-finish-book-at-point)
+    (define-key map "F" #'finito-finish-and-date-book-at-point)
     map))
 
 (define-derived-mode finito-search-view-mode org-mode "finito-search-view"
@@ -537,6 +542,26 @@ _ARGS does nothing and is needed to appease transient."
   "Browse the book at point."
   (interactive)
   (funcall finito-browse-function (finito--book-at-point)))
+
+(defun finito-rate-book-at-point ()
+  "Rate the book at point."
+  (interactive))
+
+(defun finito-start-book-at-point ()
+  "Rate the book at point."
+  (interactive))
+
+(defun finito-start-and-date-book-at-point ()
+  "Rate the book at point."
+  (interactive))
+
+(defun finito-finish-book-at-point ()
+  "Rate the book at point."
+  (interactive))
+
+(defun finito-finish-and-date-book-at-point ()
+  "Rate the book at point."
+  (interactive))
 
 (provide 'finito)
 ;;; finito.el ends here
