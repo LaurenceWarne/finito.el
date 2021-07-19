@@ -414,6 +414,11 @@ The following commands are available in this mode:
      (plist-get args :author)
      (plist-get args :max-results))))
 
+(defun finito-update-collection-request (&optional args)
+  "Send a collection update request to the finito server using ARGS."
+  (interactive
+   (list (finito--transient-args-plist 'finito-update-collection))))
+
 ;;;###autoload
 (defun finito-search-for-books
     (arg title-keywords author-keywords &optional max-results)

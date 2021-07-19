@@ -76,6 +76,25 @@
   :plist-key ':max-results
   :argument "max results=")
 
+(transient-define-argument finito--collection-name-arg ()
+  :class 'finito--transient-argument
+  :key "c"
+  :plist-key ':name
+  :argument "name=")
+
+(transient-define-argument finito--new-collection-name-arg ()
+  :class 'finito--transient-argument
+  :key "n"
+  :plist-key ':new-name
+  :argument "new name=")
+
+(transient-define-argument finito--sort-arg ()
+  :class 'finito--transient-argument
+  :key "s"
+  :plist-key ':sort
+  :argument "Sort="
+  :choices '("DateAdded" "Author" "Title"))
+
 ;;; Prefixes
 
 (transient-define-prefix finito-dispatch ()
@@ -105,9 +124,25 @@
    ;("c" "Copy Curl"     finito-request)
    ("n" "Create a new Collection" finito-create-collection)
    ("o" "Open a Collection"       finito-open-collection)
+   ("u" "Update a Collection"     finito-update-collection)
    ("d" "Delete a Collection"     finito-delete-collection)
    ("i" "Import a Collection"     ignore)
    ("e" "Export a Collection"     ignore)])
+
+(transient-define-prefix finito-update-collection ()
+  "Search for books."
+  ["Attributes"
+   (finito--collection-name-arg
+    :description "Name"
+    :prompt "Name: ")
+   (finito--new-collection-name-arg
+    :description "New Name"
+    :prompt "New name: ")
+   (finito--sort-arg
+    :description "Sort Books By"
+    :prompt "Sort Books By: ")]
+  ["Actions"
+   ("u" "Update" finito-update-collection-request)])
 
 ;;; Misc functions
 
