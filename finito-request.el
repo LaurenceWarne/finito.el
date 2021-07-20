@@ -110,7 +110,7 @@ alist) to add to it."
                 finito--add-book-mutation-variables
                 name
                 (s-replace "\"" "'" .title)
-                (concat "[" (mapconcat (##format "\"%s\"" %1) .authors ",") "]")
+                (finito--seq-to-json-list .authors)
                 (s-replace "\"" "'" .description)
                 (s-replace "\"" "'" .isbn)
                 (s-replace "\"" "'" .thumbnailUri))))))
@@ -126,6 +126,27 @@ of the book to remove."
                    (format finito--remove-book-mutation-variables
                            collection
                            isbn))))
+
+(defun finito--rate-book-request-plist (book rating)
+  "Return a plist with headers and body for rating request request.
+
+BOOK should be the book (as an alist) to rate and RATING the rating."
+  `(:headers ,finito--headers
+    :data ,(format "{\"query\":\"%s\", \"variables\": %s\}"
+                   finito--rate-book-mutation
+                   (let-alist book
+                     (format
+                      finito--rate-book-mutation-variables
+                      rating
+                      (s-replace "\"" "'" .title)
+                      (finito--seq-to-json-list .authors)
+                      (s-replace "\"" "'" .description)
+                      (s-replace "\"" "'" .isbn)
+                      (s-replace "\"" "'" .thumbnailUri))))))
+
+(defun finito--seq-to-json-list (seq)
+  "Return SEQ as an escaped json list."
+  (concat "[" (mapconcat (##format "\"%s\"" %1) seq ",") "]"))
 
 (provide 'finito-request)
 ;;; finito-request.el ends here

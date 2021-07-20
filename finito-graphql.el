@@ -119,7 +119,8 @@
     (startBook
      :arguments ((rating . ($ rating))
                  (book . ($ book)))
-     isbn))))
+     title authors description isbn thumbnailUri
+     rating startedReading lastRead))))
 
 (defconst finito--rate-book-mutation-variables
   "{\"rating\": \"%s\", \"book\": {\"title\": \"%s\", \"authors\": %s, \"description\": \"%s\", \"isbn\": \"%s\", \"thumbnailUri\": \"%s\"}}")
@@ -132,7 +133,8 @@
     (startReading
      :arguments ((date . ($ date))
                  (book . ($ book)))
-     isbn))))
+     title authors description isbn thumbnailUri
+     rating startedReading lastRead))))
 
 (defconst finito--start-reading-mutation-variables
   "{\"date\": \"%s\", \"book\": {\"title\": \"%s\", \"authors\": %s, \"description\": \"%s\", \"isbn\": \"%s\", \"thumbnailUri\": \"%s\"}}")
@@ -145,7 +147,8 @@
     (finishReading
      :arguments ((date . ($ date))
                  (book . ($ book)))
-     isbn))))
+     title authors description isbn thumbnailUri
+     rating startedReading lastRead))))
 
 (defconst finito--finish-reading-mutation-variables
   "{\"date\": \"%s\", \"book\": {\"title\": \"%s\", \"authors\": %s, \"description\": \"%s\", \"isbn\": \"%s\", \"thumbnailUri\": \"%s\"}}")

@@ -39,7 +39,7 @@
 
 (require 'finito-buffer)
 (require 'finito-core)
-(require 'finito-graphql)
+(require 'finito-request)
 (require 'finito-view)
 
 (eval-when-compile (require 'let-alist))
