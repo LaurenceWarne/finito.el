@@ -48,6 +48,12 @@
   "Face for ratings."
   :group 'finito)
 
+(defface finito-currently-reading
+  '((t :foreground "green"
+       :italic t))
+  "Face for currently reading message."
+  :group 'finito)
+
 ;;; Buffer local variables
 
 (defvar-local finito--buffer-books
@@ -76,6 +82,8 @@ about the corresponding book.")
     (finito-insert-image writer .image-file-name)
     (finito-insert-author writer .authors)
     (when .rating (finito-insert-rating writer .rating))
+    (when .started-reading
+      (finito-insert-started-reading writer .started-reading))
     (finito-insert-description writer .description)))
 
 (cl-defmethod finito-insert-title ((_writer finito-book-writer) title)
@@ -109,10 +117,23 @@ result of this method."
 _WRITER is a `finito-book-writer', but it's properties have no bearing on the
 result of this method."
   (insert
-   (concat (-repeat rating ?★) "\n"))
-  (overlay-put (make-overlay (1- (point)) (- (point) rating 1))
+   (concat (-repeat (min rating 100) ?★) "\n"))
+  (overlay-put (make-overlay (1- (point)) (- (point) (min rating 100) 1))
                  'face
                  'finito-rating))
+
+(cl-defmethod finito-insert-started-reading
+  ((_writer finito-book-writer) started-reading)
+  "Insert STARTED-READING into the current buffer.
+
+_WRITER is a `finito-book-writer', but it's properties have no bearing on the
+result of this method."
+  (let ((currently-reading-str "In Progress..."))
+    (insert (concat currently-reading-str) "\n")
+    (overlay-put (make-overlay (1- (point)) (- (point)
+                                               (length currently-reading-str) 1))
+                 'face
+                 'finito-currently-reading)))
 
 (cl-defmethod finito-insert-description ((_writer finito-book-writer) description)
   "Insert DESCRIPTION into the current buffer.

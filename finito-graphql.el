@@ -58,7 +58,8 @@
     (($name . String!))
     (collection
      :arguments ((name . ($ name)))
-     (books title authors description isbn thumbnailUri rating)))))
+     (books title authors description isbn thumbnailUri
+     rating startedReading lastRead)))))
 
 (defconst finito--collection-query-variables "{\"name\": \"%s\"}")
 
@@ -151,7 +152,7 @@
      rating startedReading lastRead))))
 
 (defconst finito--finish-reading-mutation-variables
-  "{\"date\": \"%s\", \"book\": {\"title\": \"%s\", \"authors\": %s, \"description\": \"%s\", \"isbn\": \"%s\", \"thumbnailUri\": \"%s\"}}")
+  "{\"date\": %s, \"book\": {\"title\": \"%s\", \"authors\": %s, \"description\": \"%s\", \"isbn\": \"%s\", \"thumbnailUri\": \"%s\"}}")
 
 (provide 'finito-graphql)
 ;;; finito-graphql.el ends here

@@ -168,7 +168,9 @@ description
 isbn
 img-uri
 image-file-name
-rating"
+rating
+started-reading
+last-read"
   (let-alist book-response
     (let* ((title-sanitized
             (replace-regexp-in-string "[^A-Za-z0-9._-]" "" (s-downcase .title)))
@@ -180,7 +182,9 @@ rating"
             (cons 'isbn .isbn)
             (cons 'img-uri .thumbnailUri)
             (cons 'image-file-name image-file-name)
-            (cons 'rating .rating)))))
+            (cons 'rating .rating)
+            (cons 'started-reading .startedReading)
+            (cons 'last-read .lastRead)))))
 
 (defun finito--book-at-point ()
   "Get the book at the current point in the buffer."
@@ -461,17 +465,28 @@ _ARGS does nothing and is needed to appease transient."
     (finito--make-request
      (finito--rate-book-request-plist book rating)
      (lambda (_)
-       (message "Successfully rated '%s' as '%s'"
+       (message "Successfully gave '%s' a rating of %s"
                 (alist-get 'title book)
                 rating)))))
 
 (defun finito-start-book-at-point ()
-  "Rate the book at point."
-  (interactive))
+  "Mark the book at point as currently reading."
+  (let ((book (finito--book-at-point)))
+    (finito--make-request
+     (finito--start-reading-request-plist book)
+     (lambda (_)
+       (message "Successfully added '%s' to currently reading"
+                (alist-get 'title book))))))
 
 (defun finito-start-and-date-book-at-point ()
-  "Rate the book at point."
-  (interactive))
+  "Mark the book at point as currently reading from the specified date."
+  (let ((book (finito--book-at-point))
+        (date (format-time-string "%Y-%m-%dT%TZ" (org-read-date nil 0))))
+    (finito--make-request
+     (finito--start-reading-request-plist book)
+     (lambda (_)
+       (message "Successfully added '%s' to currently reading"
+                (alist-get 'title book))))))
 
 (defun finito-finish-book-at-point ()
   "Rate the book at point."

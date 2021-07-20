@@ -128,7 +128,7 @@ of the book to remove."
                            isbn))))
 
 (defun finito--rate-book-request-plist (book rating)
-  "Return a plist with headers and body for rating request request.
+  "Return a plist with headers and body for a rating request.
 
 BOOK should be the book (as an alist) to rate and RATING the rating."
   `(:headers ,finito--headers
@@ -138,6 +138,24 @@ BOOK should be the book (as an alist) to rate and RATING the rating."
                      (format
                       finito--rate-book-mutation-variables
                       rating
+                      (s-replace "\"" "'" .title)
+                      (finito--seq-to-json-list .authors)
+                      (s-replace "\"" "'" .description)
+                      (s-replace "\"" "'" .isbn)
+                      (s-replace "\"" "'" .thumbnailUri))))))
+
+(defun finito--start-reading-request-plist (book &optional start-date)
+  "Return a plist with headers and body for a start reading request.
+
+BOOK should be the book (as an alist) to start reading and START-DATE is an
+optional start date which should be used if this book was started in the past."
+  `(:headers ,finito--headers
+    :data ,(format "{\"query\":\"%s\", \"variables\": %s\}"
+                   finito--start-reading-book-mutation
+                   (let-alist book
+                     (format
+                      finito--start-reading-book-mutation-variables
+                      (or start-date "{}")
                       (s-replace "\"" "'" .title)
                       (finito--seq-to-json-list .authors)
                       (s-replace "\"" "'" .description)
