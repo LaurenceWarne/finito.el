@@ -95,107 +95,10 @@ invoked from the `finito-dispatch' prefix command."
   :group 'finito
   :type 'object)
 
-(defconst finito--headers
-  '(("Content-Type" . "application/json")
-    ("Accept" . "application/json")))
 
 (defvar finito--host-uri "http://localhost:8080/api/graphql")
 
 ;;; Misc functions
-
-(defun finito--search-request-plist
-    (title-keywords author-keywords &optional max-results)
-  "Return a plist with headers and body suitable for a search query.
-
-The body will be deduced from TITLE-KEYWORDS, AUTHOR-KEYWORDS and MAX-RESULTS."
-  (let* ((query-variable-str
-          (format finito--search-query-variables
-                  (if (> (length title-keywords) 0)
-                      (s-wrap title-keywords "\"") "null")
-                  (if (> (length author-keywords) 0)
-                      (s-wrap  author-keywords "\"") "null")
-                  (or max-results "null"))))
-    `(:headers ,finito--headers
-      :data
-      ,(format "{\"query\":\"%s\", \"variables\": %s\}"
-               finito--search-query
-               query-variable-str))))
-
-(defun finito--isbn-request-plist (isbn)
-  "Return a plist with headers and body suitable for an isbn request.
-
-ISBN should be isbn of the book to query for."
-  `(:headers ,finito--headers
-    :data
-    ,(format "{\"query\":\"%s\", \"variables\": %s\}"
-             finito--isbn-query
-             (format finito--isbn-query-variables isbn))))
-
-(defun finito--collection-request-plist (name)
-  "Return a plist with headers and body suitable for a collection request.
-
-NAME should be the name of the collection to query for."
-  `(:headers ,finito--headers
-    :data
-    ,(format "{\"query\":\"%s\", \"variables\": %s\}"
-             finito--collection-query
-             (format finito--collection-query-variables name))))
-
-(defun finito--collections-request-plist ()
-  "Return a plist with headers and body suitable for a collections query."
-  `(:headers ,finito--headers
-    :data
-    ,(format "{\"query\":\"%s\"}" finito--collections-query)))
-
-(defun finito--create-collection-request-plist (name)
-  "Return a plist with headers and body suitable for a collection request.
-
-NAME should be the name of the collection to create."
-  `(:headers ,finito--headers
-    :data
-    ,(format "{\"query\":\"%s\", \"variables\": %s\}"
-             finito--create-collection-mutation
-             (format finito--create-collection-mutation-variables name))))
-
-(defun finito--delete-collection-request-plist (name)
-  "Return a plist with headers and body suitable for a delete request.
-
-NAME should be the name of the collection to delete."
-  `(:headers ,finito--headers
-    :data
-    ,(format "{\"query\":\"%s\", \"variables\": %s\}"
-             finito--delete-collection-mutation
-             (format finito--delete-collection-mutation-variables name))))
-
-(defun finito--add-book-request-plist (name book)
-  "Return a plist with headers and body for an add to collection request.
-
-NAME should be the name of the collection, and BOOK should be the book (as an
-alist) to add to it."
-  `(:headers ,finito--headers
-    :data ,(format "{\"query\":\"%s\", \"variables\": %s\}"
-             finito--add-book-mutation
-             (let-alist book
-               (format
-                finito--add-book-mutation-variables
-                name
-                (s-replace "\"" "'" .title)
-                (concat "[" (mapconcat (##format "\"%s\"" %1) .authors ",") "]")
-                (s-replace "\"" "'" .description)
-                (s-replace "\"" "'" .isbn)
-                (s-replace "\"" "'" .thumbnailUri))))))
-
-(defun finito--remove-book-request-plist (collection isbn)
-  "Return a plist with headers and body for a remove book request.
-
-COLLECTION should be the name of the collection, and ISBN should be the isbn
-of the book to remove."
-  `(:headers ,finito--headers
-    :data ,(format "{\"query\":\"%s\", \"variables\": %s\}"
-                   finito--remove-book-mutation
-                   (format finito--remove-book-mutation-variables
-                           collection
-                           isbn))))
 
 (defun finito--make-request (request-plist callback)
   "Make a request to `finito--host-uri' using REQUEST-PLIST.
@@ -316,7 +219,6 @@ BOOKS is expected to be in the format of `finito--buffer-books.'"
      (lambda (response)
        (let* ((all-collections (-map #'cdar response))
               (chosen-collection (completing-read "Choose: " all-collections)))
-         (print chosen-collection)
          (funcall callback chosen-collection)))))
 
 (defun finito--browse-function (book-alist)
@@ -417,7 +319,8 @@ The following commands are available in this mode:
 (defun finito-update-collection-request (&optional args)
   "Send a collection update request to the finito server using ARGS."
   (interactive
-   (list (finito--transient-args-plist 'finito-update-collection))))
+   (list (finito--transient-args-plist 'finito-update-collection)))
+  (message args))
 
 ;;;###autoload
 (defun finito-search-for-books

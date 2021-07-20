@@ -81,22 +81,14 @@
   (graphql-mutation
    (:arguments
     (($collection . String!)
-     ($title . String!)
-     ($authors . String!)
-     ($description . String!)
-     ($isbn . String!)
-     ($thumbnailUri . String!))
+     ($book . BookInput!))
     (addBook
      :arguments ((collection . ($ collection))
-                 (book (title . ($ title))
-                       (authors . ($ authors))
-                       (description . ($ description))
-                       (isbn . ($ isbn))
-                       (thumbnailUri . ($ thumbnailUri))))
+                 (book . ($ book)))
      name))))
 
 (defconst finito--add-book-mutation-variables
-  "{\"collection\": \"%s\", \"title\": \"%s\", \"authors\": %s, \"description\": \"%s\", \"isbn\": \"%s\", \"thumbnailUri\": \"%s\"}")
+  "{\"collection\": \"%s\", \"book\": {\"title\": \"%s\", \"authors\": %s, \"description\": \"%s\", \"isbn\": \"%s\", \"thumbnailUri\": \"%s\"}}")
 
 (defconst finito--delete-collection-mutation
   (graphql-mutation
@@ -123,64 +115,40 @@
   (graphql-mutation
    (:arguments
     (($rating . Int!)
-     ($title . String!)
-     ($authors . String!)
-     ($description . String!)
-     ($isbn . String!)
-     ($thumbnailUri . String!))
+     ($book . BookInput!))
     (startBook
      :arguments ((rating . ($ rating))
-                 (book (title . ($ title))
-                       (authors . ($ authors))
-                       (description . ($ description))
-                       (isbn . ($ isbn))
-                       (thumbnailUri . ($ thumbnailUri))))
+                 (book . ($ book)))
      isbn))))
 
 (defconst finito--rate-book-mutation-variables
-  "{\"rating\": \"%s\", \"title\": \"%s\", \"authors\": %s, \"description\": \"%s\", \"isbn\": \"%s\", \"thumbnailUri\": \"%s\"}")
+  "{\"rating\": \"%s\", \"book\": {\"title\": \"%s\", \"authors\": %s, \"description\": \"%s\", \"isbn\": \"%s\", \"thumbnailUri\": \"%s\"}}")
 
 (defconst finito--start-reading-mutation
   (graphql-mutation
    (:arguments
     (($date . DateTime)
-     ($title . String!)
-     ($authors . String!)
-     ($description . String!)
-     ($isbn . String!)
-     ($thumbnailUri . String!))
+     ($book . BookInput!))
     (startReading
      :arguments ((date . ($ date))
-                 (book (title . ($ title))
-                       (authors . ($ authors))
-                       (description . ($ description))
-                       (isbn . ($ isbn))
-                       (thumbnailUri . ($ thumbnailUri))))
+                 (book . ($ book)))
      isbn))))
 
 (defconst finito--start-reading-mutation-variables
-  "{\"date\": \"%s\", \"title\": \"%s\", \"authors\": %s, \"description\": \"%s\", \"isbn\": \"%s\", \"thumbnailUri\": \"%s\"}")
+  "{\"date\": \"%s\", \"book\": {\"title\": \"%s\", \"authors\": %s, \"description\": \"%s\", \"isbn\": \"%s\", \"thumbnailUri\": \"%s\"}}")
 
 (defconst finito--finish-reading-mutation
   (graphql-mutation
    (:arguments
     (($date . DateTime)
-     ($title . String!)
-     ($authors . String!)
-     ($description . String!)
-     ($isbn . String!)
-     ($thumbnailUri . String!))
+     ($book . BookInput!))
     (finishReading
      :arguments ((date . ($ date))
-                 (book (title . ($ title))
-                       (authors . ($ authors))
-                       (description . ($ description))
-                       (isbn . ($ isbn))
-                       (thumbnailUri . ($ thumbnailUri))))
+                 (book . ($ book)))
      isbn))))
 
 (defconst finito--finish-reading-mutation-variables
-  "{\"date\": \"%s\", \"title\": \"%s\", \"authors\": %s, \"description\": \"%s\", \"isbn\": \"%s\", \"thumbnailUri\": \"%s\"}")
+  "{\"date\": \"%s\", \"book\": {\"title\": \"%s\", \"authors\": %s, \"description\": \"%s\", \"isbn\": \"%s\", \"thumbnailUri\": \"%s\"}}")
 
 (provide 'finito-graphql)
 ;;; finito-graphql.el ends here
