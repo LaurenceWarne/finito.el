@@ -155,7 +155,7 @@ optional start date which should be used if this book was started in the past."
                    (let-alist book
                      (format
                       finito--start-reading-mutation-variables
-                      (or start-date "null")
+                      (if start-date (s-wrap start-date "\"") "null")
                       (s-replace "\"" "'" .title)
                       (finito--seq-to-json-list .authors)
                       (s-replace "\"" "'" .description)
@@ -173,7 +173,7 @@ optional date which should be used if this book was finished in the past."
                    (let-alist book
                      (format
                       finito--finish-reading-mutation-variables
-                      (or date "null")
+                      (if date (s-wrap date "\"") "null")
                       (s-replace "\"" "'" .title)
                       (finito--seq-to-json-list .authors)
                       (s-replace "\"" "'" .description)
