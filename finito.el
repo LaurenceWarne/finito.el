@@ -485,7 +485,7 @@ _ARGS does nothing and is needed to appease transient."
   (let ((book (finito--book-at-point))
         (date (format-time-string "%Y-%m-%dT%TZ" (org-read-date nil 0))))
     (finito--make-request
-     (finito--start-reading-request-plist book)
+     (finito--start-reading-request-plist book date)
      (lambda (_)
        (message "Successfully added '%s' to currently reading"
                 (alist-get 'title book))))))

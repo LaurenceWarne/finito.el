@@ -24,6 +24,8 @@
 ;;; Code:
 
 (require 'cl-lib)
+(require 'dash)
+(require 'iso8601)
 (require 's)
 
 (require 'finito-core)
@@ -131,7 +133,7 @@ result of this method."
                  'finito-rating))
 
 (cl-defmethod finito-insert-started-reading
-  ((_writer finito-book-writer) started-reading)
+  ((_writer finito-book-writer) _started-reading)
   "Insert STARTED-READING into the current buffer.
 
 _WRITER is a `finito-book-writer', but it's properties have no bearing on the
