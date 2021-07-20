@@ -151,11 +151,29 @@ BOOK should be the book (as an alist) to start reading and START-DATE is an
 optional start date which should be used if this book was started in the past."
   `(:headers ,finito--headers
     :data ,(format "{\"query\":\"%s\", \"variables\": %s\}"
-                   finito--start-reading-book-mutation
+                   finito--start-reading-mutation
                    (let-alist book
                      (format
-                      finito--start-reading-book-mutation-variables
-                      (or start-date "{}")
+                      finito--start-reading-mutation-variables
+                      (or start-date "null")
+                      (s-replace "\"" "'" .title)
+                      (finito--seq-to-json-list .authors)
+                      (s-replace "\"" "'" .description)
+                      (s-replace "\"" "'" .isbn)
+                      (s-replace "\"" "'" .thumbnailUri))))))
+
+(defun finito--finish-reading-request-plist (book &optional date)
+  "Return a plist with headers and body for a finish reading request.
+
+BOOK should be the book (as an alist) to finish reading and DATE is an
+optional date which should be used if this book was finished in the past."
+  `(:headers ,finito--headers
+    :data ,(format "{\"query\":\"%s\", \"variables\": %s\}"
+                   finito--finish-reading-mutation
+                   (let-alist book
+                     (format
+                      finito--finish-reading-mutation-variables
+                      (or date "null")
                       (s-replace "\"" "'" .title)
                       (finito--seq-to-json-list .authors)
                       (s-replace "\"" "'" .description)

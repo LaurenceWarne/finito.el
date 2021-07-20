@@ -49,9 +49,15 @@
   :group 'finito)
 
 (defface finito-currently-reading
-  '((t :foreground "green"
+  '((t :foreground "sky blue"
        :italic t))
   "Face for currently reading message."
+  :group 'finito)
+
+(defface finito-last-read
+  '((t :foreground "light green"
+       :weight bold))
+  "Face for last read message."
   :group 'finito)
 
 ;;; Buffer local variables
@@ -84,6 +90,8 @@ about the corresponding book.")
     (when .rating (finito-insert-rating writer .rating))
     (when .started-reading
       (finito-insert-started-reading writer .started-reading))
+    (when .last-read
+      (finito-insert-last-read writer .last-read))
     (finito-insert-description writer .description)))
 
 (cl-defmethod finito-insert-title ((_writer finito-book-writer) title)
@@ -128,12 +136,26 @@ result of this method."
 
 _WRITER is a `finito-book-writer', but it's properties have no bearing on the
 result of this method."
-  (let ((currently-reading-str "In Progress..."))
+  (let ((currently-reading-str "⌛ In Progress ⌛"))
     (insert (concat currently-reading-str) "\n")
     (overlay-put (make-overlay (1- (point)) (- (point)
                                                (length currently-reading-str) 1))
                  'face
                  'finito-currently-reading)))
+
+(cl-defmethod finito-insert-last-read
+  ((_writer finito-book-writer) last-read)
+  "Insert LAST-READ into the current buffer.
+
+_WRITER is a `finito-book-writer', but it's properties have no bearing on the
+result of this method."
+  (let* ((date-str (format-time-string "%Y-%m-%d" (iso8601-parse last-read)))
+         (last-read-str (concat "Last Read: " date-str)))
+    (insert last-read-str "\n")
+    (overlay-put (make-overlay (1- (point)) (- (point)
+                                               (length last-read-str) 1))
+                 'face
+                 'finito-last-read)))
 
 (cl-defmethod finito-insert-description ((_writer finito-book-writer) description)
   "Insert DESCRIPTION into the current buffer.

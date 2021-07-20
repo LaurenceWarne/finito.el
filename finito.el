@@ -376,7 +376,7 @@ _ARGS does nothing and is needed to appease transient."
   (finito--open-specified-collection finito-my-books-collection))
 
 ;;;###autoload
-(defun finito-currently-reading (&optional _args)
+(defun finito-open-currently-reading-collection (&optional _args)
   "Open \"Currently Reading\".
 
 _ARGS does nothing and is needed to appease transient."
@@ -471,6 +471,7 @@ _ARGS does nothing and is needed to appease transient."
 
 (defun finito-start-book-at-point ()
   "Mark the book at point as currently reading."
+  (interactive)
   (let ((book (finito--book-at-point)))
     (finito--make-request
      (finito--start-reading-request-plist book)
@@ -479,7 +480,8 @@ _ARGS does nothing and is needed to appease transient."
                 (alist-get 'title book))))))
 
 (defun finito-start-and-date-book-at-point ()
-  "Mark the book at point as currently reading from the specified date."
+  "Mark the book at point as currently reading from a prompted date."
+  (interactive)
   (let ((book (finito--book-at-point))
         (date (format-time-string "%Y-%m-%dT%TZ" (org-read-date nil 0))))
     (finito--make-request
@@ -489,12 +491,25 @@ _ARGS does nothing and is needed to appease transient."
                 (alist-get 'title book))))))
 
 (defun finito-finish-book-at-point ()
-  "Rate the book at point."
-  (interactive))
+  "Mark the book at point as finished."
+  (interactive)
+  (let ((book (finito--book-at-point)))
+    (finito--make-request
+     (finito--finish-reading-request-plist book)
+     (lambda (_)
+       (message "Successfully marked '%s' as finished"
+                (alist-get 'title book))))))
 
 (defun finito-finish-and-date-book-at-point ()
-  "Rate the book at point."
-  (interactive))
+  "Mark the book at point as finished on a prompted date."
+  (interactive)
+  (let ((book (finito--book-at-point))
+        (date (format-time-string "%Y-%m-%dT%TZ" (org-read-date nil 0))))
+    (finito--make-request
+     (finito--finish-reading-request-plist book date)
+     (lambda (_)
+       (message "Successfully marked '%s' as finished"
+                (alist-get 'title book))))))
 
 (provide 'finito)
 ;;; finito.el ends here

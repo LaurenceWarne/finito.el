@@ -138,7 +138,7 @@
      rating startedReading lastRead))))
 
 (defconst finito--start-reading-mutation-variables
-  "{\"date\": \"%s\", \"book\": {\"title\": \"%s\", \"authors\": %s, \"description\": \"%s\", \"isbn\": \"%s\", \"thumbnailUri\": \"%s\"}}")
+  "{\"date\": %s, \"book\": {\"title\": \"%s\", \"authors\": %s, \"description\": \"%s\", \"isbn\": \"%s\", \"thumbnailUri\": \"%s\"}}")
 
 (defconst finito--finish-reading-mutation
   (graphql-mutation
