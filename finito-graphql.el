@@ -58,7 +58,7 @@
     (($name . String!))
     (collection
      :arguments ((name . ($ name)))
-     (books title authors description isbn thumbnailUri)))))
+     (books title authors description isbn thumbnailUri rating)))))
 
 (defconst finito--collection-query-variables "{\"name\": \"%s\"}")
 
@@ -116,14 +116,14 @@
    (:arguments
     (($rating . Int!)
      ($book . BookInput!))
-    (startBook
+    (rateBook
      :arguments ((rating . ($ rating))
                  (book . ($ book)))
      title authors description isbn thumbnailUri
      rating startedReading lastRead))))
 
 (defconst finito--rate-book-mutation-variables
-  "{\"rating\": \"%s\", \"book\": {\"title\": \"%s\", \"authors\": %s, \"description\": \"%s\", \"isbn\": \"%s\", \"thumbnailUri\": \"%s\"}}")
+  "{\"rating\": %s, \"book\": {\"title\": \"%s\", \"authors\": %s, \"description\": \"%s\", \"isbn\": \"%s\", \"thumbnailUri\": \"%s\"}}")
 
 (defconst finito--start-reading-mutation
   (graphql-mutation

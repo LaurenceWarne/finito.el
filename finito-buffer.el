@@ -42,6 +42,12 @@
   "Face for book descriptions."
   :group 'finito)
 
+(defface finito-rating
+  '((t :foreground "gold"
+       :weight bold))
+  "Face for ratings."
+  :group 'finito)
+
 ;;; Buffer local variables
 
 (defvar-local finito--buffer-books
@@ -65,14 +71,12 @@ about the corresponding book.")
 
 (cl-defmethod finito-insert-book ((writer finito-book-writer) book-alist)
   "Write BOOK-ALIST into the current buffer using WRITER."
-  (let* ((title (alist-get 'title book-alist))
-         (authors (alist-get 'authors book-alist))
-         (description (alist-get 'description book-alist))
-         (image-file-name (alist-get 'image-file-name book-alist)))
-    (finito-insert-title writer title)
-    (finito-insert-image writer image-file-name)
-    (finito-insert-author writer authors)
-    (finito-insert-description writer description)))
+  (let-alist book-alist
+    (finito-insert-title writer .title)
+    (finito-insert-image writer .image-file-name)
+    (finito-insert-author writer .authors)
+    (when .rating (finito-insert-rating writer .rating))
+    (finito-insert-description writer .description)))
 
 (cl-defmethod finito-insert-title ((_writer finito-book-writer) title)
   "Insert TITLE into the current buffer.
@@ -98,6 +102,17 @@ result of this method."
     (overlay-put (make-overlay (- (point) 2) (- (point) (length authors-str) 2))
                  'face
                  'finito-author-name)))
+
+(cl-defmethod finito-insert-rating ((_writer finito-book-writer) rating)
+  "Insert RATING into the current buffer.
+
+_WRITER is a `finito-book-writer', but it's properties have no bearing on the
+result of this method."
+  (insert
+   (concat (-repeat rating ?★) "\n"))
+  (overlay-put (make-overlay (1- (point)) (- (point) rating 1))
+                 'face
+                 'finito-rating))
 
 (cl-defmethod finito-insert-description ((_writer finito-book-writer) description)
   "Insert DESCRIPTION into the current buffer.

@@ -167,7 +167,8 @@ authors
 description
 isbn
 img-uri
-image-file-name"
+image-file-name
+rating"
   (let-alist book-response
     (let* ((title-sanitized
             (replace-regexp-in-string "[^A-Za-z0-9._-]" "" (s-downcase .title)))
@@ -178,7 +179,8 @@ image-file-name"
             (cons 'description .description)
             (cons 'isbn .isbn)
             (cons 'img-uri .thumbnailUri)
-            (cons 'image-file-name image-file-name)))))
+            (cons 'image-file-name image-file-name)
+            (cons 'rating .rating)))))
 
 (defun finito--book-at-point ()
   "Get the book at the current point in the buffer."
@@ -453,7 +455,15 @@ _ARGS does nothing and is needed to appease transient."
 
 (defun finito-rate-book-at-point ()
   "Rate the book at point."
-  (interactive))
+  (interactive)
+  (let ((book (finito--book-at-point))
+        (rating (read-string "Rating: ")))
+    (finito--make-request
+     (finito--rate-book-request-plist book rating)
+     (lambda (_)
+       (message "Successfully rated '%s' as '%s'"
+                (alist-get 'title book)
+                rating)))))
 
 (defun finito-start-book-at-point ()
   "Rate the book at point."
