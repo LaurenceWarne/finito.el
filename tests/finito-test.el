@@ -98,6 +98,38 @@ Occurrences of `.buffer-text' will be replaced by:
       (expect (plist-get plist :headers))
       (expect (plist-get plist :data)))))
 
+(describe "finito--start-reading-request-plist"
+  :var ((book '((title . "Flowers for Algernon")
+                (authors . ["Daniel Keyes"])
+                (description . "A description.")
+                (isbn . "740253425430.")
+                (thumbnailUri . "image.png"))))
+  (it "test plist has headers and data with no date"
+    (let ((plist (finito--start-reading-request-plist book nil)))
+      (expect (plist-get plist :headers))
+      (expect (plist-get plist :data))))
+  (it "test plist has headers and data specified date"
+    (let* ((date "2021-03-12")
+           (plist (finito--start-reading-request-plist book date)))
+      (expect (plist-get plist :headers))
+      (expect (plist-get plist :data)))))
+
+(describe "finito--finish-reading-request-plist"
+  :var ((book '((title . "Flowers for Algernon")
+                (authors . ["Daniel Keyes"])
+                (description . "A description.")
+                (isbn . "740253425430.")
+                (thumbnailUri . "image.png"))))
+  (it "test plist has headers and data with no date"
+    (let ((plist (finito--finish-reading-request-plist book nil)))
+      (expect (plist-get plist :headers))
+      (expect (plist-get plist :data))))
+  (it "test plist has headers and data specified date"
+    (let* ((date "2021-03-12")
+           (plist (finito--finish-reading-request-plist book date)))
+      (expect (plist-get plist :headers))
+      (expect (plist-get plist :data)))))
+
 (describe "finito--insert-book-data"
   :var ((writer (finito-book-writer)))
   (it "test inserted data is reasonable"
@@ -116,7 +148,10 @@ Occurrences of `.buffer-text' will be replaced by:
                             (authors . ["bar"])
                             (description . "foo description")
                             (isbn . "isbn")
-                            (thumbnailUri . "https://random-url"))))
+                            (thumbnailUri . "https://random-url")
+                            (rating . 3)
+                            (startedReading . "some-date")
+                            (lastRead . "some other date"))))
       (expect (finito--create-book-alist response-alist)
               :to-equal
               '((title . "Foo Title")
@@ -124,7 +159,32 @@ Occurrences of `.buffer-text' will be replaced by:
                 (description . "foo description")
                 (isbn . "isbn")
                 (img-uri . "https://random-url")
-                (image-file-name . "cache/directory/footitleisbn.jpeg"))))))
+                (image-file-name . "cache/directory/footitleisbn.jpeg")
+                (rating . 3)
+                (started-reading . "some-date")
+                (last-read . "some other date")))))
+
+  (it "test book alist contains keys set to nil when input key is nil"
+    (let ((finito-image-cache-dir "cache/directory")
+          (response-alist '((title . "Foo Title")
+                            (authors . ["bar"])
+                            (description . "foo description")
+                            (isbn . "isbn")
+                            (thumbnailUri . "https://random-url")
+                            (rating . nil)
+                            (startedReading . nil)
+                            (lastRead . nil))))
+      (expect (finito--create-book-alist response-alist)
+              :to-equal
+              '((title . "Foo Title")
+                (authors . ["bar"])
+                (description . "foo description")
+                (isbn . "isbn")
+                (img-uri . "https://random-url")
+                (image-file-name . "cache/directory/footitleisbn.jpeg")
+                (rating . nil)
+                (started-reading . nil)
+                (last-read . nil))))))
 
 (describe "finito--book-at-point"
   :var ((books-alist '((3 . book-one) (4 . book-two) (20 . book-three))))
