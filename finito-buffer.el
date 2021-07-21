@@ -151,10 +151,7 @@ result of this method."
 
 _WRITER is a `finito-book-writer', but it's properties have no bearing on the
 result of this method."
-  (let* ((date-str (--> (iso8601-parse last-read)
-                     (encode-time it)
-                     (format-time-string "%Y-%m-%d" it)))
-         (last-read-str (concat "Last Read: " date-str)))
+  (let* ((last-read-str (concat "Last Read: " last-read)))
     (insert last-read-str "\n")
     (overlay-put (make-overlay (1- (point)) (- (point)
                                                (length last-read-str) 1))

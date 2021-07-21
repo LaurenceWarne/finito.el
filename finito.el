@@ -483,7 +483,7 @@ _ARGS does nothing and is needed to appease transient."
   "Mark the book at point as currently reading from a prompted date."
   (interactive)
   (let ((book (finito--book-at-point))
-        (date (format-time-string "%Y-%m-%dT%TZ" (org-read-date nil 0))))
+        (date (org-read-date)))
     (finito--make-request
      (finito--start-reading-request-plist book date)
      (lambda (_)
@@ -504,7 +504,7 @@ _ARGS does nothing and is needed to appease transient."
   "Mark the book at point as finished on a prompted date."
   (interactive)
   (let ((book (finito--book-at-point))
-        (date (format-time-string "%Y-%m-%dT%TZ" (org-read-date nil 0))))
+        (date (org-read-date)))
     (finito--make-request
      (finito--finish-reading-request-plist book date)
      (lambda (_)
