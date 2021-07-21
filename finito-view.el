@@ -132,6 +132,7 @@
 (transient-define-prefix finito-update-collection ()
   "Search for books."
   ["Attributes"
+   ;; TODO read this using `finito--select-collection'
    (finito--collection-name-arg
     :description "Name"
     :prompt "Name: ")

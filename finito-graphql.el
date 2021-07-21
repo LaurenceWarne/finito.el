@@ -100,6 +100,21 @@
 
 (defconst finito--delete-collection-mutation-variables "{\"name\": \"%s\"}")
 
+(defconst finito--update-collection-mutation
+  (graphql-mutation
+   (:arguments
+    (($currentName . String!)
+     ($newName . String)
+     ($preferredSort . Sort))
+    (updateCollection
+     :arguments ((currentName . ($ currentName))
+                 (newName . ($ newName))
+                 (preferredSort . ($ preferredSort)))
+     name preferredSort))))
+
+(defconst finito--update-collection-mutation-variables
+  "{\"currentName\": \"%s\", \"newName\": %s, \"preferredSort\": %s}")
+
 (defconst finito--remove-book-mutation
   (graphql-mutation
    (:arguments

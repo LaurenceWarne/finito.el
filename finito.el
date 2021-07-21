@@ -322,12 +322,6 @@ The following commands are available in this mode:
      (plist-get args :author)
      (plist-get args :max-results))))
 
-(defun finito-update-collection-request (&optional args)
-  "Send a collection update request to the finito server using ARGS."
-  (interactive
-   (list (finito--transient-args-plist 'finito-update-collection)))
-  (message args))
-
 ;;;###autoload
 (defun finito-search-for-books
     (arg title-keywords author-keywords &optional max-results)
@@ -395,6 +389,20 @@ _ARGS does nothing and is needed to appease transient."
         (finito--delete-collection-request-plist chosen-collection)
         (lambda (_)
           (message "Successfully deleted collection '%s'" chosen-collection))))))
+
+;;;###autoload
+(defun finito-update-collection-request (&optional args)
+  "Update the collection specified in ARGS."
+  (interactive
+   (list (finito--transient-args-plist 'finito-update-collection)))
+  (let ((chosen-collection (plist-get args :name))
+        (new-name (plist-get args :new-name))
+        (preferred-sort (plist-get args :sort)))
+    (finito--make-request
+     (finito--update-collection-request-plist
+      chosen-collection new-name preferred-sort)
+     (lambda (_)
+       (message "Successfully updated collection '%s'" chosen-collection)))))
 
 (defun finito-add-book-at-point ()
   "Prompt the user for a collection, and add the book at point to it."

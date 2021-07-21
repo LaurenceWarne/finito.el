@@ -97,6 +97,22 @@ NAME should be the name of the collection to delete."
              finito--delete-collection-mutation
              (format finito--delete-collection-mutation-variables name))))
 
+(defun finito--update-collection-request-plist
+    (current-name &optional new-name preferred-sort)
+  "Return a plist with headers and body suitable for an update request.
+
+CURRENT-NAME should be the name of the collection to update, NEW-NAME
+should be the new name and PREFERRED-SORT the preferred sorting method.
+All arguments should be strings."
+  `(:headers ,finito--headers
+    :data
+    ,(format "{\"query\":\"%s\", \"variables\": %s\}"
+             finito--update-collection-mutation
+             (format finito--update-collection-mutation-variables
+                     current-name
+                     (if new-name (s-wrap new-name "\"") "null")
+                     (or preferred-sort "null")))))
+
 (defun finito--add-book-request-plist (name book)
   "Return a plist with headers and body for an add to collection request.
 
