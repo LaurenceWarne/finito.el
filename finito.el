@@ -313,16 +313,19 @@ The following commands are available in this mode:
 (defun finito--insert-book-in-current-buffer (book)
   "Insert BOOK at point the current buffer.
 
-This function will also update `finito--buffer-books' as necessary."
-  (let* ((books finito--buffer-books)
-         (indices (-sort #'< (-map #'car books)))
-         (line-num (line-number-at-pos)))
-    (goto-char (point-min))
-    (forward-line line-num)
+BOOK should be a unparsed server response which can be safely passed to
+`finito--layout-book-data'.  This function will also update
+`finito--buffer-books' as necessary."
+  (let ((books finito--buffer-books)
+        (line-num (line-number-at-pos))
+        (inhibit-read-only t))
     (finito--layout-book-data book)
     (let ((diff (- (line-number-at-pos) line-num)))
       (setq finito--buffer-books
-            (--map-when (> it line-num) (+ it diff) books)))))
+            (--map-when (> (car it) line-num)
+                        (cons (+ (car it) diff) (cdr it))
+                        books)))
+    (org-display-inline-images)))
 
 ;;; Commands
 
@@ -505,44 +508,75 @@ _ARGS does nothing and is needed to appease transient."
 (defun finito-start-book-at-point ()
   "Mark the book at point as currently reading."
   (interactive)
-  (let ((book (finito--book-at-point)))
+  (let ((book (finito--book-at-point))
+        (line (line-number-at-pos))
+        (buf (current-buffer)))
     (finito--make-request
      (finito--start-reading-request-plist book)
-     (lambda (_)
+     (lambda (response)
        (message "Successfully added '%s' to currently reading"
-                (alist-get 'title book))))))
+                (alist-get 'title book))
+       (with-current-buffer buf
+         (save-mark-and-excursion
+           (goto-char (point-min))
+           (forward-line (1- line))
+           (finito--remove-book-region)
+           (finito--insert-book-in-current-buffer response)))))))
 
 (defun finito-start-and-date-book-at-point ()
   "Mark the book at point as currently reading from a prompted date."
   (interactive)
   (let ((book (finito--book-at-point))
+        (line (line-number-at-pos))
+        (buf (current-buffer))
         (date (org-read-date)))
     (finito--make-request
      (finito--start-reading-request-plist book date)
-     (lambda (_)
+     (lambda (response)
        (message "Successfully added '%s' to currently reading"
-                (alist-get 'title book))))))
+                (alist-get 'title book))
+       (with-current-buffer buf
+         (save-mark-and-excursion
+           (goto-char (point-min))
+           (forward-line (1- line))
+           (finito--remove-book-region)
+           (finito--insert-book-in-current-buffer response)))))))
 
 (defun finito-finish-book-at-point ()
   "Mark the book at point as finished."
   (interactive)
-  (let ((book (finito--book-at-point)))
+  (let ((book (finito--book-at-point))
+        (line (line-number-at-pos))
+        (buf (current-buffer)))
     (finito--make-request
      (finito--finish-reading-request-plist book)
-     (lambda (_)
+     (lambda (response)
        (message "Successfully marked '%s' as finished"
-                (alist-get 'title book))))))
+                (alist-get 'title book))
+       (with-current-buffer buf
+         (save-mark-and-excursion
+           (goto-char (point-min))
+           (forward-line (1- line))
+           (finito--remove-book-region)
+           (finito--insert-book-in-current-buffer response)))))))
 
 (defun finito-finish-and-date-book-at-point ()
   "Mark the book at point as finished on a prompted date."
   (interactive)
   (let ((book (finito--book-at-point))
-        (date (org-read-date)))
+        (date (org-read-date))
+        (buf (current-buffer)))
     (finito--make-request
      (finito--finish-reading-request-plist book date)
-     (lambda (_)
+     (lambda (response)
        (message "Successfully marked '%s' as finished"
-                (alist-get 'title book))))))
+                (alist-get 'title book))
+       (with-current-buffer buf
+         (save-mark-and-excursion
+           (goto-char (point-min))
+           (forward-line (1- line))
+           (finito--remove-book-region)
+           (finito--insert-book-in-current-buffer response)))))))
 
 (provide 'finito)
 ;;; finito.el ends here
