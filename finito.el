@@ -290,6 +290,40 @@ The following commands are available in this mode:
   (buffer-disable-undo)
   (use-local-map finito-collection-view-mode-map))
 
+(defun finito--remove-book-region ()
+  "Remove the book at point from the current buffer."
+  (let* ((book (finito--book-at-point))
+         (isbn (alist-get 'isbn book))
+         (books finito--buffer-books)
+         (indices (-sort #'< (-map #'car books)))
+         (idx (--find-last-index (<= it (line-number-at-pos)) indices))
+         (book-start-line (nth idx indices))
+         (inhibit-read-only t))
+    ;; There's got to be a better way...
+    (goto-char (point-min))
+    (forward-line (1- book-start-line))
+    (--dotimes (- (or (nth (1+ idx) indices)
+                      (line-number-at-pos (point-max)))
+                  book-start-line)
+      (delete-region (point) (1+ (line-end-position))))
+    (setq finito--buffer-books
+          (finito--books-filter (##not (eq (alist-get 'isbn %) isbn))
+                                books))))
+
+(defun finito--insert-book-in-current-buffer (book)
+  "Insert BOOK at point the current buffer.
+
+This function will also update `finito--buffer-books' as necessary."
+  (let* ((books finito--buffer-books)
+         (indices (-sort #'< (-map #'car books)))
+         (line-num (line-number-at-pos)))
+    (goto-char (point-min))
+    (forward-line line-num)
+    (finito--layout-book-data book)
+    (let ((diff (- (line-number-at-pos) line-num)))
+      (setq finito--buffer-books
+            (--map-when (> it line-num) (+ it diff) books)))))
+
 ;;; Commands
 
 (defun finito-same-author ()
@@ -420,29 +454,20 @@ _ARGS does nothing and is needed to appease transient."
 (defun finito-remove-book-at-point ()
   "Remove the book at point from the current collection."
   (interactive)
-  (let* ((line (line-number-at-pos))
-         (book (finito--book-at-point))
+  (let* ((book (finito--book-at-point))
          (isbn (alist-get 'isbn book))
-         (books finito--buffer-books))
+         (line (line-number-at-pos))
+         (buf (current-buffer)))
     (unless book (error "Cursor is not at a book!"))
     (finito--make-request
      (finito--remove-book-request-plist finito--collection isbn)
      (lambda (_)
        (message "Removed '%s' from %s" (alist-get 'title book) finito--collection)
-       (let* ((inhibit-read-only t)
-              (indices (-sort #'< (-map #'car books)))
-              (idx (--find-last-index (<= it line) indices))
-              (book-start-line (nth idx indices)))
-         ;; There's got to be a better way...
-         (goto-char (point-min))
-         (forward-line (1- book-start-line))
-         (--dotimes (- (or (nth (1+ idx) indices)
-                           (line-number-at-pos (point-max)))
-                       book-start-line)
-           (delete-region (point) (1+ (line-end-position)))))
-       (setq finito--buffer-books
-             (finito--books-filter (##not (eq (alist-get 'isbn %) isbn))
-                                   books))))))
+       (with-current-buffer buf
+         (save-mark-and-excursion
+           (goto-char (point-min))
+           (forward-line (1- line))
+           (finito--remove-book-region)))))))
 
 (defun finito-refresh-collection ()
   "Refresh the current collection."
