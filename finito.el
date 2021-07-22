@@ -155,11 +155,13 @@ BOOK-ALIST should be an alist of the format produced by
 `finito--create-book-alist'."
   (add-to-list 'finito--buffer-books `(,(line-number-at-pos) . ,book-alist))
   (let-alist book-alist
-    (unless (f-exists-p .image-file-name)
-      (message (concat "Retrieving img: " .img-uri))
-      ;; TODO this is already a callback so do we need to:
-      ;; https://stackoverflow.com/questions/40504796/asynchrous-copy-file-and-copy-directory-in-emacs-lisp
-      (url-copy-file .img-uri .image-file-name))
+    (let ((display-remote (bound-and-true-p org-display-remote-inline-images)))
+      (unless (or (and display-remote (not (eq display-remote 'skip)))
+                  (f-exists-p .image-file-name))
+        (message (concat "Retrieving img: " .img-uri))
+        ;; TODO this is already a callback so do we need to:
+        ;; https://stackoverflow.com/questions/40504796/asynchrous-copy-file-and-copy-directory-in-emacs-lisp
+        (url-copy-file .img-uri .image-file-name)))
     (finito-insert-book finito-writer-instance book-alist)))
 
 (defun finito--create-book-alist (book-response)

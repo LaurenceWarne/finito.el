@@ -45,7 +45,6 @@
 ;; We always want a value to show up in ARGS for a transient arg function, so
 ;; we return the empty string instead of nil, since nil implies an unspecified
 ;; value
-;; TODO can I get an alist/plist instead?
 (cl-defmethod transient-infix-value ((obj finito--transient-argument))
   "Return the value of OBJ's `value' slot."
   (or (oref obj value) ""))
@@ -97,6 +96,7 @@
 
 ;;; Prefixes
 
+;; TODO change name to finito and add autoloads?
 (transient-define-prefix finito-dispatch ()
   "Search for books."
   ["Actions"

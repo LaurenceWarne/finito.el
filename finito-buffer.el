@@ -88,7 +88,12 @@ of this variables.")
   "Write BOOK-ALIST into the current buffer using WRITER."
   (let-alist book-alist
     (finito-insert-title writer .title)
-    (finito-insert-image writer .image-file-name)
+    (finito-insert-image
+     writer
+     (let ((display-remote (bound-and-true-p org-display-remote-inline-images)))
+       (if (and display-remote (not (eq display-remote 'skip)))
+           .img-uri
+         .image-file-name)))
     (finito-insert-author writer .authors)
     (when .rating (finito-insert-rating writer .rating))
     (when .started-reading
