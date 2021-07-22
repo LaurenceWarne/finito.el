@@ -129,7 +129,7 @@ alist) to add to it."
                 (finito--seq-to-json-list .authors)
                 (s-replace "\"" "'" .description)
                 (s-replace "\"" "'" .isbn)
-                (s-replace "\"" "'" .thumbnailUri))))))
+                (s-replace "\"" "'" .img-uri))))))
 
 (defun finito--remove-book-request-plist (collection isbn)
   "Return a plist with headers and body for a remove book request.
@@ -158,7 +158,7 @@ BOOK should be the book (as an alist) to rate and RATING the rating."
                       (finito--seq-to-json-list .authors)
                       (s-replace "\"" "'" .description)
                       (s-replace "\"" "'" .isbn)
-                      (s-replace "\"" "'" .thumbnailUri))))))
+                      (s-replace "\"" "'" .img-uri))))))
 
 (defun finito--start-reading-request-plist (book &optional start-date)
   "Return a plist with headers and body for a start reading request.
@@ -176,7 +176,7 @@ optional start date which should be used if this book was started in the past."
                       (finito--seq-to-json-list .authors)
                       (s-replace "\"" "'" .description)
                       (s-replace "\"" "'" .isbn)
-                      (s-replace "\"" "'" .thumbnailUri))))))
+                      (s-replace "\"" "'" .img-uri))))))
 
 (defun finito--finish-reading-request-plist (book &optional date)
   "Return a plist with headers and body for a finish reading request.
@@ -194,7 +194,7 @@ optional date which should be used if this book was finished in the past."
                       (finito--seq-to-json-list .authors)
                       (s-replace "\"" "'" .description)
                       (s-replace "\"" "'" .isbn)
-                      (s-replace "\"" "'" .thumbnailUri))))))
+                      (s-replace "\"" "'" .img-uri))))))
 
 (defun finito--seq-to-json-list (seq)
   "Return SEQ as an escaped json list."

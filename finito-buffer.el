@@ -71,7 +71,8 @@
 It's elements should be of the form (KEY . VALUE) where KEY is an integer
 representing the start of where information starts about a particular book
 in the current buffer.  VALUE is itself an alist containing information
-about the corresponding book.")
+about the corresponding book.  There are no guarentees on the orderedness
+of this variables.")
 
 (defvar-local finito--collection
   nil

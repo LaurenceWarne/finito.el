@@ -212,8 +212,8 @@ Occurrences of `.buffer-text' will be replaced by:
                            (lambda (e) (not (eq e 'book-two))) books-alist)))
       (expect (length alist-response) :to-equal 3)
       (expect alist-response :to-contain '(3 . book-one))
-      (expect alist-response :to-contain '(14 . book-three))
-      (expect alist-response :to-contain '(19 . book-four)))))
+      (expect alist-response :to-contain '(4 . book-three))
+      (expect alist-response :to-contain '(9 . book-four)))))
 
 (describe "finito--diffs"
   :var ((ls '(3 4 15 20)))

@@ -127,13 +127,15 @@ Use INIT-OBJ, an instance of `finito-buffer-init' to initialize the buffer."
    data
    init-obj
    ;; Vector to list)
-   (##-each (append % nil) #'finito--layout-book-data)))
+   (##-each (append % nil) (-compose #'finito--layout-book-data
+                                     #'finito--create-book-alist))))
 
 (defun finito--process-single-book (data init-obj)
   "Insert the book data DATA into a buffer.
 
 Use INIT-OBJ, an instance of `finito-buffer-init' to initialize the buffer."
-  (finito--process data init-obj (##finito--layout-book-data %)))
+  (finito--process data init-obj (##finito--layout-book-data
+                                  (finito--create-book-alist book %))))
 
 (defun finito--process (data init-obj callback)
   "Set up a finito buffer using INIT-OBJ, then call CALLBACK with DATA."
@@ -146,17 +148,19 @@ Use INIT-OBJ, an instance of `finito-buffer-init' to initialize the buffer."
   (goto-char (point-min))
   (org-display-inline-images))
 
-(defun finito--layout-book-data (book)
-  "Insert data for BOOK into the current buffer."
-  (add-to-list 'finito--buffer-books `(,(line-number-at-pos) . ,book))
-  (let ((book-alist (finito--create-book-alist book)))
-    (let-alist book-alist
-      (unless (f-exists-p .image-file-name)
-        (message (concat "Retrieving img: " .img-uri))
-        ;; TODO this is already a callback so do we need to:
-        ;; https://stackoverflow.com/questions/40504796/asynchrous-copy-file-and-copy-directory-in-emacs-lisp
-        (url-copy-file .img-uri .image-file-name))
-      (finito-insert-book finito-writer-instance book-alist))))
+(defun finito--layout-book-data (book-alist)
+  "Insert data for BOOK-ALIST into the current buffer.
+
+BOOK-ALIST should be an alist of the format produced by
+`finito--create-book-alist'."
+  (add-to-list 'finito--buffer-books `(,(line-number-at-pos) . ,book-alist))
+  (let-alist book-alist
+    (unless (f-exists-p .image-file-name)
+      (message (concat "Retrieving img: " .img-uri))
+      ;; TODO this is already a callback so do we need to:
+      ;; https://stackoverflow.com/questions/40504796/asynchrous-copy-file-and-copy-directory-in-emacs-lisp
+      (url-copy-file .img-uri .image-file-name))
+    (finito-insert-book finito-writer-instance book-alist)))
 
 (defun finito--create-book-alist (book-response)
   "Return an alist containing book information gleaned from BOOK-RESPONSE.
@@ -188,24 +192,28 @@ last-read"
 
 (defun finito--book-at-point ()
   "Get the book at the current point in the buffer."
-  (when-let* ((line (line-number-at-pos))
-              ;; Alist may not be ordered
-              (books-before (--filter (<= (car it) line) finito--buffer-books)))
+  (unless finito--buffer-books (error "No books in the current buffer!"))
+  (let* ((line (line-number-at-pos))
+         ;; Alist may not be ordered
+         (books-before (--filter (<= (car it) line) finito--buffer-books)))
+    (unless books-before (error "Cursor is not at a book!"))
     (cdr (--max-by (> (car it) (car other)) books-before))))
 
 (defun finito--books-filter (pred books)
   "Remove books matching PRED from BOOKS.
 
 BOOKS is expected to be in the format of `finito--buffer-books.'"
-  (let ((diffs (finito--diffs (-map #'car books)))
-        (sorted-books (--sort (< (car it) (car other)) books)))
+  (let* ((sorted-books (--sort (< (car it) (car other)) books))
+         (diffs (finito--diffs (-map #'car sorted-books))))
     (cdr (-reduce-from
           (lambda (acc book-cons)
             (-let (((index . book) book-cons)
                    ((sub-acc . books-acc) acc))
               (if (funcall pred book)
                   (cons sub-acc (-snoc books-acc (cons (- index sub-acc) book)))
-                (let ((diff (nth (-elem-index book-cons sorted-books) diffs)))
+                (let* ((book-idx (-elem-index book-cons sorted-books))
+                       ;; goes to default of 0 iff it's the last element
+                       (diff (or (nth (1+ book-idx) diffs) 0)))
                   (cons (+ diff sub-acc) books-acc)))))
           '(0 . nil)
           sorted-books))))
@@ -240,6 +248,61 @@ BOOKS is expected to be in the format of `finito--buffer-books.'"
     (cdar %)
     (finito-collection-buffer-info :title collection
                                    :mode #'finito-collection-view-mode))))
+
+(defun finito--remove-book-region ()
+  "Remove the book at point from the current buffer."
+  (let* ((book (finito--book-at-point))
+         (books finito--buffer-books)
+         (indices (-sort #'< (-map #'car books)))
+         (idx (--find-last-index (<= it (line-number-at-pos)) indices))
+         (book-start-line (nth idx indices))
+         (inhibit-read-only t))
+    ;; There's got to be a better way...
+    (goto-char (point-min))
+    (forward-line (1- book-start-line))
+    (--dotimes (- (or (nth (1+ idx) indices)
+                      (line-number-at-pos (point-max)))
+                  book-start-line)
+      (delete-region (point) (1+ (line-end-position))))
+    (setq finito--buffer-books
+          (finito--books-filter (##not (equal % book)) books))))
+
+(defun finito--insert-book-in-current-buffer (book)
+  "Insert BOOK at point the current buffer.
+
+BOOK should be a unparsed server response book alist.  This function will
+also update `finito--buffer-books' as necessary."
+  (let ((line-num (line-number-at-pos))
+        (book-alist (finito--create-book-alist book))
+        (inhibit-read-only t))
+    (finito--layout-book-data book-alist)
+    (let ((diff (- (line-number-at-pos) line-num)))
+      (setq finito--buffer-books
+            (--map-when (and (>= (car it) line-num)
+                             (not (equal (cdr it) book-alist)))
+                        (cons (+ (car it) diff) (cdr it))
+                        finito--buffer-books)))
+    (org-display-inline-images)))
+
+(defun finito--replace-book-at-point-from-request
+    (plist &optional success-message)
+  "Replace the book at point from a request.
+
+Replace the book at point with the response of the request built using the
+request plist PLIST.  When SUCCESS-MESSAGE is non-nil, message it if the
+request is successful"
+  (let ((line (line-number-at-pos))
+        (buf (current-buffer)))
+    (finito--make-request
+     plist
+     (lambda (response)
+       (when success-message (message success-message))
+       (with-current-buffer buf
+         (save-mark-and-excursion
+           (goto-char (point-min))
+           (forward-line (1- line))
+           (finito--remove-book-region)
+           (finito--insert-book-in-current-buffer response)))))))
 
 ;;; Modes
 
@@ -289,43 +352,6 @@ The following commands are available in this mode:
   (setq finito--collection nil)
   (buffer-disable-undo)
   (use-local-map finito-collection-view-mode-map))
-
-(defun finito--remove-book-region ()
-  "Remove the book at point from the current buffer."
-  (let* ((book (finito--book-at-point))
-         (isbn (alist-get 'isbn book))
-         (books finito--buffer-books)
-         (indices (-sort #'< (-map #'car books)))
-         (idx (--find-last-index (<= it (line-number-at-pos)) indices))
-         (book-start-line (nth idx indices))
-         (inhibit-read-only t))
-    ;; There's got to be a better way...
-    (goto-char (point-min))
-    (forward-line (1- book-start-line))
-    (--dotimes (- (or (nth (1+ idx) indices)
-                      (line-number-at-pos (point-max)))
-                  book-start-line)
-      (delete-region (point) (1+ (line-end-position))))
-    (setq finito--buffer-books
-          (finito--books-filter (##not (eq (alist-get 'isbn %) isbn))
-                                books))))
-
-(defun finito--insert-book-in-current-buffer (book)
-  "Insert BOOK at point the current buffer.
-
-BOOK should be a unparsed server response which can be safely passed to
-`finito--layout-book-data'.  This function will also update
-`finito--buffer-books' as necessary."
-  (let ((books finito--buffer-books)
-        (line-num (line-number-at-pos))
-        (inhibit-read-only t))
-    (finito--layout-book-data book)
-    (let ((diff (- (line-number-at-pos) line-num)))
-      (setq finito--buffer-books
-            (--map-when (> (car it) line-num)
-                        (cons (+ (car it) diff) (cdr it))
-                        books)))
-    (org-display-inline-images)))
 
 ;;; Commands
 
@@ -461,7 +487,6 @@ _ARGS does nothing and is needed to appease transient."
          (isbn (alist-get 'isbn book))
          (line (line-number-at-pos))
          (buf (current-buffer)))
-    (unless book (error "Cursor is not at a book!"))
     (finito--make-request
      (finito--remove-book-request-plist finito--collection isbn)
      (lambda (_)
@@ -498,85 +523,49 @@ _ARGS does nothing and is needed to appease transient."
   (interactive)
   (let ((book (finito--book-at-point))
         (rating (read-string "Rating: ")))
-    (finito--make-request
+    (finito--replace-book-at-point-from-request
      (finito--rate-book-request-plist book rating)
-     (lambda (_)
-       (message "Successfully gave '%s' a rating of %s"
-                (alist-get 'title book)
-                rating)))))
+     (format "Successfully gave '%s' a rating of %s"
+             (alist-get 'title book)
+             rating))))
 
 (defun finito-start-book-at-point ()
   "Mark the book at point as currently reading."
   (interactive)
-  (let ((book (finito--book-at-point))
-        (line (line-number-at-pos))
-        (buf (current-buffer)))
-    (finito--make-request
+  (let ((book (finito--book-at-point)))
+    (finito--replace-book-at-point-from-request
      (finito--start-reading-request-plist book)
-     (lambda (response)
-       (message "Successfully added '%s' to currently reading"
-                (alist-get 'title book))
-       (with-current-buffer buf
-         (save-mark-and-excursion
-           (goto-char (point-min))
-           (forward-line (1- line))
-           (finito--remove-book-region)
-           (finito--insert-book-in-current-buffer response)))))))
+     (format "Successfully added '%s' to currently reading"
+             (alist-get 'title book)))))
 
 (defun finito-start-and-date-book-at-point ()
   "Mark the book at point as currently reading from a prompted date."
   (interactive)
   (let ((book (finito--book-at-point))
-        (line (line-number-at-pos))
-        (buf (current-buffer))
         (date (org-read-date)))
-    (finito--make-request
+    (finito--replace-book-at-point-from-request
      (finito--start-reading-request-plist book date)
-     (lambda (response)
-       (message "Successfully added '%s' to currently reading"
-                (alist-get 'title book))
-       (with-current-buffer buf
-         (save-mark-and-excursion
-           (goto-char (point-min))
-           (forward-line (1- line))
-           (finito--remove-book-region)
-           (finito--insert-book-in-current-buffer response)))))))
+     (format "Successfully added '%s' to currently reading"
+             (alist-get 'title book)))))
 
 (defun finito-finish-book-at-point ()
   "Mark the book at point as finished."
   (interactive)
-  (let ((book (finito--book-at-point))
-        (line (line-number-at-pos))
-        (buf (current-buffer)))
-    (finito--make-request
+  (let ((book (finito--book-at-point)))
+    (finito--replace-book-at-point-from-request
      (finito--finish-reading-request-plist book)
-     (lambda (response)
-       (message "Successfully marked '%s' as finished"
-                (alist-get 'title book))
-       (with-current-buffer buf
-         (save-mark-and-excursion
-           (goto-char (point-min))
-           (forward-line (1- line))
-           (finito--remove-book-region)
-           (finito--insert-book-in-current-buffer response)))))))
+     (format "Successfully marked '%s' as finished"
+             (alist-get 'title book)))))
 
 (defun finito-finish-and-date-book-at-point ()
   "Mark the book at point as finished on a prompted date."
   (interactive)
   (let ((book (finito--book-at-point))
-        (date (org-read-date))
-        (buf (current-buffer)))
-    (finito--make-request
+        (date (org-read-date)))
+    (finito--replace-book-at-point-from-request
      (finito--finish-reading-request-plist book date)
-     (lambda (response)
-       (message "Successfully marked '%s' as finished"
-                (alist-get 'title book))
-       (with-current-buffer buf
-         (save-mark-and-excursion
-           (goto-char (point-min))
-           (forward-line (1- line))
-           (finito--remove-book-region)
-           (finito--insert-book-in-current-buffer response)))))))
+     (format "Successfully marked '%s' as finished"
+             (alist-get 'title book)))))
 
 (provide 'finito)
 ;;; finito.el ends here
