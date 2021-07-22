@@ -76,7 +76,7 @@ Occurrences of `.buffer-text' will be replaced by:
                    (authors . ["Daniel Keyes"])
                    (description . "A description.")
                    (isbn . "740253425430.")
-                   (thumbnailUri . "image.png")))
+                   (img-uri . "image.png")))
            (plist (finito--add-book-request-plist "name" book)))
       (expect (plist-get plist :headers))
       (expect (plist-get plist :data)))))
@@ -93,7 +93,7 @@ Occurrences of `.buffer-text' will be replaced by:
                    (authors . ["Daniel Keyes"])
                    (description . "A description.")
                    (isbn . "740253425430.")
-                   (thumbnailUri . "image.png")))
+                   (img-uri . "image.png")))
            (plist (finito--rate-book-request-plist book 5)))
       (expect (plist-get plist :headers))
       (expect (plist-get plist :data)))))
@@ -103,7 +103,7 @@ Occurrences of `.buffer-text' will be replaced by:
                 (authors . ["Daniel Keyes"])
                 (description . "A description.")
                 (isbn . "740253425430.")
-                (thumbnailUri . "image.png"))))
+                (img-uri . "image.png"))))
   (it "test plist has headers and data with no date"
     (let ((plist (finito--start-reading-request-plist book nil)))
       (expect (plist-get plist :headers))
@@ -119,7 +119,7 @@ Occurrences of `.buffer-text' will be replaced by:
                 (authors . ["Daniel Keyes"])
                 (description . "A description.")
                 (isbn . "740253425430.")
-                (thumbnailUri . "image.png"))))
+                (img-uri . "image.png"))))
   (it "test plist has headers and data with no date"
     (let ((plist (finito--finish-reading-request-plist book nil)))
       (expect (plist-get plist :headers))
@@ -188,10 +188,10 @@ Occurrences of `.buffer-text' will be replaced by:
 
 (describe "finito--book-at-point"
   :var ((books-alist '((3 . book-one) (4 . book-two) (20 . book-three))))
-  (it "test returns nil before all books"
+  (it "test errors when cursor before all books"
     (cl-letf (((symbol-function 'line-number-at-pos) #'ignore)
               (finito--buffer-books books-alist))
-      (expect (finito--book-at-point) :to-be nil)))
+      (expect (finito--book-at-point) :to-throw)))
   (it "test returns book on line where it starts"
     (cl-letf (((symbol-function 'line-number-at-pos) (lambda () 3))
               (finito--buffer-books books-alist))
