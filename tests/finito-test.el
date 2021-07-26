@@ -233,3 +233,56 @@ Occurrences of `.buffer-text' will be replaced by:
               ((symbol-function 'finito--make-request)
                (lambda (plist callback) (funcall callback nil))))
       (expect (finito--select-collection #'identity) :to-equal "my collection"))))
+
+(describe "finito--replace-book-at-point-from-request"
+  :var* ((response-alist
+          '((title . "A Random Book")
+            (authors . ["???"])
+            (description . "GNU Emacs is awesome!")
+            (isbn . "a random isbn")
+            (thumbnailUri . "some-thumbnail")
+            (rating . 5)
+            (startedReading . "2021-07-26")
+            (lastRead . "2007-07-26")))
+         (original-buf-string
+          "* My Books
+
+** GNU Emacs Pocket Reference
+
+[[img.jpeg]]  Debra Cameron
+
+GNU Emacs is the most popular and widespread of the Emacs family of editors. It is also the most powerful and flexible. Unlike all other text editors, GNU Emacs is a complete working environment -- you can stay within Emacs all day without leaving. The GNU Emacs Pocket Reference is a companion volume to O'Reilly's Learning GNU Emacs, which tells you how to get started with the GNU Emacs editor and, as you become more proficient, it will help you learn how to use Emacs more effectively. This small book, covering Emacs version 20, is a handy reference guide to the basic elements of this powerful editor, presenting the Emacs commands in an easy-to-use tabular format.
+
+** Mountains Of The Mind
+
+[[img.jpeg]]  Robert Macfarlane
+
+WINNER OF THE GUARDIAN FIRST BOOK AWARD Once we thought monsters lived there. In the Enlightenment we scaled them to commune with the sublime. Soon, we were racing to conquer their summits in the name of national pride. In this ground-breaking, classic work, Robert Macfarlane takes us up into the mountains: to experience their shattering beauty, the fear and risk of adventure, and to explore the strange impulses that have for centuries lead us to the world's highest places.\n\n")
+        (new-book-string
+         "** A Random Book
+
+[[some-thumbnail.jpeg]]  The author
+
+An extremely detailed description of the book.")
+        (expected-buf-string
+         (concat
+          "* My Books
+
+** GNU Emacs Pocket Reference
+
+[[img.jpeg]]  Debra Cameron
+
+GNU Emacs is the most popular and widespread of the Emacs family of editors. It is also the most powerful and flexible. Unlike all other text editors, GNU Emacs is a complete working environment -- you can stay within Emacs all day without leaving. The GNU Emacs Pocket Reference is a companion volume to O'Reilly's Learning GNU Emacs, which tells you how to get started with the GNU Emacs editor and, as you become more proficient, it will help you learn how to use Emacs more effectively. This small book, covering Emacs version 20, is a handy reference guide to the basic elements of this powerful editor, presenting the Emacs commands in an easy-to-use tabular format." "\n\n" new-book-string)))
+  (it "test book replaced correctly"
+    (cl-letf (((symbol-function 'finito--make-request)
+               (lambda (plist callback) (funcall callback response-alist)))
+              ((symbol-function 'finito--layout-book-data)
+               (lambda (_) (insert new-book-string)))
+              (finito--buffer-books '((3 book1) (9 book2))))
+      (with-temp-buffer
+        (insert original-buf-string)
+        (end-of-buffer)
+        (finito--replace-book-at-point-from-request nil)
+        (expect (buffer-substring-no-properties (point-min) (point-max))
+                :to-equal
+                expected-buf-string)))))

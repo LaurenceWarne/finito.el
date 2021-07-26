@@ -100,10 +100,11 @@ invoked from the `finito-dispatch' prefix command."
 
 ;;; Misc functions
 
-(defun finito--make-request (request-plist callback)
+(cl-defun finito--make-request (request-plist callback &key sync)
   "Make a request to `finito--host-uri' using REQUEST-PLIST.
 
-CALLBACK is called with the parsed json if the request is successful."
+CALLBACK is called with the parsed json if the request is successful.
+If SYNC is non-nil make the request synchronous."
   (request finito--host-uri
     :headers (plist-get request-plist :headers)
     :data (plist-get request-plist :data)
@@ -117,7 +118,8 @@ CALLBACK is called with the parsed json if the request is successful."
                   (if (equal response-indicator 'errors)
                       ;; Error doesn't seem to do anything here
                       (message "Received error in gql response: %s" (cadr data))
-                    (funcall callback (cdadar data))))))))
+                    (funcall callback (cdadar data))))))
+    :sync sync))
 
 (defun finito--process-books-data (data init-obj)
   "Insert the books data DATA into a buffer.
