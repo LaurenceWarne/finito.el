@@ -193,7 +193,10 @@ last-read"
             (cons 'last-read .lastRead)))))
 
 (defun finito--book-at-point ()
-  "Get the book at the current point in the buffer."
+  "Get the book (as an alist) at the current point in the buffer.
+
+The returned alist will match the format returned by
+`finito--create-book-alist'."
   (unless finito--buffer-books (error "No books in the current buffer!"))
   (let* ((line (line-number-at-pos))
          ;; Alist may not be ordered
@@ -568,6 +571,18 @@ _ARGS does nothing and is needed to appease transient."
      (finito--finish-reading-request-plist book date)
      (format "Successfully marked '%s' as finished"
              (alist-get 'title book)))))
+
+(defun finito-delete-data-for-book-at-point ()
+  "Remove all data held about the book at point."
+  (interactive)
+  (let ((book (finito--book-at-point)))
+    (finito--make-request
+     (finito--delete-book-data-request-plist (alist-get 'isbn book))
+     (lambda (_)
+       (finito--replace-book-at-point-from-request
+        (finito--isbn-request-plist (alist-get 'isbn book))
+        (format "Successfully deleted info held about '%s'"
+                (alist-get 'title book)))))))
 
 (provide 'finito)
 ;;; finito.el ends here

@@ -98,6 +98,12 @@ Occurrences of `.buffer-text' will be replaced by:
       (expect (plist-get plist :headers))
       (expect (plist-get plist :data)))))
 
+(describe "finito--delete-book-data-request-plist"
+  (it "test plist has headers and data"
+    (let ((plist (finito--delete-book-data-request-plist "isbn")))
+      (expect (plist-get plist :headers))
+      (expect (plist-get plist :data)))))
+
 (describe "finito--start-reading-request-plist"
   :var ((book '((title . "Flowers for Algernon")
                 (authors . ["Daniel Keyes"])

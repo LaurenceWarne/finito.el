@@ -196,6 +196,16 @@ optional date which should be used if this book was finished in the past."
                       (s-replace "\"" "'" .isbn)
                       (s-replace "\"" "'" .img-uri))))))
 
+(defun finito--delete-book-data-request-plist (isbn)
+  "Return a plist with headers and body for a delete book data request.
+
+ISBN should be the isbn of the book to remove data for."
+  `(:headers ,finito--headers
+    :data ,(format "{\"query\":\"%s\", \"variables\": %s\}"
+                   finito--delete-book-data-mutation
+                   (format finito--delete-book-data-mutation-variables
+                           isbn))))
+
 (defun finito--seq-to-json-list (seq)
   "Return SEQ as an escaped json list."
   (concat "[" (mapconcat (##format "\"%s\"" %1) seq ",") "]"))

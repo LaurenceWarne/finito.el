@@ -169,5 +169,14 @@
 (defconst finito--finish-reading-mutation-variables
   "{\"date\": %s, \"book\": {\"title\": \"%s\", \"authors\": %s, \"description\": \"%s\", \"isbn\": \"%s\", \"thumbnailUri\": \"%s\"}}")
 
+(defconst finito--delete-book-data-mutation
+  (graphql-mutation
+   (:arguments
+    (($isbn . String!))
+    (deleteBookData
+     :arguments ((isbn . ($ isbn)))))))
+
+(defconst finito--delete-book-data-mutation-variables "{\"isbn\": \"%s\"}")
+
 (provide 'finito-graphql)
 ;;; finito-graphql.el ends here
