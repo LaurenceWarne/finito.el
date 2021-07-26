@@ -124,27 +124,31 @@ CALLBACK is called with the parsed json if the request is successful."
 
 Use INIT-OBJ, an instance of `finito-buffer-init' to initialize the buffer."
   (finito--process
-   data
    init-obj
-   ;; Vector to list)
-   (##-each (append % nil) (-compose #'finito--layout-book-data
-                                     #'finito--create-book-alist))))
+   ;; (append data nil) converts vector to a list
+   (lambda () (-each (append data nil)
+                (-compose #'finito--layout-book-data
+                          #'finito--create-book-alist)))))
 
 (defun finito--process-single-book (data init-obj)
   "Insert the book data DATA into a buffer.
 
 Use INIT-OBJ, an instance of `finito-buffer-init' to initialize the buffer."
-  (finito--process data init-obj (##finito--layout-book-data
-                                  (finito--create-book-alist book %))))
+  (finito--process init-obj (lambda () (finito--layout-book-data
+                                        (finito--create-book-alist data)))))
 
-(defun finito--process (data init-obj callback)
-  "Set up a finito buffer using INIT-OBJ, then call CALLBACK with DATA."
+(defun finito--process (init-obj callback)
+  "Set up a finito buffer.
+
+Set up a finito buffer using INIT-OBJ which should be a `finito-buffer-init'
+instance, then call CALLBACK which should insert text in some way, and
+then apply some final configuration to the buffer."
   (unless (f-dir-p finito-image-cache-dir) (f-mkdir finito-image-cache-dir))
   (switch-to-buffer (generate-new-buffer-name "Books"))
   (finito-init-buffer init-obj)
   (let ((inhibit-read-only t))
     (insert (format "* %s\n\n" (oref init-obj title)))
-    (funcall callback data))
+    (funcall callback))
   (goto-char (point-min))
   (org-display-inline-images))
 
