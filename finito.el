@@ -320,8 +320,8 @@ request is successful"
 (defvar finito-search-view-mode-map
   (let ((map (make-sparse-keymap)))
     (suppress-keymap map t)
-    (define-key map "a" #'finito-add-book-at-point)  ; to default collection
-    (define-key map "c" #'finito-add-book-at-point)
+    (define-key map "a" #'finito-add-book-at-point)
+    (define-key map "m" #'finito-add-to-default-book-at-point)
     (define-key map "A" #'finito-same-author)
     (define-key map "n" #'outline-next-heading)
     (define-key map "p" #'outline-previous-heading)
@@ -485,11 +485,19 @@ _ARGS does nothing and is needed to appease transient."
     (finito--select-collection
      (lambda (chosen-collection)
        (finito--make-request
-        (finito--add-book-request-plist chosen-collection book)
+        (finito--add-book-request-plist book chosen-collection)
         (lambda (_)
           (message "Successfully added '%s' to '%s'"
                    (alist-get 'title book)
                    chosen-collection)))))))
+
+(defun finito-add-to-default-book-at-point ()
+  "Add the book at point to the default collection."
+  (interactive)
+  (let ((book (finito--book-at-point)))
+    (finito--make-request
+     (finito--add-book-request-plist book)
+     (lambda (_) (message "Successfully added '%s'" (alist-get 'title book))))))
 
 (defun finito-remove-book-at-point ()
   "Remove the book at point from the current collection."

@@ -77,7 +77,7 @@ Occurrences of `.buffer-text' will be replaced by:
                    (description . "A description.")
                    (isbn . "740253425430.")
                    (img-uri . "image.png")))
-           (plist (finito--add-book-request-plist "name" book)))
+           (plist (finito--add-book-request-plist book "name")))
       (expect (plist-get plist :headers))
       (expect (plist-get plist :data)))))
 

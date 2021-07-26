@@ -89,7 +89,7 @@
      name))))
 
 (defconst finito--add-book-mutation-variables
-  "{\"collection\": \"%s\", \"book\": {\"title\": \"%s\", \"authors\": %s, \"description\": \"%s\", \"isbn\": \"%s\", \"thumbnailUri\": \"%s\"}}")
+  "{\"collection\": %s, \"book\": {\"title\": \"%s\", \"authors\": %s, \"description\": \"%s\", \"isbn\": \"%s\", \"thumbnailUri\": \"%s\"}}")
 
 (defconst finito--delete-collection-mutation
   (graphql-mutation

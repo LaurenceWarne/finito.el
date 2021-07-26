@@ -113,18 +113,18 @@ All arguments should be strings."
                      (if new-name (s-wrap new-name "\"") "null")
                      (or preferred-sort "null")))))
 
-(defun finito--add-book-request-plist (name book)
-  "Return a plist with headers and body for an add to collection request.
+(defun finito--add-book-request-plist (book &optional collection)
+  "Return a plist with headers and body for an add book request.
 
-NAME should be the name of the collection, and BOOK should be the book (as an
-alist) to add to it."
+COLLECTION should be the name of the collection, and BOOK should be an alist
+of the form returned by `finito--create-book-alist' to add to it."
   `(:headers ,finito--headers
     :data ,(format "{\"query\":\"%s\", \"variables\": %s\}"
              finito--add-book-mutation
              (let-alist book
                (format
                 finito--add-book-mutation-variables
-                name
+                (if collection (s-wrap collection "\"") "null")
                 (s-replace "\"" "'" .title)
                 (finito--seq-to-json-list .authors)
                 (s-replace "\"" "'" .description)
