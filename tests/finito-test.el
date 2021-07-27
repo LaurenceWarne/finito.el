@@ -8,6 +8,7 @@
 
 (require 'buttercup)
 (require 'cl-lib)
+(require 'dash)
 
 (require 'finito)
 
@@ -25,14 +26,6 @@ Occurrences of `.buffer-text' will be replaced by:
                   (_                 expr))))
     `(with-temp-buffer
        ,@(replace body))))
-
-(defun lw--fn-from-list (ls)
-  (let ((calls 0))
-    (lambda (&rest)
-      (when (>= calls (length ls))
-        (error "Stubbed function called more times than allowed"))
-      (cl-incf calls)
-      (nth (1- calls) ls))))
 
 (describe "finito--search-request-plist"
   (it "test plist has headers and data"
@@ -199,11 +192,11 @@ Occurrences of `.buffer-text' will be replaced by:
               (finito--buffer-books books-alist))
       (expect (finito--book-at-point) :to-throw)))
   (it "test returns book on line where it starts"
-    (cl-letf (((symbol-function 'line-number-at-pos) (lambda () 3))
+    (cl-letf (((symbol-function 'line-number-at-pos) (-const 3))
               (finito--buffer-books books-alist))
       (expect (finito--book-at-point) :to-equal 'book-one)))
   (it "test returns book on line after it starts"
-    (cl-letf (((symbol-function 'line-number-at-pos) (lambda () 15))
+    (cl-letf (((symbol-function 'line-number-at-pos) (-const 15))
               (finito--buffer-books books-alist))
       (expect (finito--book-at-point) :to-equal 'book-two))))
 
@@ -211,7 +204,7 @@ Occurrences of `.buffer-text' will be replaced by:
   :var ((books-alist
          '((3 . book-one) (4 . book-two) (20 . book-four) (15 . book-three))))
   (it "test all positive filter gives list with same elements"
-    (let ((alist-response (finito--books-filter (lambda (_) t) books-alist)))
+    (let ((alist-response (finito--books-filter (-const t) books-alist)))
       (expect (--all-p (-contains-p alist-response it) alist-response))))
   (it "test element removed and value correctly subtracted"
     (let ((alist-response (finito--books-filter
@@ -279,10 +272,8 @@ GNU Emacs is the most popular and widespread of the Emacs family of editors. It 
               ((symbol-function 'finito--layout-book-data)
                (lambda (_) (insert new-book-string)))
               (finito--buffer-books '((3 book1) (9 book2))))
-      (with-temp-buffer
+      (finito--in-buffer
         (insert original-buf-string)
         (end-of-buffer)
         (finito--replace-book-at-point-from-request nil)
-        (expect (buffer-substring-no-properties (point-min) (point-max))
-                :to-equal
-                expected-buf-string)))))
+        (expect .buffer-text :to-equal expected-buf-string)))))

@@ -121,6 +121,7 @@ If SYNC is non-nil make the request synchronous."
                       ;; Error doesn't seem to do anything here
                       (message "Received error in gql response: %s" (cadr data))
                     (funcall callback (cdadar data))))))
+    :timeout (when sync 5)
     :sync sync))
 
 (defun finito--process-books-data (data init-obj)
@@ -532,7 +533,8 @@ _ARGS does nothing and is needed to appease transient."
         (cdar data)
         (finito-collection-buffer-info :title collection
                                        :mode #'finito-collection-view-mode))
-       (goto-char (min old-point (point-max)))))))
+       (goto-char (min old-point (point-max))))
+     :sync t)))
 
 (defun finito-browse-book-at-point ()
   "Browse the book at point."
