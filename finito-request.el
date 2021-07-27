@@ -25,6 +25,7 @@
 
 (require 's)
 
+(require 'finito-core)
 (require 'finito-graphql)
 
 (defconst finito--headers
@@ -44,7 +45,8 @@ The body will be deduced from TITLE-KEYWORDS, AUTHOR-KEYWORDS and MAX-RESULTS."
                       (s-wrap title-keywords "\"") "null")
                   (if (> (length author-keywords) 0)
                       (s-wrap  author-keywords "\"") "null")
-                  (or max-results "null"))))
+                  (or max-results "null")
+                  finito-language)))
     `(:headers ,finito--headers
       :data
       ,(format "{\"query\":\"%s\", \"variables\": %s\}"

@@ -25,5 +25,13 @@
   "Emacs client to finito"
   :group 'books)
 
+(defcustom finito-language
+  "en"
+  "The language search queries should request for responses to be in.
+
+ This should be a two-letter ISO-639-1 code such as \"en\" or \"fr\"."
+  :group 'finito
+  :type 'string)
+
 (provide 'finito-core)
 ;;; finito-core.el ends here

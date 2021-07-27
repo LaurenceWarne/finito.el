@@ -30,17 +30,19 @@
    (:arguments
     (($titleKeywords . String)
      ($authorKeywords . String)
-     ($maxResults . Int))
+     ($maxResults . Int)
+     ($langRestrict . String))
     (books
      :arguments ((titleKeywords . ($ titleKeywords))
                  (authorKeywords . ($ authorKeywords))
-                 (maxResults . ($ maxResults)))
+                 (maxResults . ($ maxResults))
+                 (langRestrict . ($ langRestrict)))
      title authors description isbn thumbnailUri))))
 
 ;; We don't add quotes around %s since null is a value that could potentially
 ;; be placing, and we shouldn't quote that
 (defconst finito--search-query-variables
-  "{\"titleKeywords\": %s, \"authorKeywords\": %s, \"maxResults\": %s}")
+  "{\"titleKeywords\": %s, \"authorKeywords\": %s, \"maxResults\": %s, \"langRestrict\": \"%s\"}")
 
 (defconst finito--isbn-query
   (graphql-query
