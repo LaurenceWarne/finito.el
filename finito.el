@@ -100,13 +100,19 @@ invoked from the `finito-dispatch' prefix command."
 
 (defvar finito--host-uri "http://localhost:8080/api/graphql")
 
+(defvar finito--special-collections
+  (list finito-my-books-collection finito-currently-reading-collection))
+
 ;;; Misc functions
 
-(cl-defun finito--make-request (request-plist callback &key sync)
+(cl-defun finito--make-request
+    (request-plist callback &key sync graphql-error)
   "Make a request to `finito--host-uri' using REQUEST-PLIST.
 
 CALLBACK is called with the parsed json if the request is successful.
-If SYNC is non-nil make the request synchronous."
+If SYNC is non-nil make the request synchronous.  If errors are detected
+in the graphql response body, then call GRAPHQL-ERROR with the first error
+as a symbol."
   (request finito--host-uri
     :headers (plist-get request-plist :headers)
     :data (plist-get request-plist :data)
@@ -118,8 +124,14 @@ If SYNC is non-nil make the request synchronous."
     	      (lambda (&key data &allow-other-keys)
                 (let ((response-indicator (caadr data)))
                   (if (equal response-indicator 'errors)
-                      ;; Error doesn't seem to do anything here
-                      (message "Received error in gql response: %s" (cadr data))
+                      (let ((first-error (elt (cdadr data) 0)))
+                        (if graphql-error
+                            (--> (cdr (-last-item (-last-item first-error)))
+                              (s-dashed-words it)
+                              (funcall graphql-error (intern it)))
+                          ;; Error doesn't seem to do anything here
+                          (message "Received error(s) in gql response: %s"
+                                   (cdar first-error))))
                     (funcall callback (cdadar data))))))
     :timeout (when sync 5)
     :sync sync))
@@ -240,12 +252,18 @@ BOOKS is expected to be in the format of `finito--buffer-books.'"
         '(nil . 0)
         list)))
 
-(defun finito--select-collection (callback)
-  "Prompt for a collection, and then call CALLBACK with that collection."
+(defun finito--select-collection (callback &optional collection-filter)
+  "Prompt for a collection, and then call CALLBACK with that collection.
+
+If COLLECTION-FILTER is specified, only include collections in the prompt
+for which COLLECTION-FILTER applied to the collection name evaluates to a
+non-nil value."
   (finito--make-request
      (finito--collections-request-plist)
      (lambda (response)
-       (let* ((all-collections (-map #'cdar response))
+       (let* ((all-collections (-filter (or collection-filter (-const t))
+                                        (-map #'cdar response)))
+              ;; TODO check if any collections exist first
               (chosen-collection (completing-read "Choose: " all-collections)))
          (funcall callback chosen-collection)))))
 
@@ -317,6 +335,14 @@ request is successful"
            (forward-line (1- line))
            (finito--remove-book-region)
            (finito--insert-book-in-current-buffer response)))))))
+
+(defun finito--goto-buffer-line-and-remove-book-at-point (buf line)
+  "Go to the line LINE at buffer BUF, and remove the book at point."
+  (with-current-buffer buf
+    (save-mark-and-excursion
+      (goto-char (point-min))
+      (forward-line (1- line))
+      (finito--remove-book-region))))
 
 ;;; Modes
 
@@ -513,11 +539,7 @@ _ARGS does nothing and is needed to appease transient."
      (finito--remove-book-request-plist finito--collection isbn)
      (lambda (_)
        (message "Removed '%s' from %s" (alist-get 'title book) finito--collection)
-       (with-current-buffer buf
-         (save-mark-and-excursion
-           (goto-char (point-min))
-           (forward-line (1- line))
-           (finito--remove-book-region)))))))
+       (finito--goto-buffer-line-and-remove-book-at-point buf line)))))
 
 (defun finito-refresh-collection ()
   "Refresh the current collection."
@@ -525,7 +547,6 @@ _ARGS does nothing and is needed to appease transient."
   (let ((collection finito--collection)
         (old-point (point)))
     (kill-current-buffer)
-    ;; TODO make this blocking/synchronous
     (finito--make-request
      (finito--collection-request-plist collection)
      (lambda (data)
@@ -552,44 +573,46 @@ _ARGS does nothing and is needed to appease transient."
              (alist-get 'title book)
              rating))))
 
-(defun finito-start-book-at-point ()
-  "Mark the book at point as currently reading."
+(defun finito-start-book-at-point (&optional date)
+  "Mark the book at point as currently reading.
+
+When DATE is specified, mark that as the date the book was started."
   (interactive)
   (let ((book (finito--book-at-point)))
     (finito--replace-book-at-point-from-request
-     (finito--start-reading-request-plist book)
+     (finito--start-reading-request-plist book date)
      (format "Successfully added '%s' to currently reading"
              (alist-get 'title book)))))
 
 (defun finito-start-and-date-book-at-point ()
   "Mark the book at point as currently reading from a prompted date."
   (interactive)
-  (let ((book (finito--book-at-point))
-        (date (org-read-date)))
-    (finito--replace-book-at-point-from-request
-     (finito--start-reading-request-plist book date)
-     (format "Successfully added '%s' to currently reading"
-             (alist-get 'title book)))))
+  (finito-start-book-at-point (org-read-date)))
 
-(defun finito-finish-book-at-point ()
-  "Mark the book at point as finished."
+(defun finito-finish-book-at-point (&optional date)
+  "Mark the book at point as finished.
+
+When DATE is specified, mark that as the date the book was finished."
   (interactive)
-  (let ((book (finito--book-at-point)))
-    (finito--replace-book-at-point-from-request
-     (finito--finish-reading-request-plist book)
-     (format "Successfully marked '%s' as finished"
-             (alist-get 'title book)))))
+  (let* ((book (finito--book-at-point))
+         (request-plist (finito--finish-reading-request-plist book date))
+         (msg (format "Successfully marked '%s' as finished"
+                      (alist-get 'title book))))
+    (if (string= finito--collection finito-currently-reading-collection)
+        (let ((line (line-number-at-pos))
+              (buf (current-buffer)))
+          (finito--make-request
+           request-plist
+           (lambda (_)
+             (finito--goto-buffer-line-and-remove-book-at-point buf line)
+             (message msg))))
+      (finito--replace-book-at-point-from-request request-plist msg))))
 
 (defun finito-finish-and-date-book-at-point ()
   "Mark the book at point as finished on a prompted date."
   (interactive)
-  (let ((book (finito--book-at-point))
-        (date (org-read-date)))
-    (finito--replace-book-at-point-from-request
-     (finito--finish-reading-request-plist book date)
-     (format "Successfully marked '%s' as finished"
-             (alist-get 'title book)))))
-
+  (finito-finish-book-at-point (org-read-date)))
+  
 (defun finito-delete-data-for-book-at-point ()
   "Remove all data held about the book at point."
   (interactive)
