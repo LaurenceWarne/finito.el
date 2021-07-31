@@ -37,7 +37,8 @@
                  (authorKeywords . ($ authorKeywords))
                  (maxResults . ($ maxResults))
                  (langRestrict . ($ langRestrict)))
-     title authors description isbn thumbnailUri))))
+     title authors description isbn thumbnailUri
+     rating startedReading lastRead))))
 
 ;; We don't add quotes around %s since null is a value that could potentially
 ;; be placing, and we shouldn't quote that
@@ -50,7 +51,8 @@
     (($isbn . String!))
     (book
      :arguments ((isbn . ($ isbn)))
-     title authors description isbn thumbnailUri))))
+     title authors description isbn thumbnailUri
+     rating startedReading lastRead))))
 
 (defconst finito--isbn-query-variables "{\"isbn\": \"%s\"}")
 
@@ -61,7 +63,7 @@
     (collection
      :arguments ((name . ($ name)))
      (books title authors description isbn thumbnailUri
-     rating startedReading lastRead)))))
+            rating startedReading lastRead)))))
 
 (defconst finito--collection-query-variables "{\"name\": \"%s\"}")
 

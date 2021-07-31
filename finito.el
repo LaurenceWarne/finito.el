@@ -272,14 +272,17 @@ non-nil value."
   (browse-url
    (concat "https://openlibrary.org/isbn/" (alist-get 'isbn book-alist))))
 
-(defun finito--open-specified-collection (collection)
-  "Open the collection COLLECTION in a view buffer."
+(defun finito--open-specified-collection (collection &optional sync)
+  "Open the collection COLLECTION in a view buffer.
+
+If SYNC it non-nil, perform all actions synchronously."
   (finito--make-request
    (finito--collection-request-plist collection)
    (##finito--process-books-data
     (cdar %)
     (finito-collection-buffer-info :title collection
-                                   :mode #'finito-collection-view-mode))))
+                                   :mode #'finito-collection-view-mode))
+   :sync sync))
 
 (defun finito--remove-book-region ()
   "Remove the book at point from the current buffer."
@@ -547,15 +550,7 @@ _ARGS does nothing and is needed to appease transient."
   (let ((collection finito--collection)
         (old-point (point)))
     (kill-current-buffer)
-    (finito--make-request
-     (finito--collection-request-plist collection)
-     (lambda (data)
-       (finito--process-books-data
-        (cdar data)
-        (finito-collection-buffer-info :title collection
-                                       :mode #'finito-collection-view-mode))
-       (goto-char (min old-point (point-max))))
-     :sync t)))
+    (finito--open-specified-collection collection t)))
 
 (defun finito-browse-book-at-point ()
   "Browse the book at point."
