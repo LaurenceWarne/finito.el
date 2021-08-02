@@ -53,7 +53,7 @@ This object will be used to write books in finito buffers."
   :type 'object)
 
 (defcustom finito-image-cache-dir
-  (f-join user-emacs-directory "finito-images/")
+  (f-join user-emacs-directory "finito/images/")
   "The directory used to cache images."
   :group 'finito
   :type 'string)
@@ -160,7 +160,7 @@ Use INIT-OBJ, an instance of `finito-buffer-init' to initialize the buffer."
 Set up a finito buffer using INIT-OBJ which should be a `finito-buffer-init'
 instance, then call CALLBACK which should insert text in some way, and
 then apply some final configuration to the buffer."
-  (unless (f-dir-p finito-image-cache-dir) (f-mkdir finito-image-cache-dir))
+  (f-mkdir finito-image-cache-dir)
   (switch-to-buffer (generate-new-buffer-name "Books"))
   (finito-init-buffer init-obj)
   (let ((inhibit-read-only t))
