@@ -22,8 +22,8 @@
 ;;; Code:
 
 (defgroup finito nil
-  "Emacs client to finito"
-  :group 'books)
+  "Book and book collection management."
+  :group 'applications)
 
 (defcustom finito-language
   "en"
