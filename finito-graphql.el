@@ -25,6 +25,8 @@
 
 (require 'graphql)
 
+;;; Graphql queries and mutations
+
 (defconst finito--search-query
   (graphql-query
    (:arguments

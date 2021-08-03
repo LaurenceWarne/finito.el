@@ -40,9 +40,12 @@
 (require 'finito-buffer)
 (require 'finito-core)
 (require 'finito-request)
+(require 'finito-server)
 (require 'finito-view)
 
 (eval-when-compile (require 'let-alist))
+
+;;; Custom variables
 
 (defcustom finito-writer-instance
   (finito-book-writer)
@@ -74,8 +77,6 @@ This instance will be used to initialise a buffer after a keyword search."
   :group 'finito
   :type 'object)
 
-;;; Custom variables
-
 (defcustom finito-my-books-collection
   "My Books"
   "The name of the \"default\" collection.
@@ -97,8 +98,7 @@ invoked from the `finito-dispatch' prefix command."
   :group 'finito
   :type 'object)
 
-
-(defvar finito--host-uri "http://localhost:8080/api/graphql")
+;;; Internal variables
 
 (defvar finito--special-collections
   (list finito-my-books-collection finito-currently-reading-collection))

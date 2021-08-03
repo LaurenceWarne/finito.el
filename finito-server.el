@@ -31,9 +31,13 @@
 
 (require 'finito-core)
 
+;;; Constants
+
 (defconst finito-server-minimum-required-version
-  "0.1.0"
+  "0.2.0"
   "The minimum compatible finito server version.")
+
+;;; Custom variables
 
 (defcustom finito-server-directory
   (f-join user-emacs-directory "finito/")
@@ -47,6 +51,8 @@
   :group 'finito
   :type 'string)
 
+;;; Internal variables
+
 (defvar finito--download-url
   "https://github.com/LaurenceWarne/libro-finito/releases/download/")
 
@@ -55,14 +61,27 @@
 
 (defvar finito--server-process nil)
 
-(defun finito--server-path ()
-  "Return the path of the finito server."
-  (f-join finito-server-directory finito--jar-name))
+(defvar finito--no-server-error-msg
+  "Server jar not found!  Please download the server via:
 
-(defun finito--download-server-if-not-exists ()
+1. Calling `finito-download-server-if-not-exists'
+2. Visiting https://github.com/LaurenceWarne/libro-finito/releases and placing
+   the \"finito-<version>.jar\" in `finito-server-directory'.")
+
+(defvar finito--host-uri "http://localhost:8080/api/graphql")
+
+;;; User facing functions
+
+(defun finito-download-server-if-not-exists ()
   "Download a finito server if one is not already downloaded."
   (unless (f-exists-p (finito--server-path))
     (finito--download-server)))
+
+;;; Misc functions
+
+(defun finito--server-path ()
+  "Return the path of the finito server."
+  (f-join finito-server-directory finito--jar-name))
 
 (defun finito--download-server ()
   "Download a finito server."
@@ -84,7 +103,7 @@
 (defun finito--start-server-if-not-already ()
   "Start the finito server."
   (unless (f-exists-p (finito--server-path))
-    (message "Server jar not found!  Please download the server"))
+    (message finito--no-server-error-msg))
   (unless (or (process-live-p finito--server-process) (finito--health-check))
     (let* ((buf (generate-new-buffer "finito"))
            (command (concat "java -jar " (finito--server-path)))
