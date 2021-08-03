@@ -24,6 +24,11 @@
 
 ;;; Code:
 
+(require 'dash)
+(require 'f)
+(require 'request)
+(require 'url)
+
 (require 'finito-core)
 
 (defconst finito-server-minimum-required-version
@@ -43,17 +48,48 @@
   :type 'string)
 
 (defvar finito--download-url
-  "https://github.com/LaurenceWarne/libro-finito/releases/tag/")
+  "https://github.com/LaurenceWarne/libro-finito/releases/download/")
 
 (defvar finito--jar-name
   (concat "finito-" finito-server-version ".jar"))
 
+(defvar finito--server-process nil)
+
+(defun finito--server-path ()
+  "Return the path of the finito server."
+  (f-join finito-server-directory finito--jar-name))
+
+(defun finito--download-server-if-not-exists ()
+  "Download a finito server if one is not already downloaded."
+  (unless (f-exists-p (finito--server-path))
+    (finito--download-server)))
+
 (defun finito--download-server ()
   "Download a finito server."
   (let* ((url-base (concat finito--download-url "v" finito-server-version))
-         (url (concat url-base "/" finito--jar-name)))
+         (request-backend 'url-retrieve)
+         (url (--> (concat url-base "/" finito--jar-name)
+                (request it :sync t :timeout 5)
+                (request-response-url it))))
     (f-mkdir finito-server-directory)
-    (url-copy-file url (f-join finito-server-directory finito--jar-name))))
+    (message "Downloading server from %s" url)
+    (url-copy-file url (finito--server-path))
+    (message "Finished downloading server")))
+
+(defun finito--health-check ()
+  "Return t if the finito server appears to be up, else nil."
+  (ignore-errors
+    (url-retrieve-synchronously (concat finito--host-uri "/health") nil nil 5)))
+
+(defun finito--start-server-if-not-already ()
+  "Start the finito server."
+  (unless (f-exists-p (finito--server-path))
+    (message "Server jar not found!  Please download the server"))
+  (unless (or (process-live-p finito--server-process) (finito--health-check))
+    (let* ((buf (generate-new-buffer "finito"))
+           (command (concat "java -jar " (finito--server-path)))
+           (proc (start-process-shell-command "finito" buf command)))
+      (setq finito--server-process proc))))
 
 (provide 'finito-server)
 ;;; finito-server.el ends here
