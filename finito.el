@@ -160,7 +160,7 @@ Use INIT-OBJ, an instance of `finito-buffer-init' to initialize the buffer."
 Set up a finito buffer using INIT-OBJ which should be a `finito-buffer-init'
 instance, then call CALLBACK which should insert text in some way, and
 then apply some final configuration to the buffer."
-  (f-mkdir finito-image-cache-dir)
+  (make-directory finito-image-cache-dir t)
   (switch-to-buffer (generate-new-buffer-name "Books"))
   (finito-init-buffer init-obj)
   (let ((inhibit-read-only t))
