@@ -114,6 +114,7 @@ If SYNC is non-nil make the request synchronous.  If errors are detected
 in the graphql response body, then call GRAPHQL-ERROR with the first error
 as a symbol."
   (request finito--host-uri
+    :type "POST"
     :headers (plist-get request-plist :headers)
     :data (plist-get request-plist :data)
     :parser 'json-read
@@ -548,9 +549,11 @@ _ARGS does nothing and is needed to appease transient."
   "Refresh the current collection."
   (interactive)
   (let ((collection finito--collection)
-        (old-point (point)))
+        (old-point (point))
+        (request-backend 'url-retrieve))
     (kill-current-buffer)
-    (finito--open-specified-collection collection t)))
+    (finito--open-specified-collection collection t)
+    (goto-char old-point)))
 
 (defun finito-browse-book-at-point ()
   "Browse the book at point."
