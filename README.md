@@ -8,13 +8,18 @@ This package is a thin client for https://github.com/laurencewarne/libro-finito,
 
 ```elisp
 (use-package finito
+  :demand t
   :quelpa (finito :fetcher github :repo "LaurenceWarne/finito.el" :stable t)
   :bind ("C-c b" . finito-dispatch)
   :config
-  ;; You can also download the server jar manually from the releases page:
+  ;; Downloads the server aysnchronously, you can also download the server
+  ;; jar manually from the releases page:
   ;; https://github.com/LaurenceWarne/libro-finito/releases and place it in
   ;; `finito-server-directory'
-  (finito-download-server-if-not-exists))
+  (finito-download-server-if-not-exists)
+  ;; Optional, but will ensure Emacs is not blocked waiting for startup once
+  ;; a finito command is invoked
+  (finito-start-server-if-not-already))
 ```
 
 # Customisation

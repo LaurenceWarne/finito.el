@@ -31,7 +31,7 @@
 
 (require 'finito-core)
 
-(eval-when-compile (require 'async))
+(require 'async)
 
 ;;; Constants
 
@@ -73,6 +73,10 @@
 (defvar finito--download-server-timeout-msg
   "Timeout downloading the finito server, are you connected to the internet?")
 
+(defvar finito--server-startup-timeout-msg
+  "Timeout waiting for the finito server, are there any error messages when
+you (switch-to-buffer \"finito\") ?")
+
 (defvar finito--host-uri "http://localhost:8080/api/graphql")
 
 (defvar finito--server-path
@@ -85,7 +89,26 @@
   (unless (f-exists-p finito--server-path)
     (finito--download-server)))
 
+(defun finito-start-server-if-not-already ()
+  "Start the finito server."
+  (unless (f-exists-p finito--server-path)
+    (error finito--no-server-error-msg))
+  (unless (or (process-live-p finito--server-process) (finito--health-check))
+    (message "Starting a finito server...")
+    (let* ((buf (generate-new-buffer "finito"))
+           (command (concat "java -jar " finito--server-path))
+           (proc (start-process-shell-command "finito" buf command)))
+      (setq finito--server-process proc))))
+
 ;;; Misc functions
+
+(defun finito--wait-for-server ()
+  "Wait for the finito server to start or error."
+  (finito-start-server-if-not-already)
+  (unless (-first (lambda (_)
+                    (or (finito--health-check) (ignore (sleep-for 0.5))))
+                  (-repeat 20 t))
+    (error finito--server-startup-timeout-msg)))
 
 (defun finito--download-server ()
   "Download a finito server asynchronously.
@@ -103,22 +126,12 @@ server will save it to the file `finito--server-path'."
             (concat finito--download-url "v" finito-server-version)
           (concat "/" finito--jar-name)
           (url-copy-file finito--server-path)))
-     (lambda (result) (message "Finished downloading the finito server")))))
+     (lambda (_) (message "Finished downloading the finito server")))))
 
 (defun finito--health-check ()
   "Return t if the finito server appears to be up, else nil."
   (ignore-errors
     (url-retrieve-synchronously (concat finito--host-uri "/health") nil nil 5)))
-
-(defun finito--start-server-if-not-already ()
-  "Start the finito server."
-  (unless (f-exists-p finito--server-path)
-    (message finito--no-server-error-msg))
-  (unless (or (process-live-p finito--server-process) (finito--health-check))
-    (let* ((buf (generate-new-buffer "finito"))
-           (command (concat "java -jar " finito--server-path))
-           (proc (start-process-shell-command "finito" buf command)))
-      (setq finito--server-process proc))))
 
 (provide 'finito-server)
 ;;; finito-server.el ends here
