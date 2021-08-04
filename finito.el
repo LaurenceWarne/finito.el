@@ -410,7 +410,10 @@ The following commands are available in this mode:
 (defun finito-to-org-buffer ()
   "Open the current buffer as a normal org mode buffer."
   (interactive)
-  nil)
+  (let ((buf (generate-new-buffer "finito org")))
+    (copy-to-buffer buf (point-min) (point-max))
+    (switch-to-buffer buf)
+    (org-display-inline-images)))
 
 (defun finito-search-request (&optional args)
   "Send a search request to the finito server using transient args ARGS."

@@ -40,7 +40,7 @@
   :group 'finito)
 
 (defface finito-book-descriptions
-  '((t :italic t))
+  '((t :foreground "grey"))
   "Face for book descriptions."
   :group 'finito)
 
