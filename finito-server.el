@@ -31,6 +31,8 @@
 
 (require 'finito-core)
 
+(eval-when-compile (require 'async))
+
 ;;; Constants
 
 (defconst finito-server-minimum-required-version
@@ -68,32 +70,40 @@
 2. Visiting https://github.com/LaurenceWarne/libro-finito/releases and placing
    the \"finito-<version>.jar\" in `finito-server-directory'.")
 
+(defvar finito--download-server-timeout-msg
+  "Timeout downloading the finito server, are you connected to the internet?")
+
 (defvar finito--host-uri "http://localhost:8080/api/graphql")
+
+(defvar finito--server-path
+  (f-join finito-server-directory finito--jar-name))
 
 ;;; User facing functions
 
 (defun finito-download-server-if-not-exists ()
   "Download a finito server if one is not already downloaded."
-  (unless (f-exists-p (finito--server-path))
+  (unless (f-exists-p finito--server-path)
     (finito--download-server)))
 
 ;;; Misc functions
 
-(defun finito--server-path ()
-  "Return the path of the finito server."
-  (f-join finito-server-directory finito--jar-name))
-
 (defun finito--download-server ()
-  "Download a finito server."
-  (let* ((url-base (concat finito--download-url "v" finito-server-version))
-         (request-backend 'url-retrieve)
-         (url (--> (concat url-base "/" finito--jar-name)
-                (request it :sync t :timeout 5)
-                (request-response-url it))))
-    (f-mkdir finito-server-directory)
-    (message "Downloading server from %s" url)
-    (url-copy-file url (finito--server-path))
-    (message "Finished downloading server")))
+  "Download a finito server asynchronously.
+
+The server version is determined by `finito-server-version', and the the
+server will save it to the file `finito--server-path'."
+  (let* ((request-backend 'url-retrieve))
+    (make-directory finito-server-directory t)
+    (message "Starting finito server download...")
+    (async-start
+     `(lambda ()
+        ,(async-inject-variables "^finito-")
+        (require 'subr-x)
+        (thread-first
+            (concat finito--download-url "v" finito-server-version)
+          (concat "/" finito--jar-name)
+          (url-copy-file finito--server-path)))
+     (lambda (result) (message "Finished downloading the finito server")))))
 
 (defun finito--health-check ()
   "Return t if the finito server appears to be up, else nil."
@@ -102,11 +112,11 @@
 
 (defun finito--start-server-if-not-already ()
   "Start the finito server."
-  (unless (f-exists-p (finito--server-path))
+  (unless (f-exists-p finito--server-path)
     (message finito--no-server-error-msg))
   (unless (or (process-live-p finito--server-process) (finito--health-check))
     (let* ((buf (generate-new-buffer "finito"))
-           (command (concat "java -jar " (finito--server-path)))
+           (command (concat "java -jar " finito--server-path))
            (proc (start-process-shell-command "finito" buf command)))
       (setq finito--server-process proc))))
 
