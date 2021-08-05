@@ -22,6 +22,38 @@ This package is a thin client for https://github.com/laurencewarne/libro-finito,
   (finito-start-server-if-not-already))
 ```
 
+# Keys
+
+## Bindings in a Search Buffer
+
+| Key   | Action                                                                     |
+|-------|----------------------------------------------------------------------------|
+| `a`   | Add the book at point to some prompted collection                          |
+| `m`   | Add the book at point to the "My Books" collection                         |
+| `A`   | Search for books by the same author                                        |
+| `n`   | Goto the next book                                                         |
+| `p`   | Goto the previous book                                                     |
+| `o`   | Dump this buffers contens in a normal org mode buffer                      |
+| `q`   | Kill the current buffer                                                    |
+| `k`   | Kill the current buffer                                                    |
+| `b`   | Open an [Open Library](https://openlibrary.org) page for the book at point |
+| `r`   | Rate the book at point                                                     |
+| `s`   | Start the book at point                                                    |
+| `S`   | Start the book at point at a prompted date                                 |
+| `f`   | Finish the book at point                                                   |
+| `F`   | Finish the book at point at a prompted date                                |
+| `C-m` | Open the "My Books" collection                                             |
+| `C-r` | Open the "Currently Reading" collection                                    |
+
+## Bindings in a Collection Buffer
+
+All of the bindings present above are present here, along with:
+
+| Key | Action                                               |
+|-----|------------------------------------------------------|
+| `g` | Refresh the collection for changes                   |
+| `D` | Delete the book at point from the current collection |
+
 # Customisation
 
 ## `finito-writer-instance`
