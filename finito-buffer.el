@@ -179,6 +179,15 @@ result of this method."
           :type string
           :custom string
           :documentation "The title of the finito buffer.")
+   (buf-name :initarg :buf-name
+             :type string
+             :custom string
+             :documentation "The name of the finito buffer.")
+   (buf-name-unique :initarg :buf-name-unique
+                    :type boolean
+                    :custom boolean
+                    :documentation
+                    "If non-nil delete buffers of the same name.")
    (mode :initarg :mode
          :type function
          :custom function

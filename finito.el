@@ -70,7 +70,11 @@ It should take a book alist as a parameter."
   :type 'function)
 
 (defcustom finito-keyword-search-buffer-init-instance
-  (finito-buffer-info :title "Books" :mode (lambda () (finito-search-view-mode)))
+  (finito-buffer-info
+   :title "Books"
+   :mode (lambda () (finito-search-view-mode))
+   :buf-name "Book Search"
+   :buf-name-unique nil)
   "`finito-buffer-info' instance to be used.
 
 This instance will be used to initialise a buffer after a keyword search."
@@ -162,7 +166,9 @@ Set up a finito buffer using INIT-OBJ which should be a `finito-buffer-init'
 instance, then call CALLBACK which should insert text in some way, and
 then apply some final configuration to the buffer."
   (make-directory finito-image-cache-dir t)
-  (switch-to-buffer (generate-new-buffer-name "Books"))
+  (when (oref init-obj buf-name-unique)
+    (ignore-errors (kill-buffer (oref init-obj buf-name))))
+  (switch-to-buffer (generate-new-buffer-name (oref init-obj buf-name)))
   (finito-init-buffer init-obj)
   (let ((inhibit-read-only t))
     (insert (format "* %s\n\n" (oref init-obj title)))
@@ -281,8 +287,11 @@ If SYNC it non-nil, perform all actions synchronously."
    (finito--collection-request-plist collection)
    (##finito--process-books-data
     (cdar %)
-    (finito-collection-buffer-info :title collection
-                                   :mode #'finito-collection-view-mode))
+    (finito-collection-buffer-info
+     :title collection
+     :mode #'finito-collection-view-mode
+     :buf-name (format "Collection: %s" collection)
+     :buf-name-unique t))
    :sync sync))
 
 (defun finito--remove-book-region ()
@@ -406,7 +415,7 @@ The following commands are available in this mode:
   "Send a search request to the finito server using transient args ARGS."
   (interactive
    (list (finito--transient-args-plist 'finito-search)))
-  (finito-start-server-if-not-already)
+  (finito--wait-for-server)
   (if-let (isbn (plist-get args :isbn))
       (finito--make-request
        (finito--isbn-request-plist isbn)
@@ -428,7 +437,7 @@ The following commands are available in this mode:
 Search for books matching TITLE-KEYWORDS and AUTHOR-KEYWORDS.  With any non-nil
 prefix arg ARG, message an equivalent curl instead of sending a request."
   (interactive "P\nsPlease input title keywords: \nsPlease input author keywords: ")
-  (finito-start-server-if-not-already)
+  (finito--wait-for-server)
   (if arg
       (let ((url (url-hexify-string (format "https://www.googleapis.com/books/v1/volumes?q=%s+inauthor:%s&printType=books&langRestrict=en" title-keywords author-keywords))))
         (kill-new (message url)))
@@ -446,7 +455,7 @@ prefix arg ARG, message an equivalent curl instead of sending a request."
 
 _ARGS does nothing and is needed to appease transient."
   (interactive)
-  (finito-start-server-if-not-already)
+  (finito--wait-for-server)
   (if-let* ((name (read-string "Collection name: "))
             (request-plist (finito--create-collection-request-plist name)))
       (finito--make-request
@@ -459,7 +468,7 @@ _ARGS does nothing and is needed to appease transient."
 
 _ARGS does nothing and is needed to appease transient."
   (interactive)
-  (finito-start-server-if-not-already)
+  (finito--wait-for-server)
   (finito--select-collection (##finito--open-specified-collection %1)))
 
 ;;;###autoload
@@ -468,7 +477,7 @@ _ARGS does nothing and is needed to appease transient."
 
 _ARGS does nothing and is needed to appease transient."
   (interactive)
-  (finito-start-server-if-not-already)
+  (finito--wait-for-server)
   (finito--open-specified-collection finito-my-books-collection))
 
 ;;;###autoload
@@ -477,7 +486,7 @@ _ARGS does nothing and is needed to appease transient."
 
 _ARGS does nothing and is needed to appease transient."
   (interactive)
-  (finito-start-server-if-not-already)
+  (finito--wait-for-server)
   (finito--open-specified-collection finito-currently-reading-collection))
 
 ;;;###autoload
@@ -486,7 +495,7 @@ _ARGS does nothing and is needed to appease transient."
 
 _ARGS does nothing and is needed to appease transient."
   (interactive)
-  (finito-start-server-if-not-already)
+  (finito--wait-for-server)
   (finito--select-collection
      (lambda (chosen-collection)
        (finito--make-request
@@ -499,7 +508,7 @@ _ARGS does nothing and is needed to appease transient."
   "Update the collection specified in ARGS."
   (interactive
    (list (finito--transient-args-plist 'finito-update-collection)))
-  (finito-start-server-if-not-already)
+  (finito--wait-for-server)
   (let ((chosen-collection (plist-get args :name))
         (new-name (plist-get args :new-name))
         (preferred-sort (plist-get args :sort)))
