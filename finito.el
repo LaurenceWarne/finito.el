@@ -290,7 +290,7 @@ If SYNC it non-nil, perform all actions synchronously."
     (finito-collection-buffer-info
      :title collection
      :mode #'finito-collection-view-mode
-     :buf-name (format "Collection: %s" collection)
+     :buf-name (concat "Collection: " collection)
      :buf-name-unique t))
    :sync sync))
 
@@ -421,8 +421,11 @@ The following commands are available in this mode:
        (finito--isbn-request-plist isbn)
        (##finito--process-single-book
         %
-        (finito-buffer-info :title (concat "ISBN: " isbn)
-                            :mode #'finito-search-view-mode)))
+        (finito-buffer-info
+         :title (concat "ISBN: " isbn)
+         :mode #'finito-search-view-mode
+         :buf-name (concat "Search for ISBN: " isbn)
+         :buf-name-unique t)))
     (finito-search-for-books
      nil
      (plist-get args :title)
