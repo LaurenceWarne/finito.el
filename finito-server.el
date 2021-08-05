@@ -74,8 +74,9 @@
   "Timeout downloading the finito server, are you connected to the internet?")
 
 (defvar finito--server-startup-timeout-msg
-  "Timeout waiting for the finito server, are there any error messages when
-you (switch-to-buffer \"finito\") ?")
+  "Timeout waiting for the finito server.
+
+Are there any error messages when you (switch-to-buffer \"finito\") ?")
 
 (defvar finito--host-uri "http://localhost:8080/api/graphql")
 

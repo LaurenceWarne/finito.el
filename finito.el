@@ -367,6 +367,8 @@ request is successful"
     (define-key map "S" #'finito-start-and-date-book-at-point)
     (define-key map "f" #'finito-finish-book-at-point)
     (define-key map "F" #'finito-finish-and-date-book-at-point)
+    (define-key map (kbd "C-m") #'finito-open-my-books)
+    (define-key map (kbd "C-r") #'finito-open-currently-reading-collection)
     map))
 
 (define-derived-mode finito-search-view-mode org-mode "finito-search-view"
@@ -399,26 +401,12 @@ The following commands are available in this mode:
 
 ;;; Commands
 
-(defun finito-same-author ()
-  "Find books by the author at point."
-  (interactive)
-  (let* ((book (finito--book-at-point))
-         (authors (s-join " " (alist-get 'authors book))))
-    (message "Searching for author(s) '%s'" authors)
-    (finito-search-for-books nil nil authors)))
-
-(defun finito-to-org-buffer ()
-  "Open the current buffer as a normal org mode buffer."
-  (interactive)
-  (let ((buf (generate-new-buffer "finito org")))
-    (copy-to-buffer buf (point-min) (point-max))
-    (switch-to-buffer buf)
-    (org-display-inline-images)))
-
+;;;###autoload
 (defun finito-search-request (&optional args)
   "Send a search request to the finito server using transient args ARGS."
   (interactive
    (list (finito--transient-args-plist 'finito-search)))
+  (finito-start-server-if-not-already)
   (if-let (isbn (plist-get args :isbn))
       (finito--make-request
        (finito--isbn-request-plist isbn)
@@ -440,6 +428,7 @@ The following commands are available in this mode:
 Search for books matching TITLE-KEYWORDS and AUTHOR-KEYWORDS.  With any non-nil
 prefix arg ARG, message an equivalent curl instead of sending a request."
   (interactive "P\nsPlease input title keywords: \nsPlease input author keywords: ")
+  (finito-start-server-if-not-already)
   (if arg
       (let ((url (url-hexify-string (format "https://www.googleapis.com/books/v1/volumes?q=%s+inauthor:%s&printType=books&langRestrict=en" title-keywords author-keywords))))
         (kill-new (message url)))
@@ -457,6 +446,7 @@ prefix arg ARG, message an equivalent curl instead of sending a request."
 
 _ARGS does nothing and is needed to appease transient."
   (interactive)
+  (finito-start-server-if-not-already)
   (if-let* ((name (read-string "Collection name: "))
             (request-plist (finito--create-collection-request-plist name)))
       (finito--make-request
@@ -469,14 +459,16 @@ _ARGS does nothing and is needed to appease transient."
 
 _ARGS does nothing and is needed to appease transient."
   (interactive)
+  (finito-start-server-if-not-already)
   (finito--select-collection (##finito--open-specified-collection %1)))
 
 ;;;###autoload
-(defun finito-my-books (&optional _args)
+(defun finito-open-my-books (&optional _args)
   "Open \"My Books\".
 
 _ARGS does nothing and is needed to appease transient."
   (interactive)
+  (finito-start-server-if-not-already)
   (finito--open-specified-collection finito-my-books-collection))
 
 ;;;###autoload
@@ -485,6 +477,7 @@ _ARGS does nothing and is needed to appease transient."
 
 _ARGS does nothing and is needed to appease transient."
   (interactive)
+  (finito-start-server-if-not-already)
   (finito--open-specified-collection finito-currently-reading-collection))
 
 ;;;###autoload
@@ -493,6 +486,7 @@ _ARGS does nothing and is needed to appease transient."
 
 _ARGS does nothing and is needed to appease transient."
   (interactive)
+  (finito-start-server-if-not-already)
   (finito--select-collection
      (lambda (chosen-collection)
        (finito--make-request
@@ -505,6 +499,7 @@ _ARGS does nothing and is needed to appease transient."
   "Update the collection specified in ARGS."
   (interactive
    (list (finito--transient-args-plist 'finito-update-collection)))
+  (finito-start-server-if-not-already)
   (let ((chosen-collection (plist-get args :name))
         (new-name (plist-get args :new-name))
         (preferred-sort (plist-get args :sort)))
@@ -513,6 +508,22 @@ _ARGS does nothing and is needed to appease transient."
       chosen-collection new-name preferred-sort)
      (lambda (_)
        (message "Successfully updated collection '%s'" chosen-collection)))))
+
+(defun finito-same-author ()
+  "Find books by the author at point."
+  (interactive)
+  (let* ((book (finito--book-at-point))
+         (authors (s-join " " (alist-get 'authors book))))
+    (message "Searching for author(s) '%s'" authors)
+    (finito-search-for-books nil nil authors)))
+
+(defun finito-to-org-buffer ()
+  "Open the current buffer as a normal org mode buffer."
+  (interactive)
+  (let ((buf (generate-new-buffer "finito org")))
+    (copy-to-buffer buf (point-min) (point-max))
+    (switch-to-buffer buf)
+    (org-display-inline-images)))
 
 (defun finito-add-book-at-point ()
   "Prompt the user for a collection, and add the book at point to it."
