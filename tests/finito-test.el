@@ -277,3 +277,45 @@ GNU Emacs is the most popular and widespread of the Emacs family of editors. It 
         (end-of-buffer)
         (finito--replace-book-at-point-from-request nil)
         (expect .buffer-text :to-equal expected-buf-string)))))
+
+(describe "finito--wait-for-server"
+  (it "errors when health check expires"
+    (cl-letf (((symbol-function 'finito-start-server-if-not-already) (-const t))
+              ((symbol-function 'sleep-for) #'ignore)
+              ((symbol-function 'finito--health-check) #'ignore))
+      (expect (finito--wait-for-server) :to-throw)))
+  (it "no error when health check succeeds"
+    (cl-letf (((symbol-function 'finito-start-server-if-not-already) (-const t))
+              ((symbol-function 'sleep-for) #'ignore)
+              ((symbol-function 'finito--health-check) (-const t)))
+      (expect (finito--wait-for-server) :not :to-throw))))
+
+(describe "finito--health-check"
+  (it "returns nil when no server up"
+    (cl-letf (((symbol-function 'url-retrieve-synchronously)
+               (lambda (&rest _) (error "?"))))
+      (expect (finito--health-check) :to-be nil)))
+  (it "returns t when url-retrieve-synchronously returns buffer"
+    (cl-letf (((symbol-function 'url-retrieve-synchronously)
+               (lambda (&rest _) (generate-new-buffer "finito test"))))
+      (expect (finito--health-check) :to-be t))))
+
+(describe "finito-start-server-if-not-already"
+  (it "errors when jar not found"
+    (cl-letf (((symbol-function 'f-exists-p) #'ignore))
+      (expect (finito-start-server-if-not-already) :to-throw)))
+  (it "returns nil when finito--server-process is running"
+    (cl-letf (((symbol-function 'f-exists-p) (-const t))
+              ((symbol-function 'process-live-p)
+               (lambda (p) (eq p 'proc)))
+              (finito--server-process 'proc))
+      (expect (finito-start-server-if-not-already) :to-be nil)))
+  (it "returns nil when health check succeeds"
+    (cl-letf (((symbol-function 'f-exists-p) (-const t))
+              ((symbol-function 'finito--health-check) (-const t)))
+      (expect (finito-start-server-if-not-already) :to-be nil)))
+  (it "returns a process when a server is started"
+    (cl-letf (((symbol-function 'f-exists-p) (-const t))
+              ((symbol-function 'finito--health-check) #'ignore)
+              ((symbol-function 'start-process-shell-command) (-const 'proc)))
+      (expect (finito-start-server-if-not-already) :to-be 'proc))))

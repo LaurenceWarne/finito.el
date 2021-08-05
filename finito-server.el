@@ -90,7 +90,11 @@ you (switch-to-buffer \"finito\") ?")
     (finito--download-server)))
 
 (defun finito-start-server-if-not-already ()
-  "Start the finito server."
+  "Start a finito server if one does not already appear to be up.
+
+A process obj is returned if a server process was successfully started,
+and nil is returned if a server was detected to already have been started.
+An error is signalled if the server jar cannot be found."
   (unless (f-exists-p finito--server-path)
     (error finito--no-server-error-msg))
   (unless (or (process-live-p finito--server-process) (finito--health-check))
@@ -103,7 +107,7 @@ you (switch-to-buffer \"finito\") ?")
 ;;; Misc functions
 
 (defun finito--wait-for-server ()
-  "Wait for the finito server to start or error."
+  "Wait for the finito server to start or signal error after 20 retries."
   (finito-start-server-if-not-already)
   (unless (-first (lambda (_)
                     (or (finito--health-check) (ignore (sleep-for 0.5))))
@@ -130,8 +134,9 @@ server will save it to the file `finito--server-path'."
 
 (defun finito--health-check ()
   "Return t if the finito server appears to be up, else nil."
-  (ignore-errors
-    (url-retrieve-synchronously (concat finito--host-uri "/health") nil nil 5)))
+  (not (eq (ignore-errors
+             (url-retrieve-synchronously
+              (concat finito--host-uri "/health") nil nil 5)) nil)))
 
 (provide 'finito-server)
 ;;; finito-server.el ends here
