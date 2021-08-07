@@ -32,6 +32,9 @@
   '(("Content-Type" . "application/json")
     ("Accept" . "application/json")))
 
+(defconst finito--bad-sort-ascending-arg-msg
+  "sort-ascending must be on of 'true or 'false")
+
 ;;; Misc functions
 
 (defun finito--search-request-plist
@@ -100,12 +103,15 @@ NAME should be the name of the collection to delete."
              (format finito--delete-collection-mutation-variables name))))
 
 (defun finito--update-collection-request-plist
-    (current-name &optional new-name preferred-sort)
+    (current-name &optional new-name preferred-sort sort-ascending)
   "Return a plist with headers and body suitable for an update request.
 
 CURRENT-NAME should be the name of the collection to update, NEW-NAME
-should be the new name and PREFERRED-SORT the preferred sorting method.
-All arguments should be strings."
+should be the new name, PREFERRED-SORT the preferred sorting method, and
+SORT-ASCENDING indicates whether the sorting method should be ascending or
+descending.  All arguments should be strings, except for SORT-ASCENDING
+which should be one of the symbols `true' or `false' (if nil is passed
+then the property will not be changed)."
   `(:headers ,finito--headers
     :data
     ,(format "{\"query\":\"%s\", \"variables\": %s\}"
@@ -113,7 +119,11 @@ All arguments should be strings."
              (format finito--update-collection-mutation-variables
                      current-name
                      (if new-name (s-wrap new-name "\"") "null")
-                     (or preferred-sort "null")))))
+                     (or preferred-sort "null")
+                     (cond ((eq sort-ascending 'true) "true")
+                           ((eq sort-ascending 'false) "false")
+                           ((eq sort-ascending nil) "null")
+                           (t (error finito--bad-sort-ascending-arg-msg)))))))
 
 (defun finito--add-book-request-plist (book &optional collection)
   "Return a plist with headers and body for an add book request.

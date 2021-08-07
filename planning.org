@@ -1,0 +1,9 @@
+#+TITLE: Planning
+
+* TODO list
+
+** Bigger things  
+*** TODO Add testing for interactive functions
+** Smaller Things
+*** TODO Add version number
+*** TODO Add integration with ~createBook~ mutation

@@ -45,7 +45,12 @@
 ;; We don't add quotes around %s since null is a value that could potentially
 ;; be placing, and we shouldn't quote that
 (defconst finito--search-query-variables
-  "{\"titleKeywords\": %s, \"authorKeywords\": %s, \"maxResults\": %s, \"langRestrict\": \"%s\"}")
+  "{
+     \"titleKeywords\": %s,
+     \"authorKeywords\": %s,
+     \"maxResults\": %s,
+     \"langRestrict\": \"%s\"
+   }")
 
 (defconst finito--isbn-query
   (graphql-query
@@ -95,7 +100,16 @@
      name))))
 
 (defconst finito--add-book-mutation-variables
-  "{\"collection\": %s, \"book\": {\"title\": \"%s\", \"authors\": %s, \"description\": \"%s\", \"isbn\": \"%s\", \"thumbnailUri\": \"%s\"}}")
+  "{
+     \"collection\": %s,
+     \"book\": {
+       \"title\": \"%s\",
+       \"authors\": %s,
+       \"description\": \"%s\",
+       \"isbn\": \"%s\",
+       \"thumbnailUri\": \"%s\"
+     }
+   }")
 
 (defconst finito--delete-collection-mutation
   (graphql-mutation
@@ -111,15 +125,22 @@
    (:arguments
     (($currentName . String!)
      ($newName . String)
-     ($preferredSort . Sort))
+     ($preferredSort . Sort)
+     ($sortAscending . Sort))
     (updateCollection
      :arguments ((currentName . ($ currentName))
                  (newName . ($ newName))
-                 (preferredSort . ($ preferredSort)))
-     name preferredSort))))
+                 (preferredSort . ($ preferredSort))
+                 (sortAscending . ($ sortAscending)))
+     name preferredSort sortAscending))))
 
 (defconst finito--update-collection-mutation-variables
-  "{\"currentName\": \"%s\", \"newName\": %s, \"preferredSort\": %s}")
+  "{
+     \"currentName\": \"%s\",
+     \"newName\": %s,
+     \"preferredSort\": %s,
+     \"sortAscending\": %s
+   }")
 
 (defconst finito--remove-book-mutation
   (graphql-mutation
@@ -145,7 +166,16 @@
      rating startedReading lastRead))))
 
 (defconst finito--rate-book-mutation-variables
-  "{\"rating\": %s, \"book\": {\"title\": \"%s\", \"authors\": %s, \"description\": \"%s\", \"isbn\": \"%s\", \"thumbnailUri\": \"%s\"}}")
+  "{
+     \"rating\": %s,
+     \"book\": {
+       \"title\": \"%s\",
+       \"authors\": %s,
+       \"description\": \"%s\",
+       \"isbn\": \"%s\",
+       \"thumbnailUri\": \"%s\"
+     }
+   }")
 
 (defconst finito--start-reading-mutation
   (graphql-mutation
@@ -159,7 +189,16 @@
      rating startedReading lastRead))))
 
 (defconst finito--start-reading-mutation-variables
-  "{\"date\": %s, \"book\": {\"title\": \"%s\", \"authors\": %s, \"description\": \"%s\", \"isbn\": \"%s\", \"thumbnailUri\": \"%s\"}}")
+  "{
+     \"date\": %s,
+     \"book\": {
+       \"title\": \"%s\",
+       \"authors\": %s,
+       \"description\": \"%s\",
+       \"isbn\": \"%s\",
+       \"thumbnailUri\": \"%s\"
+     }
+   }")
 
 (defconst finito--finish-reading-mutation
   (graphql-mutation
@@ -173,7 +212,16 @@
      rating startedReading lastRead))))
 
 (defconst finito--finish-reading-mutation-variables
-  "{\"date\": %s, \"book\": {\"title\": \"%s\", \"authors\": %s, \"description\": \"%s\", \"isbn\": \"%s\", \"thumbnailUri\": \"%s\"}}")
+  "{
+     \"date\": %s,
+     \"book\": {
+       \"title\": \"%s\",
+       \"authors\": %s,
+       \"description\": \"%s\",
+       \"isbn\": \"%s\",
+       \"thumbnailUri\": \"%s\"
+     }
+   }")
 
 (defconst finito--delete-book-data-mutation
   (graphql-mutation

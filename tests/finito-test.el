@@ -63,6 +63,24 @@ Occurrences of `.buffer-text' will be replaced by:
       (expect (plist-get plist :headers))
       (expect (plist-get plist :data)))))
 
+(describe "finito--update-collection-request-plist"
+  (it "test plist has headers and data"
+    (let ((plist (finito--update-collection-request-plist
+                  "name"
+                  "new name"
+                  "dateAdded"
+                  'true)))
+      (expect (plist-get plist :headers))
+      (expect (plist-get plist :data))))
+
+  (it "error when invalid value passed for sort-ascending"
+    (expect (finito--update-collection-request-plist
+                  "name"
+                  "new name"
+                  "dateAdded"
+                  'not-a-valid-value)
+            :to-throw)))
+
 (describe "finito--add-book-request-plist"
   (it "test plist has headers and data"
     (let* ((book '((title . "Flowers for Algernon")
