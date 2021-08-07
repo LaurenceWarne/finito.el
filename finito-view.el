@@ -96,8 +96,9 @@
 
 ;;; Prefixes
 
-;; TODO change name to finito and add autoloads?
-(transient-define-prefix finito-dispatch ()
+
+;;;###autoload (autoload 'finito "finito-view" nil t)
+(transient-define-prefix finito ()
   "Search for books."
   ["Actions"
    ("m" "My Books"          finito-open-my-books)

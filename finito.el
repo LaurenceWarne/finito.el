@@ -86,7 +86,7 @@ This instance will be used to initialise a buffer after a keyword search."
   "The name of the \"default\" collection.
 
  This collection will be opened when the \"My Books\" suffix is invoked from
-the `finito-dispatch' prefix command.  Typically this collection will hold all
+the `finito' prefix command.  Typically this collection will hold all
 books which have been added at some point to some collection.  See
 URL 'https://github.com/LaurenceWarne/libro-finito#special-collections' for
 more information on how special collections can be configured."
@@ -98,7 +98,7 @@ more information on how special collections can be configured."
   "The name of the collection which holds books being currently read.
 
  This collection will be opened when the \"Currently Reading\" suffix is
-invoked from the `finito-dispatch' prefix command."
+invoked from the `finito' prefix command."
   :group 'finito
   :type 'object)
 

@@ -10,7 +10,7 @@ This package is a thin client for https://github.com/laurencewarne/libro-finito,
 (use-package finito
   :demand t
   :quelpa (finito :fetcher github :repo "LaurenceWarne/finito.el" :stable t)
-  :bind ("C-c b" . finito-dispatch)
+  :bind ("C-c b" . finito)
   :config
   ;; Downloads the server aysnchronously, you can also download the server
   ;; jar manually from the releases page:
@@ -75,7 +75,7 @@ This writer class will insert titles as level one headings, and otherwise behave
 
 ## `finito-my-books-collection`
 
-This variable holds the name of the collection to open when the "My Books" suffix is invoked from the `finito-dispatch` prefix command.
+This variable holds the name of the collection to open when the "My Books" suffix is invoked from the `finito` prefix command.
 
 It can be changed to some other user created collection, though note its default value ("My Books") is marked as a [special collection](https://github.com/LaurenceWarne/libro-finito#special-collections) (by default) by the server - more specifically the **default** collection which automatically adds all books added to any other collection or started/completed/rated to itself.
 
@@ -89,7 +89,7 @@ In order to accumulate all added books you will have to mark it as a special col
 
 ## `finito-currently-reading-collection`
 
-This variable holds the name of the collection to open when the "Currently Reading" suffix is invoked from the `finito-dispatch` prefix command.
+This variable holds the name of the collection to open when the "Currently Reading" suffix is invoked from the `finito` prefix command.
 
 The situation is similar to that of `finito-my-books-collection` above in that the default value "Currently Reading" is regarded as a special collection, though only books marked as "started" will be added to this collection.
 
