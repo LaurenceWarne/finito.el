@@ -447,7 +447,10 @@ prefix arg ARG, message an equivalent curl instead of sending a request."
       (let ((url (url-hexify-string (format "https://www.googleapis.com/books/v1/volumes?q=%s+inauthor:%s&printType=books&langRestrict=en" title-keywords author-keywords))))
         (kill-new (message url)))
     (let ((request-plist
-           (finito--search-request-plist title-keywords author-keywords max-results)))
+           (finito--search-request-plist
+            title-keywords
+            author-keywords
+            max-results)))
       (finito--make-request
        request-plist
        (lambda (data) (finito--process-books-data

@@ -9,3 +9,4 @@
 *** TODO Use ~transient-define-infix~ instead of ~transient-define-argument~
 *** TODO Add integration with ~createBook~ mutation
 *** TODO Hide "Currently Reading" in addBook
+*** TODO Add curl debugging for search requests

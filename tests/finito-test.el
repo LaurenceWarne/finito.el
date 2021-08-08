@@ -342,4 +342,52 @@ GNU Emacs is the most popular and widespread of the Emacs family of editors. It 
   (it "list with one element"
     (expect (finito--seq-to-json-list '("one"))
             :to-equal
-            "[\"one\"]")))
+            "[\"one\"]"))
+
+  (it "list with multiple elements"
+    (expect (finito--seq-to-json-list '("one" "two"))
+            :to-equal
+            "[\"one\", \"two\"]")))
+
+(describe "finito-search-for-books"
+  :var ((title "my-title")
+        (author "my-author")
+        (max-results 33))
+  (before-each
+    (spy-on 'finito--make-request
+            :and-call-fake
+            (lambda (plist callback &rest _)
+              (funcall callback nil)))
+    (spy-on 'finito--process-books-data :and-return-value nil)
+    (spy-on 'finito--search-request-plist :and-call-through)
+    (spy-on 'finito--wait-for-server :and-return-value nil))
+
+  (it "search for books"
+    (finito-search-for-books nil title author max-results)
+    (expect 'finito--make-request :to-have-been-called-times 1)
+    (expect 'finito--process-books-data :to-have-been-called-times 1)
+    (expect 'finito--search-request-plist :to-have-been-called-times 1)
+    (expect 'finito--wait-for-server :to-have-been-called-times 1)
+    (expect (spy-calls-args-for 'finito--search-request-plist 0)
+            :to-equal
+            (list title author max-results))))
+
+(describe "finito-create-collection"
+  :var ((collection "my collection"))
+  (before-each
+    (spy-on 'finito--make-request
+            :and-call-fake
+            (lambda (plist callback &rest _)
+              (funcall callback nil)))
+    (spy-on 'finito--wait-for-server :and-return-value nil)
+    (spy-on 'finito--create-collection-request-plist :and-call-through)
+    (spy-on 'read-string :and-return-value collection))
+  
+  (it "creates collection"
+    (finito-create-collection)
+    (expect 'finito--make-request :to-have-been-called-times 1)
+    (expect 'read-string :to-have-been-called-times 1)
+    (expect 'finito--wait-for-server :to-have-been-called-times 1)
+    (expect (spy-calls-args-for 'finito--create-collection-request-plist 0)
+            :to-equal
+            (list collection))))
