@@ -112,7 +112,7 @@
 (transient-define-prefix finito ()
   "Search for books."
   ["Actions"
-   ("m" "My Books"          finito-open-my-books)
+   ("m" "My Books"          finito-open-my-books-collection)
    ("r" "Currently Reading" finito-open-currently-reading-collection)
    ("s" "Search"            finito-search)
    ("c" "Collections"       finito-collection)])

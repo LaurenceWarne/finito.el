@@ -28,43 +28,43 @@ Occurrences of `.buffer-text' will be replaced by:
        ,@(replace body))))
 
 (describe "finito--search-request-plist"
-  (it "test plist has headers and data"
+  (it "plist has headers and data"
     (let ((plist (finito--search-request-plist "foo" "bar")))
       (expect (plist-get plist :headers))
       (expect (plist-get plist :data)))))
 
 (describe "finito--isbn-request-plist"
-  (it "test plist has headers and data"
+  (it "plist has headers and data"
     (let ((plist (finito--isbn-request-plist "isbn")))
       (expect (plist-get plist :headers))
       (expect (plist-get plist :data)))))
 
 (describe "finito--collection-request-plist"
-  (it "test plist has headers and data"
+  (it "plist has headers and data"
     (let ((plist (finito--collection-request-plist "foo")))
       (expect (plist-get plist :headers))
       (expect (plist-get plist :data)))))
 
 (describe "finito--collections-request-plist"
-  (it "test plist has headers and data"
+  (it "plist has headers and data"
     (let ((plist (finito--collections-request-plist)))
       (expect (plist-get plist :headers))
       (expect (plist-get plist :data)))))
 
 (describe "finito--create-collection-request-plist"
-  (it "test plist has headers and data"
+  (it "plist has headers and data"
     (let ((plist (finito--create-collection-request-plist "name")))
       (expect (plist-get plist :headers))
       (expect (plist-get plist :data)))))
 
 (describe "finito--delete-collection-request-plist"
-  (it "test plist has headers and data"
+  (it "plist has headers and data"
     (let ((plist (finito--delete-collection-request-plist "name")))
       (expect (plist-get plist :headers))
       (expect (plist-get plist :data)))))
 
 (describe "finito--update-collection-request-plist"
-  (it "test plist has headers and data"
+  (it "plist has headers and data"
     (let ((plist (finito--update-collection-request-plist
                   "name"
                   "new name"
@@ -82,7 +82,7 @@ Occurrences of `.buffer-text' will be replaced by:
             :to-throw)))
 
 (describe "finito--add-book-request-plist"
-  (it "test plist has headers and data"
+  (it "plist has headers and data"
     (let* ((book '((title . "Flowers for Algernon")
                    (authors . ["Daniel Keyes"])
                    (description . "A description.")
@@ -93,13 +93,13 @@ Occurrences of `.buffer-text' will be replaced by:
       (expect (plist-get plist :data)))))
 
 (describe "finito--remove-book-request-plist"
-  (it "test plist has headers and data"
+  (it "plist has headers and data"
     (let* ((plist (finito--remove-book-request-plist "collection" "isbn")))
       (expect (plist-get plist :headers))
       (expect (plist-get plist :data)))))
 
 (describe "finito--rate-book-request-plist"
-  (it "test plist has headers and data"
+  (it "plist has headers and data"
     (let* ((book '((title . "Flowers for Algernon")
                    (authors . ["Daniel Keyes"])
                    (description . "A description.")
@@ -110,7 +110,7 @@ Occurrences of `.buffer-text' will be replaced by:
       (expect (plist-get plist :data)))))
 
 (describe "finito--delete-book-data-request-plist"
-  (it "test plist has headers and data"
+  (it "plist has headers and data"
     (let ((plist (finito--delete-book-data-request-plist "isbn")))
       (expect (plist-get plist :headers))
       (expect (plist-get plist :data)))))
@@ -121,11 +121,11 @@ Occurrences of `.buffer-text' will be replaced by:
                 (description . "A description.")
                 (isbn . "740253425430.")
                 (img-uri . "image.png"))))
-  (it "test plist has headers and data with no date"
+  (it "plist has headers and data with no date"
     (let ((plist (finito--start-reading-request-plist book nil)))
       (expect (plist-get plist :headers))
       (expect (plist-get plist :data))))
-  (it "test plist has headers and data specified date"
+  (it "plist has headers and data specified date"
     (let* ((date "2021-03-12")
            (plist (finito--start-reading-request-plist book date)))
       (expect (plist-get plist :headers))
@@ -137,11 +137,11 @@ Occurrences of `.buffer-text' will be replaced by:
                 (description . "A description.")
                 (isbn . "740253425430.")
                 (img-uri . "image.png"))))
-  (it "test plist has headers and data with no date"
+  (it "plist has headers and data with no date"
     (let ((plist (finito--finish-reading-request-plist book nil)))
       (expect (plist-get plist :headers))
       (expect (plist-get plist :data))))
-  (it "test plist has headers and data specified date"
+  (it "plist has headers and data specified date"
     (let* ((date "2021-03-12")
            (plist (finito--finish-reading-request-plist book date)))
       (expect (plist-get plist :headers))
@@ -149,7 +149,7 @@ Occurrences of `.buffer-text' will be replaced by:
 
 (describe "finito--insert-book-data"
   :var ((writer (finito-book-writer)))
-  (it "test inserted data is reasonable"
+  (it "inserted data is reasonable"
     (finito--in-buffer
      (finito-insert-book writer
        '((title . "Flowers for Algernon")
@@ -159,7 +159,7 @@ Occurrences of `.buffer-text' will be replaced by:
      (expect (downcase .buffer-text) :to-match "flowers for algernon"))))
 
 (describe "finito--create-book-alist"
-  (it "test book alist contains all keys with correct values"
+  (it "book alist contains all keys with correct values"
     (let ((finito-image-cache-dir "cache/directory")
           (response-alist '((title . "Foo Title")
                             (authors . ["bar"])
@@ -181,7 +181,7 @@ Occurrences of `.buffer-text' will be replaced by:
                 (started-reading . "some-date")
                 (last-read . "some other date")))))
 
-  (it "test book alist contains keys set to nil when input key is nil"
+  (it "book alist contains keys set to nil when input key is nil"
     (let ((finito-image-cache-dir "cache/directory")
           (response-alist '((title . "Foo Title")
                             (authors . ["bar"])
@@ -205,15 +205,15 @@ Occurrences of `.buffer-text' will be replaced by:
 
 (describe "finito--book-at-point"
   :var ((books-alist '((3 . book-one) (4 . book-two) (20 . book-three))))
-  (it "test errors when cursor before all books"
+  (it "errors when cursor before all books"
     (cl-letf (((symbol-function 'line-number-at-pos) #'ignore)
               (finito--buffer-books books-alist))
       (expect (finito--book-at-point) :to-throw)))
-  (it "test returns book on line where it starts"
+  (it "returns book on line where it starts"
     (cl-letf (((symbol-function 'line-number-at-pos) (-const 3))
               (finito--buffer-books books-alist))
       (expect (finito--book-at-point) :to-equal 'book-one)))
-  (it "test returns book on line after it starts"
+  (it "returns book on line after it starts"
     (cl-letf (((symbol-function 'line-number-at-pos) (-const 15))
               (finito--buffer-books books-alist))
       (expect (finito--book-at-point) :to-equal 'book-two))))
@@ -221,10 +221,10 @@ Occurrences of `.buffer-text' will be replaced by:
 (describe "finito--books-filter"
   :var ((books-alist
          '((3 . book-one) (4 . book-two) (20 . book-four) (15 . book-three))))
-  (it "test all positive filter gives list with same elements"
+  (it "all positive filter gives list with same elements"
     (let ((alist-response (finito--books-filter (-const t) books-alist)))
       (expect (--all-p (-contains-p alist-response it) alist-response))))
-  (it "test element removed and value correctly subtracted"
+  (it "element removed and value correctly subtracted"
     (let ((alist-response (finito--books-filter
                            (lambda (e) (not (eq e 'book-two))) books-alist)))
       (expect (length alist-response) :to-equal 3)
@@ -234,11 +234,11 @@ Occurrences of `.buffer-text' will be replaced by:
 
 (describe "finito--diffs"
   :var ((ls '(3 4 15 20)))
-  (it "test diffs are correct"
+  (it "diffs are correct"
     (expect (finito--diffs '(3 4 15 20)) :to-equal '(3 1 11 5))))
 
 (describe "finito--select-collection"
-  (it "test gets collections and prompts the user"
+  (it "gets collections and prompts the user"
     (cl-letf (((symbol-function 'completing-read)
                (lambda (&rest _) "my collection"))
               ((symbol-function 'finito--make-request)
@@ -284,7 +284,7 @@ An extremely detailed description of the book.")
 [[img.jpeg]]  Debra Cameron
 
 GNU Emacs is the most popular and widespread of the Emacs family of editors. It is also the most powerful and flexible. Unlike all other text editors, GNU Emacs is a complete working environment -- you can stay within Emacs all day without leaving. The GNU Emacs Pocket Reference is a companion volume to O'Reilly's Learning GNU Emacs, which tells you how to get started with the GNU Emacs editor and, as you become more proficient, it will help you learn how to use Emacs more effectively. This small book, covering Emacs version 20, is a handy reference guide to the basic elements of this powerful editor, presenting the Emacs commands in an easy-to-use tabular format." "\n\n" new-book-string)))
-  (it "test book replaced correctly"
+  (it "book replaced correctly"
     (cl-letf (((symbol-function 'finito--make-request)
                (lambda (plist callback) (funcall callback response-alist)))
               ((symbol-function 'finito--layout-book-data)
@@ -385,9 +385,121 @@ GNU Emacs is the most popular and widespread of the Emacs family of editors. It 
   
   (it "creates collection"
     (finito-create-collection)
-    (expect 'finito--make-request :to-have-been-called-times 1)
     (expect 'read-string :to-have-been-called-times 1)
+    (expect 'finito--make-request :to-have-been-called-times 1)
     (expect 'finito--wait-for-server :to-have-been-called-times 1)
+    (expect 'finito--create-collection-request-plist :to-have-been-called-times 1)
     (expect (spy-calls-args-for 'finito--create-collection-request-plist 0)
             :to-equal
             (list collection))))
+
+(describe "finito-open-collection"
+  :var ((collection "my collection"))
+  (before-each
+    (spy-on 'finito--make-request
+            :and-call-fake
+            (lambda (plist callback &rest _)
+              (funcall callback nil)))
+    (spy-on 'finito--select-collection :and-call-fake
+            (lambda (callback) (funcall callback collection)))
+    (spy-on 'finito--wait-for-server :and-return-value nil)
+    (spy-on 'finito--collection-request-plist :and-call-through)
+    (spy-on 'finito--process-books-data :and-return-value nil))
+
+  (it "opens collection"
+    (finito-open-collection)
+    (expect 'finito--wait-for-server :to-have-been-called-times 1)
+    (expect 'finito--select-collection :to-have-been-called-times 1)
+    (expect 'finito--make-request :to-have-been-called-times 1)
+    (expect 'finito--collection-request-plist :to-have-been-called-times 1)
+    (expect 'finito--process-books-data :to-have-been-called-times 1)
+    (expect (spy-calls-args-for 'finito--collection-request-plist 0)
+            :to-equal
+            (list collection))))
+
+(describe "finito-open-my-books-collection"
+  (before-each
+    (spy-on 'finito--make-request
+            :and-call-fake
+            (lambda (plist callback &rest _)
+              (funcall callback nil)))
+    (spy-on 'finito--wait-for-server :and-return-value nil)
+    (spy-on 'finito--collection-request-plist :and-call-through)
+    (spy-on 'finito--process-books-data :and-return-value nil))
+
+  (it "opens my books collection"
+    (finito-open-my-books-collection)
+    (expect 'finito--make-request :to-have-been-called-times 1)
+    (expect 'finito--wait-for-server :to-have-been-called-times 1)
+    (expect 'finito--collection-request-plist :to-have-been-called-times 1)
+    (expect 'finito--process-books-data :to-have-been-called-times 1)
+    (expect (spy-calls-args-for 'finito--collection-request-plist 0)
+            :to-equal
+            (list finito-my-books-collection))))
+
+(describe "finito-open-currently-reading-collection"
+  (before-each
+    (spy-on 'finito--make-request
+            :and-call-fake
+            (lambda (plist callback &rest _)
+              (funcall callback nil)))
+    (spy-on 'finito--wait-for-server :and-return-value nil)
+    (spy-on 'finito--collection-request-plist :and-call-through)
+    (spy-on 'finito--process-books-data :and-return-value nil))
+
+  (it "opens currently reading collection"
+    (finito-open-currently-reading-collection)
+    (expect 'finito--make-request :to-have-been-called-times 1)
+    (expect 'finito--wait-for-server :to-have-been-called-times 1)
+    (expect 'finito--collection-request-plist :to-have-been-called-times 1)
+    (expect 'finito--process-books-data :to-have-been-called-times 1)
+    (expect (spy-calls-args-for 'finito--collection-request-plist 0)
+            :to-equal
+            (list finito-currently-reading-collection))))
+
+(describe "finito-delete-collection"
+  :var ((collection "collection to delete"))
+  (before-each
+    (spy-on 'finito--make-request
+            :and-call-fake
+            (lambda (plist callback &rest _)
+              (funcall callback nil)))
+    (spy-on 'finito--select-collection :and-call-fake
+            (lambda (callback) (funcall callback collection)))
+    (spy-on 'finito--wait-for-server :and-return-value nil)
+    (spy-on 'finito--delete-collection-request-plist :and-call-through))
+
+  (it "deletes collection"
+    (finito-delete-collection)
+    (expect 'finito--wait-for-server :to-have-been-called-times 1)
+    (expect 'finito--select-collection :to-have-been-called-times 1)
+    (expect 'finito--delete-collection-request-plist :to-have-been-called-times 1)
+    (expect 'finito--make-request :to-have-been-called-times 1)
+    (expect (spy-calls-args-for 'finito--delete-collection-request-plist 0)
+            :to-equal
+            (list collection))))
+
+(describe "finito-update-collection-request"
+  :var ((args '(:name "old name"
+                :new-name "new name"
+                :sort "title"
+                :sort-ascending "ascending")))
+  (before-each
+    (spy-on 'finito--make-request
+            :and-call-fake
+            (lambda (plist callback &rest _)
+              (funcall callback nil)))
+    (spy-on 'finito--wait-for-server :and-return-value nil)
+    (spy-on 'finito--update-collection-request-plist :and-call-through))
+
+  (it "updates collection"
+    (finito-update-collection-request args)
+    (expect 'finito--wait-for-server :to-have-been-called-times 1)
+    (expect 'finito--update-collection-request-plist :to-have-been-called-times 1)
+    (expect 'finito--make-request :to-have-been-called-times 1)
+    (expect (spy-calls-args-for 'finito--update-collection-request-plist 0)
+            :to-equal
+            (list (plist-get args :name)
+                  (plist-get args :new-name)
+                  (plist-get args :sort)
+                  'true))))

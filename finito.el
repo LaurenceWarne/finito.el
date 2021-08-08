@@ -377,7 +377,7 @@ request is successful"
     (define-key map "S" #'finito-start-and-date-book-at-point)
     (define-key map "f" #'finito-finish-book-at-point)
     (define-key map "F" #'finito-finish-and-date-book-at-point)
-    (define-key map (kbd "C-m") #'finito-open-my-books)
+    (define-key map (kbd "C-m") #'finito-open-my-books-collection)
     (define-key map (kbd "C-r") #'finito-open-currently-reading-collection)
     map))
 
@@ -482,7 +482,7 @@ _ARGS does nothing and is needed to appease transient."
    (lambda (c) (finito--open-specified-collection c))))
 
 ;;;###autoload
-(defun finito-open-my-books (&optional _args)
+(defun finito-open-my-books-collection (&optional _args)
   "Open \"My Books\".
 
 _ARGS does nothing and is needed to appease transient."
