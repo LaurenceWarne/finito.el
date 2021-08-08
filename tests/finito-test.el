@@ -12,6 +12,17 @@
 
 (require 'finito)
 
+(defvar finito--stub-book
+  '((title . "Foo Title")
+    (authors . ["bar"])
+    (description . "foo description")
+    (isbn . "isbn")
+    (img-uri . "https://random-url")
+    (image-file-name . "cache/directory/footitleisbn.jpeg")
+    (rating . nil)
+    (started-reading . nil)
+    (last-read . nil)))
+
 (defmacro finito--in-buffer (&rest body)
   "Execute BODY in a throw-away buffer.
 
@@ -75,10 +86,10 @@ Occurrences of `.buffer-text' will be replaced by:
 
   (it "error when invalid value passed for sort-ascending"
     (expect (finito--update-collection-request-plist
-                  "name"
-                  "new name"
-                  "dateAdded"
-                  'not-a-valid-value)
+             "name"
+             "new name"
+             "dateAdded"
+             'not-a-valid-value)
             :to-throw)))
 
 (describe "finito--add-book-request-plist"
@@ -152,10 +163,10 @@ Occurrences of `.buffer-text' will be replaced by:
   (it "inserted data is reasonable"
     (finito--in-buffer
      (finito-insert-book writer
-       '((title . "Flowers for Algernon")
-         (authors . ["Daniel Keyes"])
-         (description . "A description.")
-         (image-file-name . "/some/random/image.png")))
+                         '((title . "Flowers for Algernon")
+                           (authors . ["Daniel Keyes"])
+                           (description . "A description.")
+                           (image-file-name . "/some/random/image.png")))
      (expect (downcase .buffer-text) :to-match "flowers for algernon"))))
 
 (describe "finito--create-book-alist"
@@ -193,15 +204,7 @@ Occurrences of `.buffer-text' will be replaced by:
                             (lastRead . nil))))
       (expect (finito--create-book-alist response-alist)
               :to-equal
-              '((title . "Foo Title")
-                (authors . ["bar"])
-                (description . "foo description")
-                (isbn . "isbn")
-                (img-uri . "https://random-url")
-                (image-file-name . "cache/directory/footitleisbn.jpeg")
-                (rating . nil)
-                (started-reading . nil)
-                (last-read . nil))))))
+              finito--stub-book))))
 
 (describe "finito--book-at-point"
   :var ((books-alist '((3 . book-one) (4 . book-two) (20 . book-three))))
@@ -269,15 +272,15 @@ GNU Emacs is the most popular and widespread of the Emacs family of editors. It 
 [[img.jpeg]]  Robert Macfarlane
 
 WINNER OF THE GUARDIAN FIRST BOOK AWARD Once we thought monsters lived there. In the Enlightenment we scaled them to commune with the sublime. Soon, we were racing to conquer their summits in the name of national pride. In this ground-breaking, classic work, Robert Macfarlane takes us up into the mountains: to experience their shattering beauty, the fear and risk of adventure, and to explore the strange impulses that have for centuries lead us to the world's highest places.\n\n")
-        (new-book-string
-         "** A Random Book
+         (new-book-string
+          "** A Random Book
 
 [[some-thumbnail.jpeg]]  The author
 
 An extremely detailed description of the book.")
-        (expected-buf-string
-         (concat
-          "* My Books
+         (expected-buf-string
+          (concat
+           "* My Books
 
 ** GNU Emacs Pocket Reference
 
@@ -291,10 +294,10 @@ GNU Emacs is the most popular and widespread of the Emacs family of editors. It 
                (lambda (_) (insert new-book-string)))
               (finito--buffer-books '((3 book1) (9 book2))))
       (finito--in-buffer
-        (insert original-buf-string)
-        (end-of-buffer)
-        (finito--replace-book-at-point-from-request nil)
-        (expect .buffer-text :to-equal expected-buf-string)))))
+       (insert original-buf-string)
+       (end-of-buffer)
+       (finito--replace-book-at-point-from-request nil)
+       (expect .buffer-text :to-equal expected-buf-string)))))
 
 (describe "finito--wait-for-server"
   (it "errors when health check expires"
@@ -481,9 +484,9 @@ GNU Emacs is the most popular and widespread of the Emacs family of editors. It 
 
 (describe "finito-update-collection-request"
   :var ((args '(:name "old name"
-                :new-name "new name"
-                :sort "title"
-                :sort-ascending "ascending")))
+                      :new-name "new name"
+                      :sort "title"
+                      :sort-ascending "ascending")))
   (before-each
     (spy-on 'finito--make-request
             :and-call-fake
@@ -503,3 +506,159 @@ GNU Emacs is the most popular and widespread of the Emacs family of editors. It 
                   (plist-get args :new-name)
                   (plist-get args :sort)
                   'true))))
+
+(describe "finito-same-author"
+  :var ((book finito--stub-book))
+  (before-each
+    (spy-on 'finito--book-at-point :and-return-value book)
+    (spy-on 'finito-search-for-books :and-return-value nil))
+
+  (it "searches for same author"
+    (finito-same-author)
+    (expect 'finito--book-at-point :to-have-been-called-times 1)
+    (expect (spy-calls-args-for 'finito-search-for-books 0)
+            :to-equal
+            (list nil nil (elt (alist-get 'authors book) 0)))))
+
+(describe "finito-add-book-at-point"
+  :var ((collection "collection to add to")
+        (book finito--stub-book))
+  (before-each
+    (spy-on 'finito--make-request
+            :and-call-fake
+            (lambda (plist callback &rest _)
+              (funcall callback nil)))
+    (spy-on 'finito--select-collection :and-call-fake
+            (lambda (callback) (funcall callback collection)))
+    (spy-on 'finito--book-at-point :and-return-value book)
+    (spy-on 'finito--add-book-request-plist :and-call-through))
+
+  (it "adds book"
+    (finito-add-book-at-point)
+    (expect 'finito--book-at-point :to-have-been-called-times 1)
+    (expect 'finito--select-collection :to-have-been-called-times 1)
+    (expect 'finito--add-book-request-plist :to-have-been-called-times 1)
+    (expect 'finito--make-request :to-have-been-called-times 1)
+    (expect (spy-calls-args-for 'finito--add-book-request-plist 0)
+            :to-equal
+            (list book collection))))
+
+(describe "finito-add-to-default-book-at-point"
+  :var ((book finito--stub-book))
+  (before-each
+    (spy-on 'finito--make-request
+            :and-call-fake
+            (lambda (plist callback &rest _)
+              (funcall callback nil)))
+    (spy-on 'finito--book-at-point :and-return-value book)
+    (spy-on 'finito--add-book-request-plist :and-call-through))
+
+  (it "adds book"
+    (finito-add-to-default-book-at-point)
+    (expect 'finito--book-at-point :to-have-been-called-times 1)
+    (expect 'finito--add-book-request-plist :to-have-been-called-times 1)
+    (expect 'finito--make-request :to-have-been-called-times 1)
+    (expect (spy-calls-args-for 'finito--add-book-request-plist 0)
+            :to-equal
+            (list book))))
+
+
+(describe "finito-remove-book-at-point"
+  :var ((book finito--stub-book))
+  (before-each
+    (spy-on 'finito--make-request :and-return-value nil)
+    (spy-on 'finito--book-at-point :and-return-value book)
+    (spy-on 'finito--remove-book-request-plist :and-call-through))
+
+  (it "removes book"
+    (let ((finito--collection "collection to remove from"))
+      (finito-remove-book-at-point)
+      (expect 'finito--book-at-point :to-have-been-called-times 1)
+      (expect 'finito--remove-book-request-plist :to-have-been-called-times 1)
+      (expect 'finito--make-request :to-have-been-called-times 1)
+      (expect (spy-calls-args-for 'finito--remove-book-request-plist 0)
+              :to-equal
+              (list finito--collection (alist-get 'isbn book))))))
+
+(describe "finito-refresh-collection"
+  (before-each
+    (spy-on 'finito--open-specified-collection :and-return-value nil))
+
+  (it "refreshes collection"
+    (let ((finito--collection "collection to refresh"))
+      (finito-refresh-collection)
+      (expect 'finito--open-specified-collection :to-have-been-called-times 1)
+      (expect (car (spy-calls-args-for 'finito--open-specified-collection 0))
+              :to-equal
+              finito--collection))))
+
+(describe "finito-rate-book-at-point"
+  :var ((book finito--stub-book)
+        (rating "5"))
+  (before-each
+    (spy-on 'read-string :and-return-value rating)
+    (spy-on 'finito--book-at-point :and-return-value book)
+    (spy-on 'finito--rate-book-request-plist :and-call-through)
+    (spy-on 'finito--replace-book-at-point-from-request
+            :and-return-value nil))
+
+  (it "rates book"
+    (let ((finito--collection "collection to refresh"))
+      (finito-rate-book-at-point)
+      (expect 'finito--book-at-point :to-have-been-called-times 1)
+      (expect 'read-string :to-have-been-called-times 1)
+      (expect 'finito--replace-book-at-point-from-request
+              :to-have-been-called-times 1)
+      (expect (spy-calls-args-for 'finito--rate-book-request-plist 0)
+              :to-equal
+              (list book rating)))))
+
+(describe "finito-start-book-at-point"
+  :var ((book finito--stub-book))
+  (before-each
+    (spy-on 'finito--book-at-point :and-return-value book)
+    (spy-on 'finito--start-reading-request-plist :and-call-through)
+    (spy-on 'finito--replace-book-at-point-from-request
+            :and-return-value nil))
+
+  (it "starts book"
+    (let ((finito--collection "collection to refresh"))
+      (finito-start-book-at-point)
+      (expect 'finito--book-at-point :to-have-been-called-times 1)
+      (expect 'finito--replace-book-at-point-from-request
+              :to-have-been-called-times 1)
+      (expect (spy-calls-args-for 'finito--start-reading-request-plist 0)
+              :to-equal
+              (list book nil)))))
+
+(describe "finito-finish-book-at-point"
+  :var ((book finito--stub-book))
+  (before-each
+    (spy-on 'finito--book-at-point :and-return-value book)
+    (spy-on 'finito--finish-reading-request-plist :and-call-through)
+    (spy-on 'finito--replace-book-at-point-from-request
+            :and-return-value nil))
+
+  (it "finishes book"
+    (let ((finito--collection "collection to refresh"))
+      (finito-finish-book-at-point)
+      (expect 'finito--book-at-point :to-have-been-called-times 1)
+      (expect 'finito--replace-book-at-point-from-request
+              :to-have-been-called-times 1)
+      (expect (spy-calls-args-for 'finito--finish-reading-request-plist 0)
+              :to-equal
+              (list book nil)))))
+
+(describe "finito-delete-data-for-book-at-point"
+  :var ((book finito--stub-book))
+  (before-each
+    (spy-on 'finito--book-at-point :and-return-value book)
+    (spy-on 'finito--delete-book-data-request-plist :and-call-through))
+
+  (it "finishes book"
+    (let ((finito--collection "collection to refresh"))
+      (finito-delete-data-for-book-at-point)
+      (expect 'finito--book-at-point :to-have-been-called-times 1)
+      (expect (spy-calls-args-for 'finito--delete-book-data-request-plist 0)
+              :to-equal
+              (list (alist-get 'isbn book))))))
