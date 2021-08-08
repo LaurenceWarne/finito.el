@@ -4,7 +4,7 @@
 
 ;; Author: Laurence Warne
 ;; Maintainer: Laurence Warne
-;; Version: 0.1
+;; Version: 0.1.0
 ;; Keywords: books
 ;; URL: https://github.com/LaurenceWarne/libro-finito
 ;; Package-Requires: ((emacs "27.1") (dash "2.17.0") (request "0.3.2") (f "0.2.0") (s "1.12.0") (transient "0.3.5") (graphql "0.1.1") (async "1.9.3"))

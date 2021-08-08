@@ -21,6 +21,8 @@
 
 ;;; Code:
 
+(defconst finito-version "0.1.0")
+
 (defgroup finito nil
   "Book and book collection management."
   :group 'applications)

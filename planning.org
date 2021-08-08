@@ -3,9 +3,9 @@
 * TODOs
 
 ** Bigger things  
-*** TODO Add testing for interactive functions
+*** DONE Add testing for interactive functions
 ** Smaller Things
-*** TODO Add version number
+*** DONE Add version number
 *** TODO Use ~transient-define-infix~ instead of ~transient-define-argument~
 *** TODO Add integration with ~createBook~ mutation
 *** TODO Hide "Currently Reading" in addBook
