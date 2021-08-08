@@ -27,6 +27,10 @@
 (require 's)
 (require 'transient)
 
+;;; Internal Variables
+
+(defvar finito--sort-asc-alist '(("ascending" . true) ("descending" . false)))
+
 ;;; Transients
 
 (defclass finito--transient-argument (transient-argument)
@@ -73,7 +77,8 @@
   :class 'finito--transient-argument
   :key "n"
   :plist-key ':max-results
-  :argument "max results=")
+  :argument "max results="
+  :reader #'transient-read-number-N+)
 
 (transient-define-argument finito--collection-name-arg ()
   :class 'finito--transient-argument
@@ -92,10 +97,16 @@
   :key "s"
   :plist-key ':sort
   :argument "Sort="
-  :choices '("DateAdded" "Author" "Title"))
+  :choices '("Date Added" "Author" "Title"))
+
+(transient-define-argument finito--sort-asc ()
+  :class 'finito--transient-argument
+  :key "o"
+  :plist-key ':sort-ascending
+  :argument "Sort Ascending="
+  :choices (-map #'car finito--sort-asc-alist))
 
 ;;; Prefixes
-
 
 ;;;###autoload (autoload 'finito "finito-view" nil t)
 (transient-define-prefix finito ()
@@ -142,7 +153,10 @@
     :prompt "New name: ")
    (finito--sort-arg
     :description "Sort Books By"
-    :prompt "Sort Books By: ")]
+    :prompt "Sort Books By: ")
+   (finito--sort-asc
+    :description "Sort Ascending"
+    :prompt "Ascending: ")]
   ["Actions"
    ("u" "Update" finito-update-collection-request)])
 

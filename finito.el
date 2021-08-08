@@ -259,12 +259,12 @@ BOOKS is expected to be in the format of `finito--buffer-books.'"
         '(nil . 0)
         list)))
 
-(defun finito--select-collection (callback &optional collection-filter)
+(defun finito--select-collection (callback &optional collection-filter sync)
   "Prompt for a collection, and then call CALLBACK with that collection.
 
 If COLLECTION-FILTER is specified, only include collections in the prompt
 for which COLLECTION-FILTER applied to the collection name evaluates to a
-non-nil value."
+non-nil value.  If SYNC is non-nil, make the request synchronous."
   (finito--make-request
      (finito--collections-request-plist)
      (lambda (response)
@@ -272,7 +272,8 @@ non-nil value."
                                         (-map #'cdar response)))
               ;; TODO check if any collections exist first
               (chosen-collection (completing-read "Choose: " all-collections)))
-         (funcall callback chosen-collection)))))
+         (funcall callback chosen-collection))))
+  :sync sync)
 
 (defun finito--browse-function (book-alist)
   "Open an openlibrary page of a book, using the isbn in BOOK-ALIST."
@@ -514,10 +515,16 @@ _ARGS does nothing and is needed to appease transient."
   (finito--wait-for-server)
   (let ((chosen-collection (plist-get args :name))
         (new-name (plist-get args :new-name))
-        (preferred-sort (plist-get args :sort)))
+        (preferred-sort (-some--> (plist-get args :sort)
+                          (s-replace " " "" it)))
+        (sort-asc (alist-get (plist-get args :sort-ascending)
+                             finito--sort-asc-alist
+                             nil
+                             nil
+                             #'string=)))
     (finito--make-request
      (finito--update-collection-request-plist
-      chosen-collection new-name preferred-sort)
+      chosen-collection new-name preferred-sort sort-asc)
      (lambda (_)
        (message "Successfully updated collection '%s'" chosen-collection)))))
 

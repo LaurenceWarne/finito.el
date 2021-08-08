@@ -125,14 +125,14 @@
    (:arguments
     (($currentName . String!)
      ($newName . String)
-     ($preferredSort . Sort)
-     ($sortAscending . Sort))
+     ($preferredSortType . SortType)
+     ($sortAscending . Boolean))
     (updateCollection
      :arguments ((currentName . ($ currentName))
                  (newName . ($ newName))
-                 (preferredSort . ($ preferredSort))
+                 (preferredSortType . ($ preferredSortType))
                  (sortAscending . ($ sortAscending)))
-     name preferredSort sortAscending))))
+     name))))
 
 (defconst finito--update-collection-mutation-variables
   "{
