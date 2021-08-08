@@ -23,6 +23,7 @@
 
 ;;; Code:
 
+(require 'dash)
 (require 's)
 
 (require 'finito-core)
@@ -37,6 +38,10 @@
 
 ;;; Misc functions
 
+(defun finito--quotify (s)
+  "Wrap S in double quotes."
+  (s-wrap s "\""))
+
 (defun finito--search-request-plist
     (title-keywords author-keywords &optional max-results)
   "Return a plist with headers and body suitable for a search query.
@@ -45,9 +50,9 @@ The body will be deduced from TITLE-KEYWORDS, AUTHOR-KEYWORDS and MAX-RESULTS."
   (let* ((query-variable-str
           (format finito--search-query-variables
                   (if (> (length title-keywords) 0)
-                      (s-wrap title-keywords "\"") "null")
+                      (finito--quotify title-keywords) "null")
                   (if (> (length author-keywords) 0)
-                      (s-wrap  author-keywords "\"") "null")
+                      (finito--quotify  author-keywords) "null")
                   (or max-results "null")
                   finito-language)))
     `(:headers ,finito--headers
@@ -118,7 +123,7 @@ then the property will not be changed)."
              finito--update-collection-mutation
              (format finito--update-collection-mutation-variables
                      current-name
-                     (if new-name (s-wrap new-name "\"") "null")
+                     (if new-name (finito--quotify new-name) "null")
                      (or preferred-sort "null")
                      (cond ((eq sort-ascending 'true) "true")
                            ((eq sort-ascending 'false) "false")
@@ -136,7 +141,7 @@ of the form returned by `finito--create-book-alist' to add to it."
              (let-alist book
                (format
                 finito--add-book-mutation-variables
-                (if collection (s-wrap collection "\"") "null")
+                (if collection (finito--quotify collection) "null")
                 (s-replace "\"" "'" .title)
                 (finito--seq-to-json-list .authors)
                 (s-replace "\"" "'" .description)
@@ -183,7 +188,7 @@ optional start date which should be used if this book was started in the past."
                    (let-alist book
                      (format
                       finito--start-reading-mutation-variables
-                      (if start-date (s-wrap start-date "\"") "null")
+                      (if start-date (finito--quotify start-date) "null")
                       (s-replace "\"" "'" .title)
                       (finito--seq-to-json-list .authors)
                       (s-replace "\"" "'" .description)
@@ -201,7 +206,7 @@ optional date which should be used if this book was finished in the past."
                    (let-alist book
                      (format
                       finito--finish-reading-mutation-variables
-                      (if date (s-wrap date "\"") "null")
+                      (if date (finito--quotify date) "null")
                       (s-replace "\"" "'" .title)
                       (finito--seq-to-json-list .authors)
                       (s-replace "\"" "'" .description)
@@ -220,7 +225,11 @@ ISBN should be the isbn of the book to remove data for."
 
 (defun finito--seq-to-json-list (seq)
   "Return SEQ as an escaped json list."
-  (concat "[" (mapconcat (##format "\"%s\"" %1) seq ",") "]"))
+  (--> (append seq nil)
+    (-map #'finito--quotify it)
+    (s-join ", " it)
+    (s-prepend "[" it)
+    (s-append "]" it)))
 
 (provide 'finito-request)
 ;;; finito-request.el ends here

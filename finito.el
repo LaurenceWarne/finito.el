@@ -7,7 +7,7 @@
 ;; Version: 0.1
 ;; Keywords: books
 ;; URL: https://github.com/LaurenceWarne/libro-finito
-;; Package-Requires: ((emacs "27.1") (dash "2.17.0") (request "0.3.2") (f "0.2.0") (s "1.12.0") (transient "0.3.5") (graphql "0.1.1") (llama "0.1.1") (async "1.9.3"))
+;; Package-Requires: ((emacs "27.1") (dash "2.17.0") (request "0.3.2") (f "0.2.0") (s "1.12.0") (transient "0.3.5") (graphql "0.1.1") (async "1.9.3"))
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -31,7 +31,6 @@
 (require 'cl-lib)
 (require 'dash)
 (require 'f)
-(require 'llama)
 (require 'org)
 (require 'outline)
 (require 'request)
@@ -266,14 +265,14 @@ If COLLECTION-FILTER is specified, only include collections in the prompt
 for which COLLECTION-FILTER applied to the collection name evaluates to a
 non-nil value.  If SYNC is non-nil, make the request synchronous."
   (finito--make-request
-     (finito--collections-request-plist)
-     (lambda (response)
-       (let* ((all-collections (-filter (or collection-filter (-const t))
-                                        (-map #'cdar response)))
-              ;; TODO check if any collections exist first
-              (chosen-collection (completing-read "Choose: " all-collections)))
-         (funcall callback chosen-collection))))
-  :sync sync)
+   (finito--collections-request-plist)
+   (lambda (response)
+     (let* ((all-collections (-filter (or collection-filter (-const t))
+                                      (-map #'cdar response)))
+            ;; TODO check if any collections exist first
+            (chosen-collection (completing-read "Choose: " all-collections)))
+       (funcall callback chosen-collection)))
+   :sync sync))
 
 (defun finito--browse-function (book-alist)
   "Open an openlibrary page of a book, using the isbn in BOOK-ALIST."
@@ -286,13 +285,14 @@ non-nil value.  If SYNC is non-nil, make the request synchronous."
 If SYNC it non-nil, perform all actions synchronously."
   (finito--make-request
    (finito--collection-request-plist collection)
-   (##finito--process-books-data
-    (cdar %)
-    (finito-collection-buffer-info
-     :title collection
-     :mode #'finito-collection-view-mode
-     :buf-name (concat "Collection: " collection)
-     :buf-name-unique t))
+   (lambda (response)
+     (finito--process-books-data
+      (cdar response)
+      (finito-collection-buffer-info
+       :title collection
+       :mode #'finito-collection-view-mode
+       :buf-name (concat "Collection: " collection)
+       :buf-name-unique t)))
    :sync sync))
 
 (defun finito--remove-book-region ()
@@ -311,7 +311,7 @@ If SYNC it non-nil, perform all actions synchronously."
                   book-start-line)
       (delete-region (point) (1+ (line-end-position))))
     (setq finito--buffer-books
-          (finito--books-filter (##not (equal % book)) books))))
+          (finito--books-filter (lambda (b) (not (equal b book))) books))))
 
 (defun finito--insert-book-in-current-buffer (book)
   "Insert BOOK at point the current buffer.
@@ -420,13 +420,14 @@ The following commands are available in this mode:
   (if-let (isbn (plist-get args :isbn))
       (finito--make-request
        (finito--isbn-request-plist isbn)
-       (##finito--process-single-book
-        %
-        (finito-buffer-info
-         :title (concat "ISBN: " isbn)
-         :mode #'finito-search-view-mode
-         :buf-name (concat "Search for ISBN: " isbn)
-         :buf-name-unique t)))
+       (lambda (response)
+         (finito--process-single-book
+          response
+          (finito-buffer-info
+           :title (concat "ISBN: " isbn)
+           :mode #'finito-search-view-mode
+           :buf-name (concat "Search for ISBN: " isbn)
+           :buf-name-unique t))))
     (finito-search-for-books
      nil
      (plist-get args :title)
@@ -464,7 +465,8 @@ _ARGS does nothing and is needed to appease transient."
             (request-plist (finito--create-collection-request-plist name)))
       (finito--make-request
        request-plist
-       (##message "Successfully created collection '%s'" (cdar %1)))))
+       (lambda (c)
+         (message "Successfully created collection '%s'" (cdar c))))))
 
 ;;;###autoload
 (defun finito-open-collection (&optional _args)
@@ -473,7 +475,8 @@ _ARGS does nothing and is needed to appease transient."
 _ARGS does nothing and is needed to appease transient."
   (interactive)
   (finito--wait-for-server)
-  (finito--select-collection (##finito--open-specified-collection %1)))
+  (finito--select-collection
+   (lambda (c) (finito--open-specified-collection c))))
 
 ;;;###autoload
 (defun finito-open-my-books (&optional _args)

@@ -242,7 +242,7 @@ Occurrences of `.buffer-text' will be replaced by:
     (cl-letf (((symbol-function 'completing-read)
                (lambda (&rest _) "my collection"))
               ((symbol-function 'finito--make-request)
-               (lambda (plist callback) (funcall callback nil))))
+               (lambda (plist callback &rest _) (funcall callback nil))))
       (expect (finito--select-collection #'identity) :to-equal "my collection"))))
 
 (describe "finito--replace-book-at-point-from-request"
@@ -337,3 +337,9 @@ GNU Emacs is the most popular and widespread of the Emacs family of editors. It 
               ((symbol-function 'finito--health-check) #'ignore)
               ((symbol-function 'start-process-shell-command) (-const 'proc)))
       (expect (finito-start-server-if-not-already) :to-be 'proc))))
+
+(describe "finito--seq-to-json-list"
+  (it "list with one element"
+    (expect (finito--seq-to-json-list '("one"))
+            :to-equal
+            "[\"one\"]")))
