@@ -23,8 +23,10 @@
 
 ;;; Code:
 
+(require 'cl-lib)
 (require 'dash)
 (require 's)
+(require 'subr-x)
 (require 'transient)
 
 ;;; Internal Variables
@@ -37,21 +39,51 @@
   ((plist-key :initarg :plist-key)))
 
 (cl-defmethod transient-format-value ((obj finito--transient-argument))
+  "Format OBJ and return the result."
   (let ((value (oref obj value)))
-    (propertize (concat (oref obj argument)
-                        (if (listp value)
-                            (mapconcat #'identity value ",")
-                          value))
+    (propertize (if (listp value) (mapconcat #'identity value ",")
+                  value)
                 'face (if value
                           'transient-value
                         'transient-inactive-value))))
 
-;; We always want a value to show up in ARGS for a transient arg function, so
-;; we return the empty string instead of nil, since nil implies an unspecified
-;; value
-(cl-defmethod transient-infix-value ((obj finito--transient-argument))
-  "Return the value of OBJ's `value' slot."
-  (or (oref obj value) ""))
+(cl-defmethod transient-init-value ((obj finito--transient-argument))
+  "Initialize the value of OBJ using the value of the current prefix."
+  (let* ((prefix-plist (oref transient--prefix value))
+         (val-or-nil (plist-get prefix-plist (oref obj plist-key))))
+      (oset obj value val-or-nil)))
+
+(cl-defmethod transient-infix-set :around
+  ((obj finito--transient-argument) value)
+  "Unset incompatible infix arguments."
+  (let ((arg (if (slot-boundp obj 'argument)
+                 (oref obj argument)
+               (oref obj argument-regexp))))
+    (if-let* ((sic (and value arg transient--unset-incompatible))
+              (spec (oref transient--prefix incompatible))
+              (incomp-matching (cl-remove-if-not
+                                (lambda (elt) (member arg elt)) spec))
+              (incomp (flatten-list
+                       (mapcar (lambda (e) (remove arg e)) incomp-matching))))
+        (progn
+          (cl-call-next-method obj value)
+          (dolist (arg incomp)
+            (when-let ((obj (cl-find-if (lambda (obj)
+                                          (and (slot-boundp obj 'argument)
+                                               (equal (oref obj argument) arg)))
+                                        transient--suffixes)))
+              (let ((transient--unset-incompatible nil))
+                (transient-infix-set obj nil)))))
+      (cl-call-next-method obj value))))
+
+(defclass finito--search-prefix (transient-prefix) nil)
+
+(cl-defmethod transient--history-push ((obj finito--search-prefix))
+  "Push the current value of OBJ to its entry in `transient-history'."
+  (let ((key (transient--history-key obj)))
+    (setf (alist-get key transient-history)
+          (let ((args (finito--transient-args-plist (oref obj command))))
+            (cons args (delete args (alist-get key transient-history)))))))
 
 ;;; Infix Arguments
 
@@ -119,6 +151,7 @@
 
 (transient-define-prefix finito-search ()
   "Search for books."
+  :class 'finito--search-prefix
   :incompatible '(("isbn=" "author=") ("isbn=" "title=") ("isbn=" "max results="))
   ["By Keywords"
    (finito--title-arg :description "Title" :prompt "Title: ")
@@ -164,7 +197,8 @@
 
 (defun finito--transient-args-plist (prefix)
   "Return the infixes of PREFIX as a plist."
-  (-flatten-n 1 (--map (list (oref it plist-key) (oref it value))
+  (-flatten-n 1 (--map (list (oref it plist-key)
+                             (oref it value))
                        (-filter #'finito--transient-argument-p
                                 (transient-suffixes prefix)))))
 

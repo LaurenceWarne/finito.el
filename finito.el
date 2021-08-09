@@ -417,7 +417,7 @@ The following commands are available in this mode:
   (interactive
    (list (finito--transient-args-plist 'finito-search)))
   (finito--wait-for-server)
-  (if-let (isbn (plist-get args :isbn))
+  (if-let ((isbn (plist-get args :isbn)))
       (finito--make-request
        (finito--isbn-request-plist isbn)
        (lambda (response)
