@@ -6,7 +6,8 @@
 *** DONE Add testing for interactive functions
 ** Smaller Things
 *** DONE Add version number
-*** TODO Use ~transient-define-infix~ instead of ~transient-define-argument~
+*** DONE Use ~transient-define-infix~ instead of ~transient-define-argument~
 *** TODO Add integration with ~createBook~ mutation
-*** TODO Hide "Currently Reading" in addBook
+*** DONE Hide "Currently Reading" in addBook
 *** TODO Add curl debugging for search requests
+*** TODO Add binding for "modify search" in search view buffers

@@ -101,6 +101,12 @@ invoked from the `finito' prefix command."
   :group 'finito
   :type 'object)
 
+(defcustom finito-add-book-collection-blacklist
+  (list finito-currently-reading-collection)
+  "Collections in this list will not show up on the add book collection prompt."
+  :group 'finito
+  :type '(repeat string))
+
 ;;; Internal variables
 
 (defvar finito--special-collections
@@ -561,7 +567,9 @@ _ARGS does nothing and is needed to appease transient."
         (lambda (_)
           (message "Successfully added '%s' to '%s'"
                    (alist-get 'title book)
-                   chosen-collection)))))))
+                   chosen-collection))))
+     (lambda (collection)
+       (not (member collection finito-add-book-collection-blacklist))))))
 
 (defun finito-add-to-default-book-at-point ()
   "Add the book at point to the default collection."

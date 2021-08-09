@@ -95,11 +95,13 @@ The situation is similar to that of `finito-my-books-collection` above in that t
 
 ## Misc Variables
 
-| Variable                 | Description                                                 |
-|--------------------------|-------------------------------------------------------------|
-| `finito-language`        | The languge search queries should request responses in      |
-| `finito-image-cache-dir` | The directory to cache book images                          |
-| `finito-browse-function` | The function to be invoked by `finito-browse-book-at-point` |
+| Variable                               | Description                                                                                         |
+|----------------------------------------|-----------------------------------------------------------------------------------------------------|
+| `finito-language`                      | The languge search queries should request responses in                                              |
+| `finito-image-cache-dir`               | The directory to cache book images                                                                  |
+| `finito-browse-function`               | The function to be invoked by `finito-browse-book-at-point`                                         |
+| `finito-add-book-collection-blacklist` | Collections to ignore for `finito-add-book-at-point` (default is `("Currently Reading")`)           |
+| `finito-save-last-search`              | A flag to indicate whether the arguments to the last search query should be saved (default is `t`) |
 
 More information is available via `C-h v`.
 
