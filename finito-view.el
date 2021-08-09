@@ -29,6 +29,16 @@
 (require 'subr-x)
 (require 'transient)
 
+(require 'finito-core)
+
+;;; Custom Variables
+
+(defcustom finito-save-last-search
+  t
+  "If non-nil, save the arguments of the last `finito-search'."
+  :group 'finito
+  :type 'boolean)
+
 ;;; Internal Variables
 
 (defvar finito--sort-asc-alist '(("ascending" . true) ("descending" . false)))
@@ -84,6 +94,16 @@
     (setf (alist-get key transient-history)
           (let ((args (finito--transient-args-plist (oref obj command))))
             (cons args (delete args (alist-get key transient-history)))))))
+
+(cl-defmethod transient-init-value :after ((obj finito--search-prefix))
+  "Set the value of OBJ from history if applicable.
+
+If OBJ has an empty value and `finito-save-last-search' is non-nil, switch
+to the last value used for OBJ."
+  (transient--history-init obj)
+  (when (and finito-save-last-search (not (oref obj value)))
+    (let ((transient--prefix obj))
+      (transient-history-prev))))
 
 ;;; Infix Arguments
 
