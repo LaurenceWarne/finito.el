@@ -180,7 +180,7 @@ to the last value used for OBJ."
   ["Direct Lookup"
    (finito--isbn-arg :description "ISBN" :prompt "ISBN: ")]
   ["Actions"
-   ;("c" "Copy Curl"     finito-search-request)
+   ("C" "Copy Curl"     finito-search-request-curl-dbg)
    ("s" "Search"        finito-search-request)])
 
 (transient-define-prefix finito-collection ()

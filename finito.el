@@ -417,7 +417,6 @@ The following commands are available in this mode:
 
 ;;; Commands
 
-;;;###autoload
 (defun finito-search-request (&optional args)
   "Send a search request to the finito server using transient args ARGS."
   (interactive
@@ -439,6 +438,28 @@ The following commands are available in this mode:
      (plist-get args :title)
      (plist-get args :author)
      (plist-get args :max-results))))
+
+(defun finito-search-request-curl-dbg (&optional args)
+  "Copy to the kill ring a curl request for the search request args ARGS.
+
+Copy to the kill ring a curl request string corresponding to what the server
+would send to https://developers.google.com/books/docs/v1/using for the same
+set of args.  This is intended to be used for debugging."
+  (interactive
+   (list (finito--transient-args-plist 'finito-search)))
+  (let* ((base-url "https://www.googleapis.com/books/v1/volumes?q=")
+         (maybe-title (-some--> (plist-get args :title)
+                         (url-hexify-string it)
+                         (concat "intitle:" it)))
+         (maybe-author (-some--> (plist-get args :author)
+                         (url-hexify-string it)
+                         (concat "inauthor:" it)))
+         (kwords (-flatten (list maybe-title maybe-author)))
+         (url-params (list (s-join "+" kwords)
+                           "printType=books"
+                           (concat "langRestrict=" finito-language)))
+         (url (concat base-url (s-join "&" url-params))))
+    (kill-new (concat "curl -X GET " url))))
 
 ;;;###autoload
 (defun finito-search-for-books
