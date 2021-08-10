@@ -665,19 +665,26 @@ GNU Emacs is the most popular and widespread of the Emacs family of editors. It 
 
 (describe "finito-search-request-curl-dbg"
   :var ((author "my author")
-        (title "my title"))
+        (title "my title")
+        (isbn "978-1-56619-909-4"))
 
-  (it "throws error when title and author not specified"
+  (it "throws error when title, author and isbn not specified"
     (expect (finito-search-request-curl-dbg '(:max-results 3434))
             :to-throw))
 
-  (it "Copies url to kill ring"
-    (finito-search-request-curl-dbg
-     `(:author ,author :title ,title))
+  (it "Copies url to kill ring for keyword search"
+    (finito-search-request-curl-dbg `(:author ,author :title ,title))
     (let ((copied (car kill-ring)))
       (expect copied
               :to-match
               (rx (* any) (literal (url-hexify-string author)) (* any)))
       (expect copied
               :to-match
-              (rx (* any) (literal (url-hexify-string title)) (* any))))))
+              (rx (* any) (literal (url-hexify-string title)) (* any)))))
+
+  (it "Copies url to kill ring for isbn search"
+    (finito-search-request-curl-dbg `(:isbn ,isbn))
+    (let ((copied (car kill-ring)))
+      (expect copied
+              :to-match
+              (rx (* any) (literal (url-hexify-string isbn)) (* any))))))

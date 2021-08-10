@@ -442,21 +442,49 @@ The following commands are available in this mode:
   "Copy to the kill ring a curl request for the search request args ARGS.
 
 Copy to the kill ring a curl request string corresponding to what the server
-would send to https://developers.google.com/books/docs/v1/using for the same
+would send to the Google Books API (see URL
+'https://developers.google.com/books/docs/v1/using') for the same
 set of args.  This is intended to be used for debugging."
   (interactive
    (list (finito--transient-args-plist 'finito-search)))
-  (unless (or (plist-get args :title) (plist-get args :author))
-    (error "At least one of title and author keywords must be specified"))
+  (if (plist-member args :isbn)
+      (finito-isbn-request-curl-dbg (plist-get args :isbn))
+    (finito-kw-search-request-curl-dbg (plist-get args :title)
+                                       (plist-get args :author))))
+
+(defun finito-kw-search-request-curl-dbg (&optional title author)
+  "Copy to the kill ring a curl request for a search request.
+
+Copy to the kill ring a curl request string corresponding to what the server
+would send to the Google Books API (see URL
+'https://developers.google.com/books/docs/v1/using') for a keyword
+search using TITLE and AUTHOR keywords.  This is intended to be used for
+debugging."
+  (unless (or title author)
+    (error "At least one of title and author must be specified"))
   (let* ((base-url "https://www.googleapis.com/books/v1/volumes?q=")
-         (maybe-title (-some--> (plist-get args :title)
+         (maybe-title (-some--> title
                          (url-hexify-string it)
                          (concat "intitle:" it)))
-         (maybe-author (-some--> (plist-get args :author)
+         (maybe-author (-some--> author
                          (url-hexify-string it)
                          (concat "inauthor:" it)))
          (kwords (-flatten (list maybe-title maybe-author)))
          (url-params (list (s-join "+" kwords)
+                           "printType=books"
+                           (concat "langRestrict=" finito-language)))
+         (url (concat base-url (s-join "&" url-params))))
+    (kill-new (concat "curl -X GET " url))))
+
+(defun finito-isbn-request-curl-dbg (isbn)
+  "Copy to the kill ring a curl request for an isbn lookup request.
+
+Copy to the kill ring a curl request string corresponding to what the server
+would send to the Google Books API (see URL
+'https://developers.google.com/books/docs/v1/using') for the given ISBN.
+This is intended to be used for debugging."
+  (let* ((base-url "https://www.googleapis.com/books/v1/volumes?q=")
+         (url-params (list (concat "isbn:" isbn)
                            "printType=books"
                            (concat "langRestrict=" finito-language)))
          (url (concat base-url (s-join "&" url-params))))
