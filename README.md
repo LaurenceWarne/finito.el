@@ -24,7 +24,7 @@ This package is a thin client for https://github.com/laurencewarne/libro-finito,
 
 # Keys
 
-## Bindings in a Search Buffer
+## Bindings Available in all finito View Buffers
 
 | Key   | Action                                                                     |
 |-------|----------------------------------------------------------------------------|
@@ -47,12 +47,20 @@ This package is a thin client for https://github.com/laurencewarne/libro-finito,
 
 ## Bindings in a Collection Buffer
 
-All of the bindings present above are present here, along with:
-
 | Key | Action                                               |
 |-----|------------------------------------------------------|
 | `g` | Refresh the collection for changes                   |
 | `D` | Delete the book at point from the current collection |
+
+(in addition to all the [base bindings](#bindings-available-in-all-finito-view-buffers))
+
+## Bindings in a Search Buffer
+
+| Key | Action                                               |
+|-----|------------------------------------------------------|
+| `l` | Replay the last search                               |
+
+(in addition to all the [base bindings](#bindings-available-in-all-finito-view-buffers))
 
 # Customisation
 

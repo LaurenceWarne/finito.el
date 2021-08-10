@@ -366,7 +366,7 @@ request is successful"
 
 ;;; Modes
 
-(defvar finito-search-view-mode-map
+(defvar finito-view-mode-map
   (let ((map (make-sparse-keymap)))
     (suppress-keymap map t)
     (define-key map "a" #'finito-add-book-at-point)
@@ -387,14 +387,29 @@ request is successful"
     (define-key map (kbd "C-r") #'finito-open-currently-reading-collection)
     map))
 
-(define-derived-mode finito-search-view-mode org-mode "finito-search-view"
+(define-derived-mode finito-view-mode org-mode "finito-view"
+  "A mode for viewing books.
+
+The following commands are available in this mode:
+\\{finito-view-mode-map}"
+  (setq buffer-read-only     t
+        finito--buffer-books nil)
+  (buffer-disable-undo)
+  (use-local-map finito-view-mode-map))
+
+(defvar finito-search-view-mode-map
+  (let ((map (make-sparse-keymap)))
+    (suppress-keymap map t)
+    (define-key map "l" #'finito-replay-search)
+    map))
+
+(define-derived-mode finito-search-view-mode
+  finito-view-mode
+  "finito-search-view"
   "A mode for showing book search results.
 
 The following commands are available in this mode:
 \\{finito-search-view-mode-map}"
-  (setq buffer-read-only     t
-        finito--buffer-books nil)
-  (buffer-disable-undo)
   (use-local-map finito-search-view-mode-map))
 
 (defvar finito-collection-view-mode-map
@@ -405,14 +420,13 @@ The following commands are available in this mode:
     map))
 
 (define-derived-mode finito-collection-view-mode
-  finito-search-view-mode
+  finito-view-mode
   "finito-collection-view"
   "A mode for showing collections.
 
 The following commands are available in this mode:
 \\{finito-collection-view-mode-map}"
   (setq finito--collection nil)
-  (buffer-disable-undo)
   (use-local-map finito-collection-view-mode-map))
 
 ;;; Commands
@@ -715,6 +729,12 @@ When DATE is specified, mark that as the date the book was finished."
         (finito--isbn-request-plist (alist-get 'isbn book))
         (format "Successfully deleted info held about '%s'"
                 (alist-get 'title book)))))))
+
+(defun finito-replay-search ()
+  "Open the search transient prefix with the last args that were used."
+  (interactive)
+  (let ((finito-save-last-search t))
+    (finito-search)))
 
 (provide 'finito)
 ;;; finito.el ends here
