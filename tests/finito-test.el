@@ -366,7 +366,7 @@ GNU Emacs is the most popular and widespread of the Emacs family of editors. It 
     (spy-on 'finito--wait-for-server :and-return-value nil))
 
   (it "search for books"
-    (finito-search-for-books nil title author max-results)
+    (finito-search-for-books title author max-results)
     (expect 'finito--make-request :to-have-been-called-times 1)
     (expect 'finito--process-books-data :to-have-been-called-times 1)
     (expect 'finito--search-request-plist :to-have-been-called-times 1)
@@ -518,7 +518,7 @@ GNU Emacs is the most popular and widespread of the Emacs family of editors. It 
     (expect 'finito--book-at-point :to-have-been-called-times 1)
     (expect (spy-calls-args-for 'finito-search-for-books 0)
             :to-equal
-            (list nil nil (elt (alist-get 'authors book) 0)))))
+            (list nil (elt (alist-get 'authors book) 0)))))
 
 (describe "finito-add-book-at-point"
   :var ((collection "collection to add to")
@@ -529,7 +529,7 @@ GNU Emacs is the most popular and widespread of the Emacs family of editors. It 
             (lambda (plist callback &rest _)
               (funcall callback nil)))
     (spy-on 'finito--select-collection :and-call-fake
-            (lambda (callback) (funcall callback collection)))
+            (lambda (callback _) (funcall callback collection)))
     (spy-on 'finito--book-at-point :and-return-value book)
     (spy-on 'finito--add-book-request-plist :and-call-through))
 
@@ -662,3 +662,22 @@ GNU Emacs is the most popular and widespread of the Emacs family of editors. It 
       (expect (spy-calls-args-for 'finito--delete-book-data-request-plist 0)
               :to-equal
               (list (alist-get 'isbn book))))))
+
+(describe "finito-search-request-curl-dbg"
+  :var ((author "my author")
+        (title "my title"))
+
+  (it "throws error when title and author not specified"
+    (expect (finito-search-request-curl-dbg '(:max-results 3434))
+            :to-throw))
+
+  (it "Copies url to kill ring"
+    (finito-search-request-curl-dbg
+     `(:author ,author :title ,title))
+    (let ((copied (car kill-ring)))
+      (expect copied
+              :to-match
+              (rx (* any) (literal (url-hexify-string author)) (* any)))
+      (expect copied
+              :to-match
+              (rx (* any) (literal (url-hexify-string title)) (* any))))))

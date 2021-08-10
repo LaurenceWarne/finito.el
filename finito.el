@@ -434,7 +434,6 @@ The following commands are available in this mode:
            :buf-name (concat "Search for ISBN: " isbn)
            :buf-name-unique t))))
     (finito-search-for-books
-     nil
      (plist-get args :title)
      (plist-get args :author)
      (plist-get args :max-results))))
@@ -447,6 +446,8 @@ would send to https://developers.google.com/books/docs/v1/using for the same
 set of args.  This is intended to be used for debugging."
   (interactive
    (list (finito--transient-args-plist 'finito-search)))
+  (unless (or (plist-get args :title) (plist-get args :author))
+    (error "At least one of title and author keywords must be specified"))
   (let* ((base-url "https://www.googleapis.com/books/v1/volumes?q=")
          (maybe-title (-some--> (plist-get args :title)
                          (url-hexify-string it)
@@ -461,28 +462,24 @@ set of args.  This is intended to be used for debugging."
          (url (concat base-url (s-join "&" url-params))))
     (kill-new (concat "curl -X GET " url))))
 
-;;;###autoload
 (defun finito-search-for-books
-    (arg title-keywords author-keywords &optional max-results)
+    (title-keywords author-keywords &optional max-results)
   "Search for books by title and author, and insert the results in a buffer.
 
-Search for books matching TITLE-KEYWORDS and AUTHOR-KEYWORDS.  With any non-nil
-prefix arg ARG, message an equivalent curl instead of sending a request."
+Search for books matching TITLE-KEYWORDS and AUTHOR-KEYWORDS, and ask for a
+maximum of MAX-RESULTS results."
   (interactive "P\nsPlease input title keywords: \nsPlease input author keywords: ")
   (finito--wait-for-server)
-  (if arg
-      (let ((url (url-hexify-string (format "https://www.googleapis.com/books/v1/volumes?q=%s+inauthor:%s&printType=books&langRestrict=en" title-keywords author-keywords))))
-        (kill-new (message url)))
-    (let ((request-plist
-           (finito--search-request-plist
-            title-keywords
-            author-keywords
-            max-results)))
-      (finito--make-request
-       request-plist
-       (lambda (data) (finito--process-books-data
-                       data
-                       finito-keyword-search-buffer-init-instance))))))
+  (let ((request-plist
+         (finito--search-request-plist
+          title-keywords
+          author-keywords
+          max-results)))
+    (finito--make-request
+     request-plist
+     (lambda (data) (finito--process-books-data
+                     data
+                     finito-keyword-search-buffer-init-instance)))))
 
 ;;;###autoload
 (defun finito-create-collection (&optional _args)
@@ -567,7 +564,7 @@ _ARGS does nothing and is needed to appease transient."
   (let* ((book (finito--book-at-point))
          (authors (s-join " " (alist-get 'authors book))))
     (message "Searching for author(s) '%s'" authors)
-    (finito-search-for-books nil nil authors)))
+    (finito-search-for-books nil authors)))
 
 (defun finito-to-org-buffer ()
   "Open the current buffer as a normal org mode buffer."
