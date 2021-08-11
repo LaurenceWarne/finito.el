@@ -28,6 +28,7 @@
 
 ;;; Code:
 
+(require 'async)
 (require 'cl-lib)
 (require 'dash)
 (require 'f)
@@ -112,6 +113,8 @@ invoked from the `finito' prefix command."
 (defvar finito--special-collections
   (list finito-my-books-collection finito-currently-reading-collection))
 
+(defvar finito--parallel-img-download t)
+
 ;;; Misc functions
 
 (cl-defun finito--make-request
@@ -150,12 +153,20 @@ as a symbol."
   "Insert the books data DATA into a buffer.
 
 Use INIT-OBJ, an instance of `finito-buffer-init' to initialize the buffer."
-  (finito--process
-   init-obj
-   ;; (append data nil) converts vector to a list
-   (lambda () (-each (append data nil)
-                (-compose #'finito--layout-book-data
-                          #'finito--create-book-alist)))))
+  (let ((book-list (-map #'finito--create-book-alist (append data nil)))
+        (display-remote (bound-and-true-p org-display-remote-inline-images)))
+    (cl-flet ((proc-books () (finito--process
+                              init-obj
+                              (lambda () (-each
+                                             book-list
+                                           #'finito--layout-book-data)))))
+      (cond ((and display-remote (not (eq display-remote 'skip)))
+             (proc-books))
+            (finito--parallel-img-download
+             (finito--download-images-par book-list #'proc-books))
+            (t
+             (finito--download-images book-list)
+             (proc-books))))))
 
 (defun finito--process-single-book (data init-obj)
   "Insert the book data DATA into a buffer.
@@ -181,21 +192,41 @@ then apply some final configuration to the buffer."
   (goto-char (point-min))
   (org-display-inline-images))
 
+(defun finito--download-images (books)
+  "Download the images for BOOKS."
+  (--each
+      (--remove (f-exists-p (alist-get 'image-file-name it)) books)
+    (let-alist it (url-copy-file .img-uri .image-file-name))))
+
+(defun finito--download-images-par (books callback)
+  "Download the images for BOOKS in parallel and then call CALLBACK."
+  (let ((filtered-books
+         (--remove (f-exists-p (alist-get 'image-file-name it))
+                   books))
+        (handles))
+    (if filtered-books
+        (--map (let-alist it
+                 (add-to-list
+                  'handles
+                  (async-start
+                   `(lambda ()
+                      (url-copy-file ,.img-uri ,.image-file-name)
+                      ,.image-file-name)
+                   (lambda (path)
+                     (message "Downloaded '%s'" path)
+                     (when (and (= (length filtered-books) (length handles))
+                                (= 1 (length (-remove #'async-ready handles))))
+                       (funcall callback))))))
+               filtered-books)
+      (funcall callback))))
+
 (defun finito--layout-book-data (book-alist)
   "Insert data for BOOK-ALIST into the current buffer.
 
 BOOK-ALIST should be an alist of the format produced by
 `finito--create-book-alist'."
   (add-to-list 'finito--buffer-books `(,(line-number-at-pos) . ,book-alist))
-  (let-alist book-alist
-    (let ((display-remote (bound-and-true-p org-display-remote-inline-images)))
-      (unless (or (and display-remote (not (eq display-remote 'skip)))
-                  (f-exists-p .image-file-name))
-        (message (concat "Retrieving img: " .img-uri))
-        ;; TODO this is already a callback so do we need to:
-        ;; https://stackoverflow.com/questions/40504796/asynchrous-copy-file-and-copy-directory-in-emacs-lisp
-        (url-copy-file .img-uri .image-file-name)))
-    (finito-insert-book finito-writer-instance book-alist)))
+  (finito-insert-book finito-writer-instance book-alist))
 
 (defun finito--create-book-alist (book-response)
   "Return an alist containing book information gleaned from BOOK-RESPONSE.
@@ -734,7 +765,7 @@ When DATE is specified, mark that as the date the book was finished."
   "Open the search transient prefix with the last args that were used."
   (interactive)
   (let ((finito-save-last-search t))
-    (finito-search)))
+    (call-interactively #'finito-search)))
 
 (provide 'finito)
 ;;; finito.el ends here

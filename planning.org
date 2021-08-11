@@ -5,7 +5,7 @@
 ** Bigger things  
 *** DONE Add testing for interactive functions
 *** TODO Make server start asynchronous
-*** TODO Download book images in parallel
+*** DONE Download book images in parallel
 ** Smaller Things
 *** DONE Add version number
 *** DONE Use ~transient-define-infix~ instead of ~transient-define-argument~
