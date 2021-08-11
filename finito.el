@@ -65,7 +65,8 @@ This object will be used to write books in finito buffers."
   #'finito--browse-function
   "Function used by `finito-browse-book-at-point'.
 
-It should take a book alist as a parameter."
+It should take a book alist (of the format returned by
+`finito--create-book-alist') as a parameter."
   :group 'finito
   :type 'function)
 

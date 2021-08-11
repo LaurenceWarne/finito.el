@@ -70,9 +70,9 @@
 
 It's elements should be of the form (KEY . VALUE) where KEY is an integer
 representing the start of where information starts about a particular book
-in the current buffer.  VALUE is itself an alist containing information
-about the corresponding book.  There are no guarentees on the orderedness
-of this variables.")
+in the current buffer.  VALUE is itself an alist of the format returned by
+`finito--create-book-alist'.  There are no guarentees on the orderedness
+of this variable.")
 
 (defvar-local finito--collection
   nil
@@ -85,7 +85,9 @@ of this variables.")
   "A class for writing book information to a buffer.")
 
 (cl-defmethod finito-insert-book ((writer finito-book-writer) book-alist)
-  "Write BOOK-ALIST into the current buffer using WRITER."
+  "Write BOOK-ALIST into the current buffer using WRITER.
+
+BOOK-ALIST is an alist of the format returned by `finito--create-book-alist'"
   (let-alist book-alist
     (finito-insert-title writer .title)
     (finito-insert-image
