@@ -12,4 +12,5 @@
 *** TODO Add integration with ~createBook~ mutation
 *** DONE Hide "Currently Reading" in addBook
 *** DONE Add curl debugging for search requests
-*** TODO Add binding for "modify search" in search view buffers
+*** DONE Add binding for "modify search" in search view buffers
+*** TODO Allow jar args

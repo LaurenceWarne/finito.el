@@ -2,7 +2,7 @@
 
 `finito.el` allows for the management of books from within Emacs.  Books are presented in modified org mode buffers, and books along with user collections can be viewed/queried using [transient](https://github.com/magit/transient).
 
-This package is a thin client for https://github.com/laurencewarne/libro-finito, more information on collection management and customization can be found there.
+This package is a thin client for https://github.com/laurencewarne/libro-finito, more information on collection management and cutomization can be found there.
 
 # Installation
 
@@ -33,7 +33,7 @@ This package is a thin client for https://github.com/laurencewarne/libro-finito,
 | `A`   | Search for books by the same author                                        |
 | `n`   | Goto the next book                                                         |
 | `p`   | Goto the previous book                                                     |
-| `o`   | Dump this buffers contens in a normal org mode buffer                      |
+| `o`   | Dump this buffer's contents in a normal org mode buffer                    |
 | `q`   | Kill the current buffer                                                    |
 | `k`   | Kill the current buffer                                                    |
 | `b`   | Open an [Open Library](https://openlibrary.org) page for the book at point |
@@ -62,11 +62,11 @@ This package is a thin client for https://github.com/laurencewarne/libro-finito,
 
 (in addition to all the [base bindings](#bindings-available-in-all-finito-view-buffers))
 
-# Customisation
+# Cutomization
 
 ## `finito-writer-instance`
 
-This object can be used to customize how books are written into finito buffers.  The `finito-book-writer` class can be extended to provide ad-hoc customization.  Example:
+This object can be used to customize how books are written into finito buffers.  The `finito-book-writer` class can be extended to provide ad-hoc cutomization.  Example:
 
 ```elisp
 (defclass my-book-writer (finito-book-writer)
@@ -105,7 +105,7 @@ The situation is similar to that of `finito-my-books-collection` above in that t
 
 | Variable                               | Description                                                                                         |
 |----------------------------------------|-----------------------------------------------------------------------------------------------------|
-| `finito-language`                      | The languge search queries should request responses in                                              |
+| `finito-language`                      | The language search queries should request responses in                                              |
 | `finito-image-cache-dir`               | The directory to cache book images                                                                  |
 | `finito-browse-function`               | The function to be invoked by `finito-browse-book-at-point`                                         |
 | `finito-add-book-collection-blacklist` | Collections to ignore for `finito-add-book-at-point` (default is `("Currently Reading")`)           |

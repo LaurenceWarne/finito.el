@@ -186,7 +186,6 @@ to the last value used for OBJ."
 (transient-define-prefix finito-collection ()
   "Search for books."
   ["Actions"
-   ;("c" "Copy Curl"     finito-request)
    ("n" "Create a new Collection" finito-create-collection)
    ("o" "Open a Collection"       finito-open-collection)
    ("u" "Update a Collection"     finito-update-collection)
