@@ -36,7 +36,7 @@
 ;;; Constants
 
 (defconst finito-server-minimum-required-version
-  "0.2.0"
+  "0.3.0"
   "The minimum compatible finito server version.")
 
 ;;; Custom variables
@@ -84,7 +84,7 @@
 
 Are there any error messages when you (switch-to-buffer \"finito\") ?")
 
-(defvar finito--host-uri "http://localhost:8080/api/graphql")
+(defvar finito--host-uri "http://localhost:56848/api/graphql")
 
 (defvar finito--server-path
   (f-join finito-server-directory finito--jar-name))
