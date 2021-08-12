@@ -43,9 +43,15 @@
 
 (defcustom finito-server-directory
   (f-join user-emacs-directory "finito/")
-  "The directory used to cache images."
+  "The directory of the finito and server and image cache."
   :group 'finito
-  :type 'string)
+  :type 'directory)
+
+(defcustom finito-config-directory
+  (f-expand "~/.config/libro-finito/")
+  "The directory of the server config file and sqlite db."
+  :group 'finito
+  :type 'directory)
 
 (defcustom finito-server-version
   finito-server-minimum-required-version
@@ -83,6 +89,8 @@ Are there any error messages when you (switch-to-buffer \"finito\") ?")
 (defvar finito--server-path
   (f-join finito-server-directory finito--jar-name))
 
+(defvar finito--jvm-args "-Xmx100M")
+
 ;;; User facing functions
 
 (defun finito-download-server-if-not-exists ()
@@ -101,7 +109,12 @@ An error is signalled if the server jar cannot be found."
   (unless (or (process-live-p finito--server-process) (finito--health-check))
     (message "Starting a finito server...")
     (let* ((buf (generate-new-buffer "finito"))
-           (command (concat "java -jar " finito--server-path))
+           (command (concat "java "
+                            finito--jvm-args
+                            " -jar "
+                            finito--server-path
+                            " --config "
+                            finito-config-directory))
            (proc (start-process-shell-command "finito" buf command)))
       (setq finito--server-process proc))))
 

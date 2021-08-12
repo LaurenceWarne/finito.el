@@ -55,7 +55,7 @@ This object will be used to write books in finito buffers."
   :group 'finito
   :type 'object)
 
-(defcustom finito-image-cache-dir
+(defcustom finito-server-directory
   (f-join user-emacs-directory "finito/images/")
   "The directory used to cache images."
   :group 'finito
@@ -182,7 +182,7 @@ Use INIT-OBJ, an instance of `finito-buffer-init' to initialize the buffer."
 Set up a finito buffer using INIT-OBJ which should be a `finito-buffer-init'
 instance, then call CALLBACK which should insert text in some way, and
 then apply some final configuration to the buffer."
-  (make-directory finito-image-cache-dir t)
+  (make-directory finito-server-directory t)
   (when (oref init-obj buf-name-unique)
     (ignore-errors (kill-buffer (oref init-obj buf-name))))
   (switch-to-buffer (generate-new-buffer-name (oref init-obj buf-name)))
@@ -245,7 +245,7 @@ last-read"
   (let-alist book-response
     (let* ((title-sanitized
             (replace-regexp-in-string "[^A-Za-z0-9._-]" "" (s-downcase .title)))
-           (image-file-name (f-join finito-image-cache-dir
+           (image-file-name (f-join finito-server-directory
                                     (concat title-sanitized .isbn ".jpeg"))))
       (list (cons 'title .title)
             (cons 'authors .authors)

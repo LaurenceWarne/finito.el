@@ -171,7 +171,7 @@ Occurrences of `.buffer-text' will be replaced by:
 
 (describe "finito--create-book-alist"
   (it "book alist contains all keys with correct values"
-    (let ((finito-image-cache-dir "cache/directory")
+    (let ((finito-server-directory "cache/directory")
           (response-alist '((title . "Foo Title")
                             (authors . ["bar"])
                             (description . "foo description")
@@ -193,7 +193,7 @@ Occurrences of `.buffer-text' will be replaced by:
                 (last-read . "some other date")))))
 
   (it "book alist contains keys set to nil when input key is nil"
-    (let ((finito-image-cache-dir "cache/directory")
+    (let ((finito-server-directory "cache/directory")
           (response-alist '((title . "Foo Title")
                             (authors . ["bar"])
                             (description . "foo description")
