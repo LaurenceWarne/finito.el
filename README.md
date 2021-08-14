@@ -93,7 +93,7 @@ Therefore, once you have:
 (setq finito-my-books-collection "good books, some say the greatest")
 ```
 
-In order to accumulate all added books you will have to mark it as a special collection and add hook (or not if you prefer books not be added automagically everywhere).
+In order to accumulate all added books you will have to mark it as a special collection and add hooks (or not if you prefer books not be added automagically everywhere).
 
 ## `finito-currently-reading-collection`
 

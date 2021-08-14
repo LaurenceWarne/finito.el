@@ -472,7 +472,7 @@ The following commands are available in this mode:
       (finito--make-request
        (finito--isbn-request-plist isbn)
        (lambda (response)
-         (finito--process-single-book
+         (finito--process-books-data
           response
           (finito-buffer-info
            :title (concat "ISBN: " isbn)
@@ -757,10 +757,9 @@ When DATE is specified, mark that as the date the book was finished."
     (finito--make-request
      (finito--delete-book-data-request-plist (alist-get 'isbn book))
      (lambda (_)
-       (finito--replace-book-at-point-from-request
-        (finito--isbn-request-plist (alist-get 'isbn book))
-        (format "Successfully deleted info held about '%s'"
-                (alist-get 'title book)))))))
+       (format "Successfully deleted info held about '%s'"
+                (alist-get 'title book))
+       (finito-refresh-collection)))))
 
 (defun finito-replay-search ()
   "Open the search transient prefix with the last args that were used."
