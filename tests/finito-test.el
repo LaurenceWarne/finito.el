@@ -301,15 +301,19 @@ GNU Emacs is the most popular and widespread of the Emacs family of editors. It 
 
 (describe "finito--wait-for-server"
   (it "errors when health check expires"
-    (cl-letf (((symbol-function 'finito-start-server-if-not-already) (-const t))
-              ((symbol-function 'sleep-for) #'ignore)
-              ((symbol-function 'finito--health-check) #'ignore))
-      (expect (finito--wait-for-server) :to-throw)))
+    (cl-letf (((symbol-function 'async-start)
+               (lambda (f1 f2) (funcall f1) (funcall f2 nil)))
+              ((symbol-function 'finito-start-server-if-not-already) (-const t))
+              ((symbol-function 'url-retrieve-synchronously) #'ignore)
+              ((symbol-function 'sleep-for) #'ignore))
+      (expect (finito--wait-for-server #'ignore) :to-throw)))
   (it "no error when health check succeeds"
-    (cl-letf (((symbol-function 'finito-start-server-if-not-already) (-const t))
-              ((symbol-function 'sleep-for) #'ignore)
-              ((symbol-function 'finito--health-check) (-const t)))
-      (expect (finito--wait-for-server) :not :to-throw))))
+    (cl-letf (((symbol-function 'async-start)
+               (lambda (f1 f2) (funcall f1) (funcall f2 t)))
+              ((symbol-function 'finito-start-server-if-not-already) (-const t))
+              ((symbol-function 'url-retrieve-synchronously) (-const t))
+              ((symbol-function 'sleep-for) #'ignore))
+      (expect (finito--wait-for-server #'ignore) :not :to-throw))))
 
 (describe "finito--health-check"
   (it "returns nil when no server up"
@@ -363,7 +367,9 @@ GNU Emacs is the most popular and widespread of the Emacs family of editors. It 
               (funcall callback nil)))
     (spy-on 'finito--process-books-data :and-return-value nil)
     (spy-on 'finito--search-request-plist :and-call-through)
-    (spy-on 'finito--wait-for-server :and-return-value nil))
+    (spy-on 'finito--wait-for-server :and-call-fake
+            (lambda (callback &rest _)
+              (funcall callback))))
 
   (it "search for books"
     (finito-search-for-books title author max-results)
@@ -382,7 +388,10 @@ GNU Emacs is the most popular and widespread of the Emacs family of editors. It 
             :and-call-fake
             (lambda (plist callback &rest _)
               (funcall callback nil)))
-    (spy-on 'finito--wait-for-server :and-return-value nil)
+    (spy-on 'finito--wait-for-server :and-call-fake
+            (lambda (callback &rest _)
+              (funcall callback)))
+
     (spy-on 'finito--create-collection-request-plist :and-call-through)
     (spy-on 'read-string :and-return-value collection))
   
@@ -405,7 +414,10 @@ GNU Emacs is the most popular and widespread of the Emacs family of editors. It 
               (funcall callback nil)))
     (spy-on 'finito--select-collection :and-call-fake
             (lambda (callback) (funcall callback collection)))
-    (spy-on 'finito--wait-for-server :and-return-value nil)
+    (spy-on 'finito--wait-for-server :and-call-fake
+            (lambda (callback &rest _)
+              (funcall callback)))
+
     (spy-on 'finito--collection-request-plist :and-call-through)
     (spy-on 'finito--process-books-data :and-return-value nil))
 
@@ -426,7 +438,10 @@ GNU Emacs is the most popular and widespread of the Emacs family of editors. It 
             :and-call-fake
             (lambda (plist callback &rest _)
               (funcall callback nil)))
-    (spy-on 'finito--wait-for-server :and-return-value nil)
+    (spy-on 'finito--wait-for-server :and-call-fake
+            (lambda (callback &rest _)
+              (funcall callback)))
+
     (spy-on 'finito--collection-request-plist :and-call-through)
     (spy-on 'finito--process-books-data :and-return-value nil))
 
@@ -446,7 +461,10 @@ GNU Emacs is the most popular and widespread of the Emacs family of editors. It 
             :and-call-fake
             (lambda (plist callback &rest _)
               (funcall callback nil)))
-    (spy-on 'finito--wait-for-server :and-return-value nil)
+    (spy-on 'finito--wait-for-server :and-call-fake
+            (lambda (callback &rest _)
+              (funcall callback)))
+
     (spy-on 'finito--collection-request-plist :and-call-through)
     (spy-on 'finito--process-books-data :and-return-value nil))
 
@@ -469,7 +487,10 @@ GNU Emacs is the most popular and widespread of the Emacs family of editors. It 
               (funcall callback nil)))
     (spy-on 'finito--select-collection :and-call-fake
             (lambda (callback) (funcall callback collection)))
-    (spy-on 'finito--wait-for-server :and-return-value nil)
+    (spy-on 'finito--wait-for-server :and-call-fake
+            (lambda (callback &rest _)
+              (funcall callback)))
+    
     (spy-on 'finito--delete-collection-request-plist :and-call-through))
 
   (it "deletes collection"
@@ -492,7 +513,10 @@ GNU Emacs is the most popular and widespread of the Emacs family of editors. It 
             :and-call-fake
             (lambda (plist callback &rest _)
               (funcall callback nil)))
-    (spy-on 'finito--wait-for-server :and-return-value nil)
+    (spy-on 'finito--wait-for-server :and-call-fake
+            (lambda (callback &rest _)
+              (funcall callback)))
+
     (spy-on 'finito--update-collection-request-plist :and-call-through))
 
   (it "updates collection"

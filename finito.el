@@ -467,22 +467,22 @@ The following commands are available in this mode:
   "Send a search request to the finito server using transient args ARGS."
   (interactive
    (list (finito--transient-args-plist 'finito-search)))
-  (finito--wait-for-server)
-  (if-let ((isbn (plist-get args :isbn)))
-      (finito--make-request
-       (finito--isbn-request-plist isbn)
-       (lambda (response)
-         (finito--process-books-data
-          response
-          (finito-buffer-info
-           :title (concat "ISBN: " isbn)
-           :mode #'finito-search-view-mode
-           :buf-name (concat "Search for ISBN: " isbn)
-           :buf-name-unique t))))
-    (finito-search-for-books
-     (plist-get args :title)
-     (plist-get args :author)
-     (plist-get args :max-results))))
+  (finito--wait-for-server-then
+   (if-let ((isbn (plist-get args :isbn)))
+       (finito--make-request
+        (finito--isbn-request-plist isbn)
+        (lambda (response)
+          (finito--process-books-data
+           response
+           (finito-buffer-info
+            :title (concat "ISBN: " isbn)
+            :mode #'finito-search-view-mode
+            :buf-name (concat "Search for ISBN: " isbn)
+            :buf-name-unique t))))
+     (finito-search-for-books
+      (plist-get args :title)
+      (plist-get args :author)
+      (plist-get args :max-results)))))
 
 (defun finito-search-request-curl-dbg (&optional args)
   "Copy to the kill ring a curl request for the search request args ARGS.
@@ -543,17 +543,17 @@ This is intended to be used for debugging."
 Search for books matching TITLE-KEYWORDS and AUTHOR-KEYWORDS, and ask for a
 maximum of MAX-RESULTS results."
   (interactive "P\nsPlease input title keywords: \nsPlease input author keywords: ")
-  (finito--wait-for-server)
-  (let ((request-plist
-         (finito--search-request-plist
-          title-keywords
-          author-keywords
-          max-results)))
-    (finito--make-request
-     request-plist
-     (lambda (data) (finito--process-books-data
-                     data
-                     finito-keyword-search-buffer-init-instance)))))
+  (finito--wait-for-server-then
+   (let ((request-plist
+          (finito--search-request-plist
+           title-keywords
+           author-keywords
+           max-results)))
+     (finito--make-request
+      request-plist
+      (lambda (data) (finito--process-books-data
+                      data
+                      finito-keyword-search-buffer-init-instance))))))
 
 ;;;###autoload
 (defun finito-create-collection (&optional _args)
@@ -561,13 +561,13 @@ maximum of MAX-RESULTS results."
 
 _ARGS does nothing and is needed to appease transient."
   (interactive)
-  (finito--wait-for-server)
-  (if-let* ((name (read-string "Collection name: "))
-            (request-plist (finito--create-collection-request-plist name)))
-      (finito--make-request
-       request-plist
-       (lambda (c)
-         (message "Successfully created collection '%s'" (cdar c))))))
+  (finito--wait-for-server-then
+   (if-let* ((name (read-string "Collection name: "))
+             (request-plist (finito--create-collection-request-plist name)))
+       (finito--make-request
+        request-plist
+        (lambda (c)
+          (message "Successfully created collection '%s'" (cdar c)))))))
 
 ;;;###autoload
 (defun finito-open-collection (&optional _args)
@@ -575,9 +575,9 @@ _ARGS does nothing and is needed to appease transient."
 
 _ARGS does nothing and is needed to appease transient."
   (interactive)
-  (finito--wait-for-server)
-  (finito--select-collection
-   (lambda (c) (finito--open-specified-collection c))))
+  (finito--wait-for-server-then
+   (finito--select-collection
+    (lambda (c) (finito--open-specified-collection c)))))
 
 ;;;###autoload
 (defun finito-open-my-books-collection (&optional _args)
@@ -585,8 +585,8 @@ _ARGS does nothing and is needed to appease transient."
 
 _ARGS does nothing and is needed to appease transient."
   (interactive)
-  (finito--wait-for-server)
-  (finito--open-specified-collection finito-my-books-collection))
+  (finito--wait-for-server-then
+   (finito--open-specified-collection finito-my-books-collection)))
 
 ;;;###autoload
 (defun finito-open-currently-reading-collection (&optional _args)
@@ -594,8 +594,8 @@ _ARGS does nothing and is needed to appease transient."
 
 _ARGS does nothing and is needed to appease transient."
   (interactive)
-  (finito--wait-for-server)
-  (finito--open-specified-collection finito-currently-reading-collection))
+  (finito--wait-for-server-then
+   (finito--open-specified-collection finito-currently-reading-collection)))
 
 ;;;###autoload
 (defun finito-delete-collection (&optional _args)
@@ -603,34 +603,34 @@ _ARGS does nothing and is needed to appease transient."
 
 _ARGS does nothing and is needed to appease transient."
   (interactive)
-  (finito--wait-for-server)
-  (finito--select-collection
-     (lambda (chosen-collection)
-       (finito--make-request
-        (finito--delete-collection-request-plist chosen-collection)
-        (lambda (_)
-          (message "Successfully deleted collection '%s'" chosen-collection))))))
+  (finito--wait-for-server-then
+   (finito--select-collection
+    (lambda (chosen-collection)
+      (finito--make-request
+       (finito--delete-collection-request-plist chosen-collection)
+       (lambda (_)
+         (message "Successfully deleted collection '%s'" chosen-collection)))))))
 
 ;;;###autoload
 (defun finito-update-collection-request (&optional args)
   "Update the collection specified in ARGS."
   (interactive
    (list (finito--transient-args-plist 'finito-update-collection)))
-  (finito--wait-for-server)
-  (let ((chosen-collection (plist-get args :name))
-        (new-name (plist-get args :new-name))
-        (preferred-sort (-some--> (plist-get args :sort)
-                          (s-replace " " "" it)))
-        (sort-asc (alist-get (plist-get args :sort-ascending)
-                             finito--sort-asc-alist
-                             nil
-                             nil
-                             #'string=)))
-    (finito--make-request
-     (finito--update-collection-request-plist
-      chosen-collection new-name preferred-sort sort-asc)
-     (lambda (_)
-       (message "Successfully updated collection '%s'" chosen-collection)))))
+  (finito--wait-for-server-then
+   (let ((chosen-collection (plist-get args :name))
+         (new-name (plist-get args :new-name))
+         (preferred-sort (-some--> (plist-get args :sort)
+                           (s-replace " " "" it)))
+         (sort-asc (alist-get (plist-get args :sort-ascending)
+                              finito--sort-asc-alist
+                              nil
+                              nil
+                              #'string=)))
+     (finito--make-request
+      (finito--update-collection-request-plist
+       chosen-collection new-name preferred-sort sort-asc)
+      (lambda (_)
+        (message "Successfully updated collection '%s'" chosen-collection))))))
 
 (defun finito-same-author ()
   "Find books by the author at point."

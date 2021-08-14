@@ -4,7 +4,7 @@
 
 ** Bigger things  
 *** DONE Add testing for interactive functions
-*** TODO Make server start asynchronous
+*** DONE Make server start asynchronous
 *** DONE Download book images in parallel
 ** Smaller Things
 *** DONE Add version number

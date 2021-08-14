@@ -120,13 +120,32 @@ An error is signalled if the server jar cannot be found."
 
 ;;; Misc functions
 
-(defun finito--wait-for-server ()
-  "Wait for the finito server to start or signal error after 20 retries."
+(defmacro finito--wait-for-server-then (&rest body)
+  "Wait for the server to start asynchronously and then run BODY."
+  `(finito--wait-for-server (lambda () ,@body)))
+
+(defun finito--wait-for-server (callback &optional attempts)
+  "Wait for the finito server to start then call CALLBACK.
+
+ATTEMPTS is the max number of attempts to wait (in 0.5 second increments)
+for the server until signalling an error.  It will default to 20 if not
+specified."
   (finito-start-server-if-not-already)
-  (unless (-first (lambda (_)
-                    (or (finito--health-check) (ignore (sleep-for 0.5))))
-                  (-repeat 20 t))
-    (error finito--server-startup-timeout-msg)))
+  (async-start
+   `(lambda ()
+      ,(async-inject-variables "finito--host-uri")
+      (defun finito--health-check ()
+        (not (eq (ignore-errors
+                   (url-retrieve-synchronously
+                    (concat finito--host-uri "/health") nil nil 5)) nil)))
+      (require 'cl)
+      (cl-find-if
+       (lambda (_) (or (finito--health-check) (ignore (sleep-for 0.5))))
+       (make-list ,(or attempts 20) t)))
+   (lambda (response)
+     (if response
+         (funcall callback)
+       (error finito--server-startup-timeout-msg)))))
 
 (defun finito--download-server ()
   "Download a finito server asynchronously.
