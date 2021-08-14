@@ -16,10 +16,7 @@ This package is a thin client for https://github.com/laurencewarne/libro-finito,
   ;; jar manually from the releases page:
   ;; https://github.com/LaurenceWarne/libro-finito/releases and place it in
   ;; `finito-server-directory'
-  (finito-download-server-if-not-exists)
-  ;; Optional, but will ensure Emacs is not blocked waiting for startup once
-  ;; a finito command is invoked
-  (finito-start-server-if-not-already))
+  (finito-download-server-if-not-exists))
 ```
 
 # Keys
@@ -103,14 +100,15 @@ The situation is similar to that of `finito-my-books-collection` above in that t
 
 ## Misc Variables
 
-| Variable                               | Description                                                                                        |
-|----------------------------------------|----------------------------------------------------------------------------------------------------|
-| `finito-language`                      | The language search queries should request responses in                                            |
-| `finito-server-directory`              | The directory of the finito and server and image cache                                             |
-| `finito-config-directory`              | The directory of the server config file and sqlite db                                              |
-| `finito-browse-function`               | The function to be invoked by `finito-browse-book-at-point`                                        |
-| `finito-add-book-collection-blacklist` | Collections to ignore for `finito-add-book-at-point` (default is `("Currently Reading")`)          |
-| `finito-save-last-search`              | A flag to indicate whether the arguments to the last search query should be saved (default is `t`) |
+| Variable                               | Description                                                                       | Default                                      |
+|----------------------------------------|-----------------------------------------------------------------------------------|----------------------------------------------|
+| `finito-language`                      | The language search queries should request responses in                           | `"en"`                                       |
+| `finito-server-directory`              | The directory the finito server should be downloaded to                           | `(concat user-emacs-directory "/finito")`    |
+| `finito-img-cache-directory`           | The directory of the finito image cache                                           | `(concat finito-server-directory "/images")` |
+| `finito-config-directory`              | The directory of the server config file and sqlite db                             | `"~/.config/libro-finito"`                   |
+| `finito-browse-function`               | The function to be invoked by `finito-browse-book-at-point`                       | `finito--browse-function`                    |
+| `finito-add-book-collection-blacklist` | Collections to ignore for `finito-add-book-at-point`                              | `("Currently Reading")`                      |
+| `finito-save-last-search`              | A flag to indicate whether the arguments to the last search query should be saved | `t`                                          |
 
 More information is available via `C-h v`.
 
