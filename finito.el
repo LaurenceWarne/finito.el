@@ -55,11 +55,11 @@ This object will be used to write books in finito buffers."
   :group 'finito
   :type 'object)
 
-(defcustom finito-server-directory
-  (f-join user-emacs-directory "finito/images/")
-  "The directory used to cache images."
+(defcustom finito-img-cache-directory
+  (f-join finito-server-directory "images/")
+  "The directory of the finito image cache."
   :group 'finito
-  :type 'string)
+  :type 'directory)
 
 (defcustom finito-browse-function
   #'finito--browse-function
@@ -182,7 +182,7 @@ Use INIT-OBJ, an instance of `finito-buffer-init' to initialize the buffer."
 Set up a finito buffer using INIT-OBJ which should be a `finito-buffer-init'
 instance, then call CALLBACK which should insert text in some way, and
 then apply some final configuration to the buffer."
-  (make-directory finito-server-directory t)
+  (make-directory finito-img-cache-directory t)
   (when (oref init-obj buf-name-unique)
     (ignore-errors (kill-buffer (oref init-obj buf-name))))
   (switch-to-buffer (generate-new-buffer-name (oref init-obj buf-name)))
@@ -245,7 +245,7 @@ last-read"
   (let-alist book-response
     (let* ((title-sanitized
             (replace-regexp-in-string "[^A-Za-z0-9._-]" "" (s-downcase .title)))
-           (image-file-name (f-join finito-server-directory
+           (image-file-name (f-join finito-img-cache-directory 
                                     (concat title-sanitized .isbn ".jpeg"))))
       (list (cons 'title .title)
             (cons 'authors .authors)
@@ -757,7 +757,7 @@ When DATE is specified, mark that as the date the book was finished."
     (finito--make-request
      (finito--delete-book-data-request-plist (alist-get 'isbn book))
      (lambda (_)
-       (format "Successfully deleted info held about '%s'"
+       (message "Successfully deleted info held about '%s'"
                 (alist-get 'title book))
        (finito-refresh-collection)))))
 

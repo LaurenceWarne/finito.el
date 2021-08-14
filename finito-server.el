@@ -43,7 +43,7 @@
 
 (defcustom finito-server-directory
   (f-join user-emacs-directory "finito/")
-  "The directory of the finito and server and image cache."
+  "The directory of the finito and server."
   :group 'finito
   :type 'directory)
 
@@ -134,6 +134,7 @@ specified."
   (async-start
    `(lambda ()
       ,(async-inject-variables "finito--host-uri")
+      ;; TODO how can I inject functions with async.el?
       (defun finito--health-check ()
         (not (eq (ignore-errors
                    (url-retrieve-synchronously
