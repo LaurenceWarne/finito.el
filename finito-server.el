@@ -122,7 +122,9 @@ An error is signalled if the server jar cannot be found."
 
 (defmacro finito--wait-for-server-then (&rest body)
   "Wait for the server to start asynchronously and then run BODY."
-  `(finito--wait-for-server (lambda () ,@body)))
+  `(let ((buf (current-buffer)))
+     (finito--wait-for-server
+      (lambda () (switch-to-buffer buf) ,@body))))
 
 (defun finito--wait-for-server (callback &optional attempts)
   "Wait for the finito server to start then call CALLBACK.
@@ -142,7 +144,7 @@ specified."
       (require 'cl)
       (cl-find-if
        (lambda (_) (or (finito--health-check) (ignore (sleep-for 0.5))))
-       (make-list ,(or attempts 20) t)))
+       (make-list ,(or attempts 40) t)))
    (lambda (response)
      (if response
          (funcall callback)

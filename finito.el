@@ -246,7 +246,7 @@ last-read"
   (let-alist book-response
     (let* ((title-sanitized
             (replace-regexp-in-string "[^A-Za-z0-9._-]" "" (s-downcase .title)))
-           (image-file-name (f-join finito-img-cache-directory 
+           (image-file-name (f-join finito-img-cache-directory
                                     (concat title-sanitized .isbn ".jpeg"))))
       (list (cons 'title .title)
             (cons 'authors .authors)
