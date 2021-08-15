@@ -554,6 +554,9 @@ GNU Emacs is the most popular and widespread of the Emacs family of editors. It 
               (funcall callback nil)))
     (spy-on 'finito--select-collection :and-call-fake
             (lambda (callback _) (funcall callback collection)))
+    (spy-on 'finito--wait-for-server :and-call-fake
+            (lambda (callback &rest _)
+              (funcall callback)))
     (spy-on 'finito--book-at-point :and-return-value book)
     (spy-on 'finito--add-book-request-plist :and-call-through))
 
@@ -574,6 +577,9 @@ GNU Emacs is the most popular and widespread of the Emacs family of editors. It 
             :and-call-fake
             (lambda (plist callback &rest _)
               (funcall callback nil)))
+    (spy-on 'finito--wait-for-server :and-call-fake
+            (lambda (callback &rest _)
+              (funcall callback)))
     (spy-on 'finito--book-at-point :and-return-value book)
     (spy-on 'finito--add-book-request-plist :and-call-through))
 
@@ -590,6 +596,9 @@ GNU Emacs is the most popular and widespread of the Emacs family of editors. It 
 (describe "finito-remove-book-at-point"
   :var ((book finito--stub-book))
   (before-each
+    (spy-on 'finito--wait-for-server :and-call-fake
+            (lambda (callback &rest _)
+              (funcall callback)))
     (spy-on 'finito--make-request :and-return-value nil)
     (spy-on 'finito--book-at-point :and-return-value book)
     (spy-on 'finito--remove-book-request-plist :and-call-through))
@@ -606,7 +615,10 @@ GNU Emacs is the most popular and widespread of the Emacs family of editors. It 
 
 (describe "finito-refresh-collection"
   (before-each
-    (spy-on 'finito--open-specified-collection :and-return-value nil))
+    (spy-on 'finito--open-specified-collection :and-return-value nil)
+    (spy-on 'finito--wait-for-server :and-call-fake
+            (lambda (callback &rest _)
+              (funcall callback))))
 
   (it "refreshes collection"
     (let ((finito--collection "collection to refresh"))
@@ -621,6 +633,9 @@ GNU Emacs is the most popular and widespread of the Emacs family of editors. It 
         (rating "5"))
   (before-each
     (spy-on 'read-string :and-return-value rating)
+    (spy-on 'finito--wait-for-server :and-call-fake
+            (lambda (callback &rest _)
+              (funcall callback)))
     (spy-on 'finito--book-at-point :and-return-value book)
     (spy-on 'finito--rate-book-request-plist :and-call-through)
     (spy-on 'finito--replace-book-at-point-from-request
@@ -640,6 +655,9 @@ GNU Emacs is the most popular and widespread of the Emacs family of editors. It 
 (describe "finito-start-book-at-point"
   :var ((book finito--stub-book))
   (before-each
+    (spy-on 'finito--wait-for-server :and-call-fake
+            (lambda (callback &rest _)
+              (funcall callback)))
     (spy-on 'finito--book-at-point :and-return-value book)
     (spy-on 'finito--start-reading-request-plist :and-call-through)
     (spy-on 'finito--replace-book-at-point-from-request
@@ -658,6 +676,9 @@ GNU Emacs is the most popular and widespread of the Emacs family of editors. It 
 (describe "finito-finish-book-at-point"
   :var ((book finito--stub-book))
   (before-each
+    (spy-on 'finito--wait-for-server :and-call-fake
+            (lambda (callback &rest _)
+              (funcall callback)))
     (spy-on 'finito--book-at-point :and-return-value book)
     (spy-on 'finito--finish-reading-request-plist :and-call-through)
     (spy-on 'finito--replace-book-at-point-from-request
@@ -676,6 +697,9 @@ GNU Emacs is the most popular and widespread of the Emacs family of editors. It 
 (describe "finito-delete-data-for-book-at-point"
   :var ((book finito--stub-book))
   (before-each
+    (spy-on 'finito--wait-for-server :and-call-fake
+            (lambda (callback &rest _)
+              (funcall callback)))
     (spy-on 'finito--book-at-point :and-return-value book)
     (spy-on 'finito--delete-book-data-request-plist :and-call-through))
 
