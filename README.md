@@ -2,7 +2,9 @@
 
 `finito.el` allows for the management of books from within Emacs.  Books are presented in modified org mode buffers, and books along with user collections can be viewed/queried using [transient](https://github.com/magit/transient).
 
-This package is a thin client for https://github.com/laurencewarne/libro-finito, more information on collection management and cutomization can be found there.
+This package is a thin client for https://github.com/laurencewarne/libro-finito, more information on collection management and cutomization can be found there.  Here's a demo of some of its features:
+
+https://user-images.githubusercontent.com/17688577/129481123-7a80b4e3-d190-4da0-a6de-0d07cf53229d.mp4
 
 # Installation
 
@@ -115,7 +117,7 @@ The situation is similar to that of `finito-my-books-collection` above in that t
 | `finito-add-book-collection-blacklist` | Collections to ignore for `finito-add-book-at-point`                              | `("Currently Reading")`                      |
 | `finito-save-last-search`              | A flag to indicate whether the arguments to the last search query should be saved | `t`                                          |
 
-More information is available via `C-h v`.
+More information is available via `C-h v`.  Note if `org-display-remote-inline-images` is set, then finito will defer remote image handling to org and not create its own image cache.
 
 # Similar Packages
 
