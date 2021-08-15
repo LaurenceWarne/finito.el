@@ -154,6 +154,7 @@ as a symbol."
   "Insert the books data DATA into a buffer.
 
 Use INIT-OBJ, an instance of `finito-buffer-init' to initialize the buffer."
+  (make-directory finito-img-cache-directory t)
   (let ((book-list (-map #'finito--create-book-alist (append data nil)))
         (display-remote (bound-and-true-p org-display-remote-inline-images)))
     (cl-flet ((proc-books () (finito--process
@@ -173,6 +174,7 @@ Use INIT-OBJ, an instance of `finito-buffer-init' to initialize the buffer."
   "Insert the book data DATA into a buffer.
 
 Use INIT-OBJ, an instance of `finito-buffer-init' to initialize the buffer."
+  (make-directory finito-img-cache-directory t)
   (finito--process init-obj (lambda () (finito--layout-book-data
                                         (finito--create-book-alist data)))))
 
@@ -182,7 +184,6 @@ Use INIT-OBJ, an instance of `finito-buffer-init' to initialize the buffer."
 Set up a finito buffer using INIT-OBJ which should be a `finito-buffer-init'
 instance, then call CALLBACK which should insert text in some way, and
 then apply some final configuration to the buffer."
-  (make-directory finito-img-cache-directory t)
   (when (oref init-obj buf-name-unique)
     (ignore-errors (kill-buffer (oref init-obj buf-name))))
   (switch-to-buffer (generate-new-buffer-name (oref init-obj buf-name)))
