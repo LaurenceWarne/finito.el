@@ -652,48 +652,55 @@ _ARGS does nothing and is needed to appease transient."
 (defun finito-add-book-at-point ()
   "Prompt the user for a collection, and add the book at point to it."
   (interactive)
-  (let ((book (finito--book-at-point)))
-    (finito--select-collection
-     (lambda (chosen-collection)
-       (finito--make-request
-        (finito--add-book-request-plist book chosen-collection)
-        (lambda (_)
-          (message "Successfully added '%s' to '%s'"
-                   (alist-get 'title book)
-                   chosen-collection))))
-     (lambda (collection)
-       (not (member collection finito-add-book-collection-blacklist))))))
+  (finito--wait-for-server-then
+   (let ((book (finito--book-at-point)))
+     (finito--select-collection
+      (lambda (chosen-collection)
+        (finito--make-request
+         (finito--add-book-request-plist book chosen-collection)
+         (lambda (_)
+           (message "Successfully added '%s' to '%s'"
+                    (alist-get 'title book)
+                    chosen-collection))))
+      (lambda (collection)
+        (not (member collection finito-add-book-collection-blacklist)))))))
 
 (defun finito-add-to-default-book-at-point ()
   "Add the book at point to the default collection."
   (interactive)
-  (let ((book (finito--book-at-point)))
-    (finito--make-request
-     (finito--add-book-request-plist book)
-     (lambda (_) (message "Successfully added '%s'" (alist-get 'title book))))))
+  (finito--wait-for-server-then
+   (let ((book (finito--book-at-point)))
+     (finito--make-request
+      (finito--add-book-request-plist book)
+      (lambda (_)
+        (message "Successfully added '%s'" (alist-get 'title book)))))))
 
 (defun finito-remove-book-at-point ()
   "Remove the book at point from the current collection."
   (interactive)
-  (let* ((book (finito--book-at-point))
-         (isbn (alist-get 'isbn book))
-         (line (line-number-at-pos))
-         (buf (current-buffer)))
-    (finito--make-request
-     (finito--remove-book-request-plist finito--collection isbn)
-     (lambda (_)
-       (message "Removed '%s' from %s" (alist-get 'title book) finito--collection)
-       (finito--goto-buffer-line-and-remove-book-at-point buf line)))))
+  (finito--wait-for-server-then
+   (let* ((book (finito--book-at-point))
+          (isbn (alist-get 'isbn book))
+          (line (line-number-at-pos))
+          (buf (current-buffer)))
+     (finito--make-request
+      (finito--remove-book-request-plist finito--collection isbn)
+      (lambda (_)
+        (message "Removed '%s' from %s"
+                 (alist-get 'title book)
+                 finito--collection)
+        (finito--goto-buffer-line-and-remove-book-at-point buf line))))))
 
 (defun finito-refresh-collection ()
   "Refresh the current collection."
   (interactive)
-  (let ((collection finito--collection)
-        (old-point (point))
-        (request-backend 'url-retrieve))
-    (kill-current-buffer)
-    (finito--open-specified-collection collection t)
-    (goto-char old-point)))
+  (finito--wait-for-server-then
+   (let ((collection finito--collection)
+         (old-point (point))
+         (request-backend 'url-retrieve))
+     (kill-current-buffer)
+     (finito--open-specified-collection collection t)
+     (goto-char old-point))))
 
 (defun finito-browse-book-at-point ()
   "Browse the book at point."
@@ -703,24 +710,26 @@ _ARGS does nothing and is needed to appease transient."
 (defun finito-rate-book-at-point ()
   "Rate the book at point."
   (interactive)
-  (let ((book (finito--book-at-point))
-        (rating (read-string "Rating: ")))
-    (finito--replace-book-at-point-from-request
-     (finito--rate-book-request-plist book rating)
-     (format "Successfully gave '%s' a rating of %s"
-             (alist-get 'title book)
-             rating))))
+  (finito--wait-for-server-then
+   (let ((book (finito--book-at-point))
+         (rating (read-string "Rating: ")))
+     (finito--replace-book-at-point-from-request
+      (finito--rate-book-request-plist book rating)
+      (format "Successfully gave '%s' a rating of %s"
+              (alist-get 'title book)
+              rating)))))
 
 (defun finito-start-book-at-point (&optional date)
   "Mark the book at point as currently reading.
 
 When DATE is specified, mark that as the date the book was started."
   (interactive)
-  (let ((book (finito--book-at-point)))
-    (finito--replace-book-at-point-from-request
-     (finito--start-reading-request-plist book date)
-     (format "Successfully added '%s' to currently reading"
-             (alist-get 'title book)))))
+  (finito--wait-for-server-then
+   (let ((book (finito--book-at-point)))
+     (finito--replace-book-at-point-from-request
+      (finito--start-reading-request-plist book date)
+      (format "Successfully added '%s' to currently reading"
+              (alist-get 'title book))))))
 
 (defun finito-start-and-date-book-at-point ()
   "Mark the book at point as currently reading from a prompted date."
@@ -732,19 +741,20 @@ When DATE is specified, mark that as the date the book was started."
 
 When DATE is specified, mark that as the date the book was finished."
   (interactive)
-  (let* ((book (finito--book-at-point))
-         (request-plist (finito--finish-reading-request-plist book date))
-         (msg (format "Successfully marked '%s' as finished"
-                      (alist-get 'title book))))
-    (if (string= finito--collection finito-currently-reading-collection)
-        (let ((line (line-number-at-pos))
-              (buf (current-buffer)))
-          (finito--make-request
-           request-plist
-           (lambda (_)
-             (finito--goto-buffer-line-and-remove-book-at-point buf line)
-             (message msg))))
-      (finito--replace-book-at-point-from-request request-plist msg))))
+  (finito--wait-for-server-then
+   (let* ((book (finito--book-at-point))
+          (request-plist (finito--finish-reading-request-plist book date))
+          (msg (format "Successfully marked '%s' as finished"
+                       (alist-get 'title book))))
+     (if (string= finito--collection finito-currently-reading-collection)
+         (let ((line (line-number-at-pos))
+               (buf (current-buffer)))
+           (finito--make-request
+            request-plist
+            (lambda (_)
+              (finito--goto-buffer-line-and-remove-book-at-point buf line)
+              (message msg))))
+       (finito--replace-book-at-point-from-request request-plist msg)))))
 
 (defun finito-finish-and-date-book-at-point ()
   "Mark the book at point as finished on a prompted date."
@@ -754,13 +764,14 @@ When DATE is specified, mark that as the date the book was finished."
 (defun finito-delete-data-for-book-at-point ()
   "Remove all data held about the book at point."
   (interactive)
-  (let ((book (finito--book-at-point)))
-    (finito--make-request
-     (finito--delete-book-data-request-plist (alist-get 'isbn book))
-     (lambda (_)
-       (message "Successfully deleted info held about '%s'"
-                (alist-get 'title book))
-       (finito-refresh-collection)))))
+  (finito--wait-for-server-then
+   (let ((book (finito--book-at-point)))
+     (finito--make-request
+      (finito--delete-book-data-request-plist (alist-get 'isbn book))
+      (lambda (_)
+        (message "Successfully deleted info held about '%s'"
+                 (alist-get 'title book))
+        (finito-refresh-collection))))))
 
 (defun finito-replay-search ()
   "Open the search transient prefix with the last args that were used."
