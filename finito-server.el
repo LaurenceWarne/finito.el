@@ -93,10 +93,14 @@ Are there any error messages when you (switch-to-buffer \"finito\") ?")
 
 ;;; User facing functions
 
-(defun finito-download-server-if-not-exists ()
-  "Download a finito server if one is not already downloaded."
-  (unless (f-exists-p finito--server-path)
-    (finito--download-server)))
+(defun finito-download-server-if-not-exists (&optional callback)
+  "Download a finito server if one is not already downloaded.
+
+If CALLBACK is specified, call that function when the download has
+completed, or if a server has already been downloaded."
+  (if (f-exists-p finito--server-path)
+      (when callback (funcall callback))
+    (finito--download-server callback)))
 
 (defun finito-start-server-if-not-already ()
   "Start a finito server if one does not already appear to be up.
@@ -150,11 +154,12 @@ specified."
          (funcall callback)
        (error finito--server-startup-timeout-msg)))))
 
-(defun finito--download-server ()
+(defun finito--download-server (&optional callback)
   "Download a finito server asynchronously.
 
-The server version is determined by `finito-server-version', and the the
-server will save it to the file `finito--server-path'."
+If CALLBACK is specified, call that function when the download has
+completed.  The server version is determined by `finito-server-version',
+and the the server will save it to the file `finito--server-path'."
   (let* ((request-backend 'url-retrieve))
     (make-directory finito-server-directory t)
     (message "Starting finito server download...")
@@ -166,7 +171,9 @@ server will save it to the file `finito--server-path'."
             (concat finito--download-url "v" finito-server-version)
           (concat "/" finito--jar-name)
           (url-copy-file finito--server-path)))
-     (lambda (_) (message "Finished downloading the finito server")))))
+     (lambda (_)
+       (message "Finished downloading the finito server")
+       (when callback (funcall callback))))))
 
 (defun finito--health-check ()
   "Return t if the finito server appears to be up, else nil."

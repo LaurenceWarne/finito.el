@@ -16,7 +16,12 @@ This package is a thin client for https://github.com/laurencewarne/libro-finito,
   ;; jar manually from the releases page:
   ;; https://github.com/LaurenceWarne/libro-finito/releases and place it in
   ;; `finito-server-directory'
-  (finito-download-server-if-not-exists))
+  (finito-download-server-if-not-exists
+   ;; Optional, but we can specify a callback to run when the server has
+   ;; finished downloading, we choose here to start the server to override
+   ;; the default lazy behaviour which starts the server whenever a finito
+   ;; command is invoked
+   (lambda () (finito-start-server-if-not-already))))
 ```
 
 # Keys
