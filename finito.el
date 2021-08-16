@@ -1,11 +1,11 @@
-;;; finito.el --- View and collect books in Emacs -*- lexical-binding: t -*-
+;;; finito.el --- View and collect books -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2021 Laurence Warne
 
 ;; Author: Laurence Warne
 ;; Maintainer: Laurence Warne
 ;; Version: 0.1.0
-;; Keywords: books
+;; Keywords: outlines
 ;; URL: https://github.com/LaurenceWarne/libro-finito
 ;; Package-Requires: ((emacs "27.1") (dash "2.17.0") (request "0.3.2") (f "0.2.0") (s "1.12.0") (transient "0.3.0") (graphql "0.1.1") (async "1.9.3"))
 
@@ -24,7 +24,13 @@
 
 ;;; Commentary:
 
-;; An Emacs interface for viewing and searching for books.
+;; An Emacs interface for viewing and searching for books.   Books are
+;; presented in modified org mode buffers, and books along with user
+;; collections can be viewed/queried using transient.
+
+;; The package's main entry point is `finito', a transient prefix command
+;; from which collections can be created and viewed, and books searched
+;; for.
 
 ;;; Code:
 
@@ -43,13 +49,11 @@
 (require 'finito-server)
 (require 'finito-view)
 
-(eval-when-compile (require 'let-alist))
-
 ;;; Custom variables
 
 (defcustom finito-writer-instance
   (finito-book-writer)
-  "`finito-book-writer' instance to be used.
+  "The `finito-book-writer' instance to be used.
 
 This object will be used to write books in finito buffers."
   :group 'finito
@@ -314,7 +318,9 @@ non-nil value.  If SYNC is non-nil, make the request synchronous."
    :sync sync))
 
 (defun finito--browse-function (book-alist)
-  "Open an openlibrary page of a book, using the isbn in BOOK-ALIST."
+  "Open an openlibrary page of a book, using the isbn in BOOK-ALIST.
+
+BOOK-ALIST should be of the form returned by `finito--create-book-alist'."
   (browse-url
    (concat "https://openlibrary.org/isbn/" (alist-get 'isbn book-alist))))
 
@@ -355,8 +361,8 @@ If SYNC it non-nil, perform all actions synchronously."
 (defun finito--insert-book-in-current-buffer (book)
   "Insert BOOK at point the current buffer.
 
-BOOK should be a unparsed server response book alist.  This function will
-also update `finito--buffer-books' as necessary."
+BOOK should be a unparsed server response for a given book.  This function
+will also update `finito--buffer-books' as necessary."
   (let ((line-num (line-number-at-pos))
         (book-alist (finito--create-book-alist book))
         (inhibit-read-only t))
@@ -500,7 +506,7 @@ set of args.  This is intended to be used for debugging."
                                        (plist-get args :author))))
 
 (defun finito-kw-search-request-curl-dbg (&optional title author)
-  "Copy to the kill ring a curl request for a search request.
+  "Copy to the kill ring a curl request for a keyword search request.
 
 Copy to the kill ring a curl request string corresponding to what the server
 would send to the Google Books API (see URL
@@ -577,8 +583,7 @@ _ARGS does nothing and is needed to appease transient."
 _ARGS does nothing and is needed to appease transient."
   (interactive)
   (finito--wait-for-server-then
-   (finito--select-collection
-    (lambda (c) (finito--open-specified-collection c)))))
+   (finito--select-collection #'finito--open-specified-collection)))
 
 ;;;###autoload
 (defun finito-open-my-books-collection (&optional _args)
@@ -637,9 +642,9 @@ _ARGS does nothing and is needed to appease transient."
   "Find books by the author at point."
   (interactive)
   (let* ((book (finito--book-at-point))
-         (authors (s-join " " (alist-get 'authors book))))
-    (message "Searching for author(s) '%s'" authors)
-    (finito-search-for-books nil authors)))
+         (book-authors (s-join " " (alist-get 'authors book))))
+    (message "Searching for author(s) '%s'" book-authors)
+    (finito-search-for-books nil book-authors)))
 
 (defun finito-to-org-buffer ()
   "Open the current buffer as a normal org mode buffer."
