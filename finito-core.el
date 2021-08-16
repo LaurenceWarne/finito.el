@@ -19,6 +19,8 @@
 
 ;;; Commentary:
 
+;; Defines the custom group used by finito, along with the version.
+
 ;;; Code:
 
 (defconst finito-version "0.1.0")

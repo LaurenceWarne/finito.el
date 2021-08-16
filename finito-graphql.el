@@ -18,7 +18,7 @@
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
-;;
+
 ;; This file contains utilities for working with libro finito's GraphQL api
 
 ;;; Code:

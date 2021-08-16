@@ -18,7 +18,7 @@
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
-;;
+
 ;; This file contains transients used by finito.
 
 ;;; Code:
