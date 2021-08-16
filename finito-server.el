@@ -36,7 +36,7 @@
 ;;; Constants
 
 (defconst finito-server-minimum-required-version
-  "0.4.0"
+  "0.4.1"
   "The minimum compatible finito server version.")
 
 ;;; Custom variables
