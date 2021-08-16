@@ -1,4 +1,4 @@
-;;; finito-view.el --- GraphQL requests used by finito -*- lexical-binding: t -*-
+;;; finito-graphql.el --- GraphQL helpers -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2021 Laurence Warne
 

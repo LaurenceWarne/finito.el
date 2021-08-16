@@ -1,4 +1,4 @@
-;;; finito-view.el --- http utilities for finito -*- lexical-binding: t -*-
+;;; finito-request.el --- http utilities for finito -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2021 Laurence Warne
 
@@ -57,7 +57,7 @@ The body will be deduced from TITLE-KEYWORDS, AUTHOR-KEYWORDS and MAX-RESULTS."
                   finito-language)))
     `(:headers ,finito--headers
       :data
-      ,(format "{\"query\":\"%s\", \"variables\": %s\}"
+      ,(format "{\"query\":\"%s\", \"variables\": %s}"
                finito--search-query
                query-variable-str))))
 
@@ -67,7 +67,7 @@ The body will be deduced from TITLE-KEYWORDS, AUTHOR-KEYWORDS and MAX-RESULTS."
 ISBN should be isbn of the book to query for."
   `(:headers ,finito--headers
     :data
-    ,(format "{\"query\":\"%s\", \"variables\": %s\}"
+    ,(format "{\"query\":\"%s\", \"variables\": %s}"
              finito--isbn-query
              (format finito--isbn-query-variables isbn))))
 
@@ -77,7 +77,7 @@ ISBN should be isbn of the book to query for."
 NAME should be the name of the collection to query for."
   `(:headers ,finito--headers
     :data
-    ,(format "{\"query\":\"%s\", \"variables\": %s\}"
+    ,(format "{\"query\":\"%s\", \"variables\": %s}"
              finito--collection-query
              (format finito--collection-query-variables name))))
 
@@ -93,7 +93,7 @@ NAME should be the name of the collection to query for."
 NAME should be the name of the collection to create."
   `(:headers ,finito--headers
     :data
-    ,(format "{\"query\":\"%s\", \"variables\": %s\}"
+    ,(format "{\"query\":\"%s\", \"variables\": %s}"
              finito--create-collection-mutation
              (format finito--create-collection-mutation-variables name))))
 
@@ -103,7 +103,7 @@ NAME should be the name of the collection to create."
 NAME should be the name of the collection to delete."
   `(:headers ,finito--headers
     :data
-    ,(format "{\"query\":\"%s\", \"variables\": %s\}"
+    ,(format "{\"query\":\"%s\", \"variables\": %s}"
              finito--delete-collection-mutation
              (format finito--delete-collection-mutation-variables name))))
 
@@ -119,7 +119,7 @@ which should be one of the symbols `true' or `false' (if nil is passed
 then the property will not be changed)."
   `(:headers ,finito--headers
     :data
-    ,(format "{\"query\":\"%s\", \"variables\": %s\}"
+    ,(format "{\"query\":\"%s\", \"variables\": %s}"
              finito--update-collection-mutation
              (format finito--update-collection-mutation-variables
                      current-name
@@ -136,7 +136,7 @@ then the property will not be changed)."
 COLLECTION should be the name of the collection, and BOOK should be an alist
 of the form returned by `finito--create-book-alist' to add to it."
   `(:headers ,finito--headers
-    :data ,(format "{\"query\":\"%s\", \"variables\": %s\}"
+    :data ,(format "{\"query\":\"%s\", \"variables\": %s}"
              finito--add-book-mutation
              (let-alist book
                (format
@@ -154,7 +154,7 @@ of the form returned by `finito--create-book-alist' to add to it."
 COLLECTION should be the name of the collection, and ISBN should be the isbn
 of the book to remove."
   `(:headers ,finito--headers
-    :data ,(format "{\"query\":\"%s\", \"variables\": %s\}"
+    :data ,(format "{\"query\":\"%s\", \"variables\": %s}"
                    finito--remove-book-mutation
                    (format finito--remove-book-mutation-variables
                            collection
@@ -165,7 +165,7 @@ of the book to remove."
 
 BOOK should be the book (as an alist) to rate and RATING the rating."
   `(:headers ,finito--headers
-    :data ,(format "{\"query\":\"%s\", \"variables\": %s\}"
+    :data ,(format "{\"query\":\"%s\", \"variables\": %s}"
                    finito--rate-book-mutation
                    (let-alist book
                      (format
@@ -183,7 +183,7 @@ BOOK should be the book (as an alist) to rate and RATING the rating."
 BOOK should be the book (as an alist) to start reading and START-DATE is an
 optional start date which should be used if this book was started in the past."
   `(:headers ,finito--headers
-    :data ,(format "{\"query\":\"%s\", \"variables\": %s\}"
+    :data ,(format "{\"query\":\"%s\", \"variables\": %s}"
                    finito--start-reading-mutation
                    (let-alist book
                      (format
@@ -201,7 +201,7 @@ optional start date which should be used if this book was started in the past."
 BOOK should be the book (as an alist) to finish reading and DATE is an
 optional date which should be used if this book was finished in the past."
   `(:headers ,finito--headers
-    :data ,(format "{\"query\":\"%s\", \"variables\": %s\}"
+    :data ,(format "{\"query\":\"%s\", \"variables\": %s}"
                    finito--finish-reading-mutation
                    (let-alist book
                      (format
@@ -218,7 +218,7 @@ optional date which should be used if this book was finished in the past."
 
 ISBN should be the isbn of the book to remove data for."
   `(:headers ,finito--headers
-    :data ,(format "{\"query\":\"%s\", \"variables\": %s\}"
+    :data ,(format "{\"query\":\"%s\", \"variables\": %s}"
                    finito--delete-book-data-mutation
                    (format finito--delete-book-data-mutation-variables
                            isbn))))

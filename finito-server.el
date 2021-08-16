@@ -1,4 +1,4 @@
-;;; finito-view.el --- finito server bootstrapping -*- lexical-binding: t -*-
+;;; finito-server.el --- finito server bootstrapping -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2021 Laurence Warne
 
@@ -145,7 +145,7 @@ specified."
         (not (eq (ignore-errors
                    (url-retrieve-synchronously
                     (concat finito--host-uri "/health") nil nil 5)) nil)))
-      (require 'cl)
+      (require 'cl-lib)
       (cl-find-if
        (lambda (_) (or (finito--health-check) (ignore (sleep-for 0.5))))
        (make-list ,(or attempts 40) t)))

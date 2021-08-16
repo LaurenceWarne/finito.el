@@ -1,4 +1,4 @@
-;;; finito-view.el --- finito core -*- lexical-binding: t -*-
+;;; finito-core.el --- finito core -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2021 Laurence Warne
 

@@ -1,4 +1,4 @@
-;;; finito-view.el --- Buffer utilities for finito -*- lexical-binding: t -*-
+;;; finito-buffer.el --- Buffer utilities for finito -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2021 Laurence Warne
 
