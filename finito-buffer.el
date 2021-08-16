@@ -25,6 +25,7 @@
 
 (require 'cl-lib)
 (require 'dash)
+(require 'eieio)
 (require 'iso8601)
 (require 's)
 
@@ -104,36 +105,24 @@ BOOK-ALIST is an alist of the format returned by `finito--create-book-alist'"
       (finito-insert-last-read writer .last-read))
     (finito-insert-description writer .description)))
 
-(cl-defmethod finito-insert-title ((_writer finito-book-writer) title)
-  "Insert TITLE into the current buffer.
-
-_WRITER is a `finito-book-writer', but it's properties have no bearing on the
-result of this method."
+(cl-defmethod finito-insert-title ((_ finito-book-writer) title)
+  "Insert TITLE into the current buffer."
   (insert (concat "** " title "\n\n")))
 
-(cl-defmethod finito-insert-image ((_writer finito-book-writer) image)
-  "Insert IMAGE (an image file name) into the current buffer.
-
-_WRITER is a `finito-book-writer', but it's properties have no bearing on the
-result of this method."
+(cl-defmethod finito-insert-image ((_ finito-book-writer) image)
+  "Insert IMAGE (an image file name) into the current buffer."
   (insert (concat "[[" image "]]  ")))
 
-(cl-defmethod finito-insert-author ((_writer finito-book-writer) authors)
-  "Insert AUTHORS into the current buffer.
-
-_WRITER is a `finito-book-writer', but it's properties have no bearing on the
-result of this method."
+(cl-defmethod finito-insert-author ((_ finito-book-writer) authors)
+  "Insert AUTHORS into the current buffer."
   (let ((authors-str (s-join ", " authors)))
     (insert (concat authors-str "\n\n"))
     (overlay-put (make-overlay (- (point) 2) (- (point) (length authors-str) 2))
                  'face
                  'finito-author-name)))
 
-(cl-defmethod finito-insert-rating ((_writer finito-book-writer) rating)
-  "Insert RATING into the current buffer.
-
-_WRITER is a `finito-book-writer', but it's properties have no bearing on the
-result of this method."
+(cl-defmethod finito-insert-rating ((_ finito-book-writer) rating)
+  "Insert RATING into the current buffer."
   (insert
    (concat (-repeat (min rating 100) ?★) "\n"))
   (overlay-put (make-overlay (1- (point)) (- (point) (min rating 100) 1))
@@ -141,11 +130,8 @@ result of this method."
                  'finito-rating))
 
 (cl-defmethod finito-insert-started-reading
-  ((_writer finito-book-writer) _started-reading)
-  "Insert STARTED-READING into the current buffer.
-
-_WRITER is a `finito-book-writer', but it's properties have no bearing on the
-result of this method."
+  ((_ finito-book-writer) _started-reading)
+  "Insert STARTED-READING into the current buffer."
   (let ((currently-reading-str "⌛ In Progress ⌛"))
     (insert (concat currently-reading-str) "\n")
     (overlay-put (make-overlay (1- (point)) (- (point)
@@ -154,11 +140,8 @@ result of this method."
                  'finito-currently-reading)))
 
 (cl-defmethod finito-insert-last-read
-  ((_writer finito-book-writer) last-read)
-  "Insert LAST-READ into the current buffer.
-
-_WRITER is a `finito-book-writer', but it's properties have no bearing on the
-result of this method."
+  ((_ finito-book-writer) last-read)
+  "Insert LAST-READ into the current buffer."
   (let* ((last-read-str (concat "Last Read: " last-read)))
     (insert last-read-str "\n")
     (overlay-put (make-overlay (1- (point)) (- (point)
@@ -166,15 +149,12 @@ result of this method."
                  'face
                  'finito-last-read)))
 
-(cl-defmethod finito-insert-description ((_writer finito-book-writer) description)
-  "Insert DESCRIPTION into the current buffer.
-
-_WRITER is a `finito-book-writer', but it's properties have no bearing on the
-result of this method."
+(cl-defmethod finito-insert-description ((_ finito-book-writer) description)
+  "Insert DESCRIPTION into the current buffer."
   (insert (concat description "\n\n"))
-    (overlay-put (make-overlay (- (point) 2) (- (point) (length description) 2))
-                 'face
-                 'finito-book-descriptions))
+  (overlay-put (make-overlay (- (point) 2) (- (point) (length description) 2))
+               'face
+               'finito-book-descriptions))
 
 (defclass finito-buffer-info ()
   ((title :initarg :title

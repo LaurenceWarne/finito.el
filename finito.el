@@ -53,9 +53,7 @@
 
 (defcustom finito-writer-instance
   (finito-book-writer)
-  "The `finito-book-writer' instance to be used.
-
-This object will be used to write books in finito buffers."
+  "This object will be used to write books in finito buffers."
   :group 'finito
   :type 'object)
 
@@ -563,10 +561,8 @@ maximum of MAX-RESULTS results."
                       finito-keyword-search-buffer-init-instance))))))
 
 ;;;###autoload
-(defun finito-create-collection (&optional _args)
-  "Send a request to the finito server to create a new collection.
-
-_ARGS does nothing and is needed to appease transient."
+(defun finito-create-collection (&optional _)
+  "Send a request to the finito server to create a new collection."
   (interactive)
   (finito--wait-for-server-then
    (if-let* ((name (read-string "Collection name: "))
@@ -577,37 +573,29 @@ _ARGS does nothing and is needed to appease transient."
           (message "Successfully created collection '%s'" (cdar c)))))))
 
 ;;;###autoload
-(defun finito-open-collection (&optional _args)
-  "Prompt the user for a collection and open it.
-
-_ARGS does nothing and is needed to appease transient."
+(defun finito-open-collection (&optional _)
+  "Prompt the user for a collection and open it."
   (interactive)
   (finito--wait-for-server-then
    (finito--select-collection #'finito--open-specified-collection)))
 
 ;;;###autoload
-(defun finito-open-my-books-collection (&optional _args)
-  "Open \"My Books\".
-
-_ARGS does nothing and is needed to appease transient."
+(defun finito-open-my-books-collection (&optional _)
+  "Open \"My Books\"."
   (interactive)
   (finito--wait-for-server-then
    (finito--open-specified-collection finito-my-books-collection)))
 
 ;;;###autoload
-(defun finito-open-currently-reading-collection (&optional _args)
-  "Open \"Currently Reading\".
-
-_ARGS does nothing and is needed to appease transient."
+(defun finito-open-currently-reading-collection (&optional _)
+  "Open \"Currently Reading\"."
   (interactive)
   (finito--wait-for-server-then
    (finito--open-specified-collection finito-currently-reading-collection)))
 
 ;;;###autoload
-(defun finito-delete-collection (&optional _args)
-  "Prompt the user for a collection and delete it.
-
-_ARGS does nothing and is needed to appease transient."
+(defun finito-delete-collection (&optional _)
+  "Prompt the user for a collection and delete it."
   (interactive)
   (finito--wait-for-server-then
    (finito--select-collection
