@@ -6,6 +6,7 @@
 *** DONE Add testing for interactive functions
 *** DONE Make server start asynchronous
 *** DONE Download book images in parallel
+*** TODO Use [[https://www.gnu.org/software/emacs/manual/html_node/elisp/Abstract-Display.html][ewoc]]
 ** Smaller Things
 *** DONE Add version number
 *** DONE Use ~transient-define-infix~ instead of ~transient-define-argument~

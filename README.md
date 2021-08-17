@@ -8,6 +8,8 @@ https://user-images.githubusercontent.com/17688577/129481123-7a80b4e3-d190-4da0-
 
 # Installation
 
+It's not currently on melpa, but you can for example install it from source using [quelpa](https://github.com/quelpa/quelpa-use-package):
+
 ```elisp
 (use-package finito
   :demand t
