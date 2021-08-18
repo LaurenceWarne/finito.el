@@ -4,7 +4,7 @@
 
 This package is a thin client for https://github.com/laurencewarne/libro-finito, more information on collection management and cutomization can be found there.  Here's a demo of some of its features:
 
-https://user-images.githubusercontent.com/17688577/129481123-7a80b4e3-d190-4da0-a6de-0d07cf53229d.mp4
+https://user-images.githubusercontent.com/17688577/129899845-c9b67d25-bf99-41f8-bbd6-04b0f47cdc97.mp4
 
 # Installation
 
