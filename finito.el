@@ -696,7 +696,8 @@ maximum of MAX-RESULTS results."
          (request-backend 'url-retrieve))
      (kill-current-buffer)
      (finito--open-specified-collection collection t)
-     (goto-char old-point))))
+     (goto-char old-point)
+     (message "Successful refreshed '%s'" collection))))
 
 (defun finito-browse-book-at-point ()
   "Browse the book at point."
