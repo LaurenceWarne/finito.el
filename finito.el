@@ -166,8 +166,7 @@ Use INIT-OBJ, an instance of `finito-buffer-info' to initialize the buffer."
     (cl-flet* ((callback
                 (buffer-ewoc)
                 (-each book-list
-                  (apply-partially #'ewoc-enter-last buffer-ewoc))
-                (ewoc-refresh buffer-ewoc))
+                  (apply-partially #'ewoc-enter-last buffer-ewoc)))
                (proc-books () (finito--prepare-buffer init-obj #'callback)))
       (cond ((and display-remote (not (eq display-remote 'skip)))
              (proc-books))
@@ -182,11 +181,11 @@ Use INIT-OBJ, an instance of `finito-buffer-info' to initialize the buffer."
 
 Use INIT-OBJ, an instance of `finito-buffer-info' to initialize the buffer."
   (make-directory finito-img-cache-directory t)
-  (finito--prepare-buffer init-obj (lambda (buffer-ewoc)
-                              (finito--layout-book-data
-                               buffer-ewoc
-                               (finito--create-book-alist data))
-                              (ewoc-refresh buffer-ewoc))))
+  (finito--prepare-buffer init-obj
+                          (lambda (buffer-ewoc)
+                            (ewoc-enter-last
+                             buffer-ewoc
+                             (finito--create-book-alist data)))))
 
 (defun finito--prepare-buffer (init-obj callback)
   "Prepare a finito buffer.
@@ -235,13 +234,6 @@ in some way, and then apply some final configuration to the buffer."
                        (funcall callback))))))
                filtered-books)
       (funcall callback))))
-
-(defun finito--layout-book-data (buffer-ewoc book-alist)
-  "Insert data for BOOK-ALIST into the current buffer using BUFFER-EWOC.
-
-BOOK-ALIST should be an alist of the format produced by
-`finito--create-book-alist'."
-  (ewoc-enter-last buffer-ewoc book-alist))
 
 (defun finito--create-book-alist (book-response)
   "Return an alist containing book information gleaned from BOOK-RESPONSE.

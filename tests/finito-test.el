@@ -272,8 +272,6 @@ GNU Emacs is awesome!
   (it "book replaced correctly"
     (cl-letf (((symbol-function 'finito--make-request)
                (lambda (plist callback) (funcall callback response-alist)))
-              ((symbol-function 'finito--layout-book-data)
-               (lambda (_) (insert new-book-string)))
               (finito-img-cache-directory "finito/"))
       (finito--in-buffer
        (let ((finito--ewoc
