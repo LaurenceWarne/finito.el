@@ -1,4 +1,4 @@
-;;; finito-server.el --- finito server bootstrapping -*- lexical-binding: t -*-
+;;; finito-server.el --- Server bootstrapping for finito -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2021 Laurence Warne
 
@@ -36,7 +36,7 @@
 ;;; Constants
 
 (defconst finito-server-minimum-required-version
-  "0.4.1"
+  "0.4.2"
   "The minimum compatible finito server version.")
 
 ;;; Custom variables

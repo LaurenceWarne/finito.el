@@ -328,14 +328,13 @@ request is successful"
      plist
      (lambda (response)
        (when success-message (message success-message))
-       (let ((book-alist (finito--create-book-alist response)))
-         (with-current-buffer buf
-           (save-mark-and-excursion
-             (let ((inhibit-read-only t)
-                   (book-alist (finito--create-book-alist response)))
-               (ewoc-set-data node book-alist)
-               (ewoc-invalidate finito--ewoc node)
-               (org-display-inline-images)))))))))
+       (with-current-buffer buf
+         (save-mark-and-excursion
+           (let ((inhibit-read-only t)
+                 (book-alist (finito--create-book-alist response)))
+             (ewoc-set-data node book-alist)
+             (ewoc-invalidate finito--ewoc node)
+             (org-display-inline-images))))))))
 
 (defun finito--goto-buffer-line-and-remove-book-at-point (buf line)
   "Go to the line LINE at buffer BUF, and remove the book at point."

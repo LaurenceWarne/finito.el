@@ -1,4 +1,4 @@
-;;; finito-request.el --- http utilities for finito -*- lexical-binding: t -*-
+;;; finito-request.el --- HTTP utilities for finito -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2021 Laurence Warne
 
