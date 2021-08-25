@@ -207,38 +207,16 @@ Occurrences of `.buffer-text' will be replaced by:
               finito--stub-book))))
 
 (describe "finito--book-at-point"
-  :var ((books-alist '((3 . book-one) (4 . book-two) (20 . book-three))))
-  (it "errors when cursor before all books"
-    (cl-letf (((symbol-function 'line-number-at-pos) #'ignore)
-              (finito--buffer-books books-alist))
-      (expect (finito--book-at-point) :to-throw)))
-  (it "returns book on line where it starts"
-    (cl-letf (((symbol-function 'line-number-at-pos) (-const 3))
-              (finito--buffer-books books-alist))
-      (expect (finito--book-at-point) :to-equal 'book-one)))
-  (it "returns book on line after it starts"
-    (cl-letf (((symbol-function 'line-number-at-pos) (-const 15))
-              (finito--buffer-books books-alist))
-      (expect (finito--book-at-point) :to-equal 'book-two))))
-
-(describe "finito--books-filter"
-  :var ((books-alist
-         '((3 . book-one) (4 . book-two) (20 . book-four) (15 . book-three))))
-  (it "all positive filter gives list with same elements"
-    (let ((alist-response (finito--books-filter (-const t) books-alist)))
-      (expect (--all-p (-contains-p alist-response it) alist-response))))
-  (it "element removed and value correctly subtracted"
-    (let ((alist-response (finito--books-filter
-                           (lambda (e) (not (eq e 'book-two))) books-alist)))
-      (expect (length alist-response) :to-equal 3)
-      (expect alist-response :to-contain '(3 . book-one))
-      (expect alist-response :to-contain '(4 . book-three))
-      (expect alist-response :to-contain '(9 . book-four)))))
-
-(describe "finito--diffs"
-  :var ((ls '(3 4 15 20)))
-  (it "diffs are correct"
-    (expect (finito--diffs '(3 4 15 20)) :to-equal '(3 1 11 5))))
+  :var ((test-ewoc (let ((test-ewoc (ewoc-create #'identity)))
+                     (ewoc-enter-first test-ewoc 'book-one)
+                     (ewoc-enter-first test-ewoc 'book-one)
+                     (ewoc-enter-first test-ewoc 'book-one)
+                     test-ewoc)))
+  (it "returns book on line"
+    (cl-letf (((symbol-function 'ewoc-locate)
+               (-const (ewoc-nth test-ewoc 0)))
+              (finito--ewoc test-ewoc))
+      (expect (finito--book-at-point) :to-equal 'book-one))))
 
 (describe "finito--select-collection"
   (it "gets collections and prompts the user"
@@ -249,55 +227,65 @@ Occurrences of `.buffer-text' will be replaced by:
       (expect (finito--select-collection #'identity) :to-equal "my collection"))))
 
 (describe "finito--replace-book-at-point-from-request"
-  :var* ((response-alist
+  :var* ((book1-alist
+          '((title . "GNU Emacs Pocket Reference")
+            (authors . ["Debra Cameron"])
+            (description . "GNU Emacs is the most popular and widespread of the Emacs family of editors. It is also the most powerful and flexible. Unlike all other text editors, GNU Emacs is a complete working environment -- you can stay within Emacs all day without leaving. The GNU Emacs Pocket Reference is a companion volume to O'Reilly's Learning GNU Emacs, which tells you how to get started with the GNU Emacs editor and, as you become more proficient, it will help you learn how to use Emacs more effectively. This small book, covering Emacs version 20, is a handy reference guide to the basic elements of this powerful editor, presenting the Emacs commands in an easy-to-use tabular format.")
+            (isbn . "isbn-book-1")
+            (img-uri . "img.jpeg")
+            (image-file-name . "cache/directory/foo.jpeg")))
+
+         (book2-alist
+          '((title . "Mountains Of The Mind")
+            (authors . ["Robert Macfarlane"])
+            (description . "WINNER OF THE GUARDIAN FIRST BOOK AWARD Once we thought monsters lived there. In the Enlightenment we scaled them to commune with the sublime. Soon, we were racing to conquer their summits in the name of national pride. In this ground-breaking, classic work, Robert Macfarlane takes us up into the mountains: to experience their shattering beauty, the fear and risk of adventure, and to explore the strange impulses that have for centuries lead us to the world's highest places.")
+            (isbn . "isbn-book-2")
+            (img-uri . "img.jpeg")
+            (image-file-name . "cache/directory/foo2.jpeg")))
+
+         (response-alist
           '((title . "A Random Book")
             (authors . ["???"])
             (description . "GNU Emacs is awesome!")
             (isbn . "a random isbn")
             (thumbnailUri . "some-thumbnail")
-            (rating . 5)
-            (startedReading . "2021-07-26")
-            (lastRead . "2007-07-26")))
-         (original-buf-string
+            (startedReading . nil)
+            (lastRead . nil)))
+         
+         (expected-buf-string
           "* My Books
 
 ** GNU Emacs Pocket Reference
 
-[[img.jpeg]]  Debra Cameron
+[[cache/directory/foo.jpeg]]  Debra Cameron
 
 GNU Emacs is the most popular and widespread of the Emacs family of editors. It is also the most powerful and flexible. Unlike all other text editors, GNU Emacs is a complete working environment -- you can stay within Emacs all day without leaving. The GNU Emacs Pocket Reference is a companion volume to O'Reilly's Learning GNU Emacs, which tells you how to get started with the GNU Emacs editor and, as you become more proficient, it will help you learn how to use Emacs more effectively. This small book, covering Emacs version 20, is a handy reference guide to the basic elements of this powerful editor, presenting the Emacs commands in an easy-to-use tabular format.
 
-** Mountains Of The Mind
+** A Random Book
 
-[[img.jpeg]]  Robert Macfarlane
+[[finito/arandombooka random isbn.jpeg]]  ???
 
-WINNER OF THE GUARDIAN FIRST BOOK AWARD Once we thought monsters lived there. In the Enlightenment we scaled them to commune with the sublime. Soon, we were racing to conquer their summits in the name of national pride. In this ground-breaking, classic work, Robert Macfarlane takes us up into the mountains: to experience their shattering beauty, the fear and risk of adventure, and to explore the strange impulses that have for centuries lead us to the world's highest places.\n\n")
-         (new-book-string
-          "** A Random Book
+GNU Emacs is awesome!
 
-[[some-thumbnail.jpeg]]  The author
 
-An extremely detailed description of the book.")
-         (expected-buf-string
-          (concat
-           "* My Books
-
-** GNU Emacs Pocket Reference
-
-[[img.jpeg]]  Debra Cameron
-
-GNU Emacs is the most popular and widespread of the Emacs family of editors. It is also the most powerful and flexible. Unlike all other text editors, GNU Emacs is a complete working environment -- you can stay within Emacs all day without leaving. The GNU Emacs Pocket Reference is a companion volume to O'Reilly's Learning GNU Emacs, which tells you how to get started with the GNU Emacs editor and, as you become more proficient, it will help you learn how to use Emacs more effectively. This small book, covering Emacs version 20, is a handy reference guide to the basic elements of this powerful editor, presenting the Emacs commands in an easy-to-use tabular format." "\n\n" new-book-string)))
+"))
   (it "book replaced correctly"
     (cl-letf (((symbol-function 'finito--make-request)
                (lambda (plist callback) (funcall callback response-alist)))
               ((symbol-function 'finito--layout-book-data)
                (lambda (_) (insert new-book-string)))
-              (finito--buffer-books '((3 book1) (9 book2))))
+              (finito-img-cache-directory "finito/"))
       (finito--in-buffer
-       (insert original-buf-string)
-       (end-of-buffer)
-       (finito--replace-book-at-point-from-request nil)
-       (expect .buffer-text :to-equal expected-buf-string)))))
+       (let ((finito--ewoc
+              (ewoc-create
+               (lambda (obj) (finito-insert-book finito-writer-instance obj))
+               (format "* My Books\n"))))
+         (ewoc-enter-last finito--ewoc book1-alist)
+         (ewoc-enter-last finito--ewoc book2-alist)
+         (ewoc-refresh finito--ewoc)
+         (goto-char (point-max))
+         (finito--replace-book-at-point-from-request nil)
+         (expect .buffer-text :to-equal expected-buf-string))))))
 
 (describe "finito--wait-for-server"
   (it "errors when health check expires"
