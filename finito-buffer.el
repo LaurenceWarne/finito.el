@@ -65,15 +65,12 @@
 
 ;;; Buffer local variables
 
-(defvar-local finito--buffer-books
+(defvar-local finito--ewoc
   nil
-  "An alist associating books to buffer lines they begin.
+  "The ewoc used to generate the text in finito buffers.
 
-It's elements should be of the form (KEY . VALUE) where KEY is an integer
-representing the start of where information starts about a particular book
-in the current buffer.  VALUE is itself an alist of the format returned by
-`finito--create-book-alist'.  There are no guarentees on the orderedness
-of this variable.")
+Its nodes should be alists of the form returned by
+`finito--create-book-alist'.")
 
 (defvar-local finito--collection
   nil
@@ -151,7 +148,7 @@ BOOK-ALIST is an alist of the format returned by `finito--create-book-alist'"
 
 (cl-defmethod finito-insert-description ((_ finito-book-writer) description)
   "Insert DESCRIPTION into the current buffer."
-  (insert (concat description "\n\n"))
+  (insert (concat description "\n"))
   (overlay-put (make-overlay (- (point) 2) (- (point) (length description) 2))
                'face
                'finito-book-descriptions))

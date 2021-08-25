@@ -40,6 +40,7 @@
 (require 'async)
 (require 'cl-lib)
 (require 'dash)
+(require 'ewoc)
 (require 'f)
 (require 'org)
 (require 'outline)
@@ -158,15 +159,16 @@ as a symbol."
 (defun finito--process-books-data (data init-obj)
   "Insert the books data DATA into a buffer.
 
-Use INIT-OBJ, an instance of `finito-buffer-init' to initialize the buffer."
+Use INIT-OBJ, an instance of `finito-buffer-info' to initialize the buffer."
   (make-directory finito-img-cache-directory t)
   (let ((book-list (-map #'finito--create-book-alist (append data nil)))
         (display-remote (bound-and-true-p org-display-remote-inline-images)))
-    (cl-flet ((proc-books () (finito--process
-                              init-obj
-                              (lambda () (-each
-                                             book-list
-                                           #'finito--layout-book-data)))))
+    (cl-flet* ((callback
+                (buffer-ewoc)
+                (-each book-list
+                  (apply-partially #'ewoc-enter-last buffer-ewoc))
+                (ewoc-refresh buffer-ewoc))
+               (proc-books () (finito--prepare-buffer init-obj #'callback)))
       (cond ((and display-remote (not (eq display-remote 'skip)))
              (proc-books))
             (finito--parallel-img-download
@@ -178,24 +180,31 @@ Use INIT-OBJ, an instance of `finito-buffer-init' to initialize the buffer."
 (defun finito--process-single-book (data init-obj)
   "Insert the book data DATA into a buffer.
 
-Use INIT-OBJ, an instance of `finito-buffer-init' to initialize the buffer."
+Use INIT-OBJ, an instance of `finito-buffer-info' to initialize the buffer."
   (make-directory finito-img-cache-directory t)
-  (finito--process init-obj (lambda () (finito--layout-book-data
-                                        (finito--create-book-alist data)))))
+  (finito--prepare-buffer init-obj (lambda (buffer-ewoc)
+                              (finito--layout-book-data
+                               buffer-ewoc
+                               (finito--create-book-alist data))
+                              (ewoc-refresh buffer-ewoc))))
 
-(defun finito--process (init-obj callback)
-  "Set up a finito buffer.
+(defun finito--prepare-buffer (init-obj callback)
+  "Prepare a finito buffer.
 
-Set up a finito buffer using INIT-OBJ which should be a `finito-buffer-init'
-instance, then call CALLBACK which should insert text in some way, and
-then apply some final configuration to the buffer."
+Prepare a finito buffer using INIT-OBJ which should be a `finito-buffer-info'
+instance, then call CALLBACK with an ewoc, which should use it to insert text
+in some way, and then apply some final configuration to the buffer."
   (when (oref init-obj buf-name-unique)
     (ignore-errors (kill-buffer (oref init-obj buf-name))))
   (switch-to-buffer (generate-new-buffer-name (oref init-obj buf-name)))
   (finito-init-buffer init-obj)
-  (let ((inhibit-read-only t))
-    (insert (format "* %s\n\n" (oref init-obj title)))
-    (funcall callback))
+  (let ((inhibit-read-only t)
+        (buffer-ewoc
+         (ewoc-create
+          (lambda (obj) (finito-insert-book finito-writer-instance obj))
+          (format "* %s\n" (oref init-obj title)))))
+    (setq finito--ewoc buffer-ewoc)
+    (funcall callback buffer-ewoc))
   (goto-char (point-min))
   (org-display-inline-images))
 
@@ -227,13 +236,12 @@ then apply some final configuration to the buffer."
                filtered-books)
       (funcall callback))))
 
-(defun finito--layout-book-data (book-alist)
-  "Insert data for BOOK-ALIST into the current buffer.
+(defun finito--layout-book-data (buffer-ewoc book-alist)
+  "Insert data for BOOK-ALIST into the current buffer using BUFFER-EWOC.
 
 BOOK-ALIST should be an alist of the format produced by
 `finito--create-book-alist'."
-  (add-to-list 'finito--buffer-books `(,(line-number-at-pos) . ,book-alist))
-  (finito-insert-book finito-writer-instance book-alist))
+  (ewoc-enter-last buffer-ewoc book-alist))
 
 (defun finito--create-book-alist (book-response)
   "Return an alist containing book information gleaned from BOOK-RESPONSE.
@@ -268,39 +276,8 @@ last-read"
 
 The returned alist will match the format returned by
 `finito--create-book-alist'."
-  (unless finito--buffer-books (error "No books in the current buffer!"))
-  (let* ((line (line-number-at-pos))
-         ;; Alist may not be ordered
-         (books-before (--filter (<= (car it) line) finito--buffer-books)))
-    (unless books-before (error "Cursor is not at a book!"))
-    (cdr (--max-by (> (car it) (car other)) books-before))))
-
-(defun finito--books-filter (pred books)
-  "Remove books matching PRED from BOOKS.
-
-BOOKS is expected to be in the format of `finito--buffer-books.'"
-  (let* ((sorted-books (--sort (< (car it) (car other)) books))
-         (diffs (finito--diffs (-map #'car sorted-books))))
-    (cdr (-reduce-from
-          (lambda (acc book-cons)
-            (-let (((index . book) book-cons)
-                   ((sub-acc . books-acc) acc))
-              (if (funcall pred book)
-                  (cons sub-acc (-snoc books-acc (cons (- index sub-acc) book)))
-                (let* ((book-idx (-elem-index book-cons sorted-books))
-                       ;; goes to default of 0 iff it's the last element
-                       (diff (or (nth (1+ book-idx) diffs) 0)))
-                  (cons (+ diff sub-acc) books-acc)))))
-          '(0 . nil)
-          sorted-books))))
-
-(defun finito--diffs (list)
-  "Return a list of diffs of LIST."
-  (car (--reduce-from
-        (-let (((acc-list . prev) acc))
-          (cons (-snoc acc-list (- it prev)) it))
-        '(nil . 0)
-        list)))
+  (unless (ewoc-nth finito--ewoc 0) (error "No books in the current buffer!"))
+  (ewoc-data (ewoc-locate finito--ewoc (point))))
 
 (defun finito--select-collection (callback &optional collection-filter sync)
   "Prompt for a collection, and then call CALLBACK with that collection.
@@ -343,21 +320,8 @@ If SYNC it non-nil, perform all actions synchronously."
 
 (defun finito--remove-book-region ()
   "Remove the book at point from the current buffer."
-  (let* ((book (finito--book-at-point))
-         (books finito--buffer-books)
-         (indices (-sort #'< (-map #'car books)))
-         (idx (--find-last-index (<= it (line-number-at-pos)) indices))
-         (book-start-line (nth idx indices))
-         (inhibit-read-only t))
-    ;; There's got to be a better way...
-    (goto-char (point-min))
-    (forward-line (1- book-start-line))
-    (--dotimes (- (or (nth (1+ idx) indices)
-                      (line-number-at-pos (point-max)))
-                  book-start-line)
-      (delete-region (point) (1+ (line-end-position))))
-    (setq finito--buffer-books
-          (finito--books-filter (lambda (b) (not (equal b book))) books))))
+  (let ((inhibit-read-only t))
+    (ewoc-delete finito--ewoc (ewoc-locate finito--ewoc (point)))))
 
 (defun finito--insert-book-in-current-buffer (book)
   "Insert BOOK at point the current buffer.
