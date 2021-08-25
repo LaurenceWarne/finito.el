@@ -323,23 +323,6 @@ If SYNC it non-nil, perform all actions synchronously."
   (let ((inhibit-read-only t))
     (ewoc-delete finito--ewoc (ewoc-locate finito--ewoc (point)))))
 
-(defun finito--insert-book-in-current-buffer (book)
-  "Insert BOOK at point the current buffer.
-
-BOOK should be a unparsed server response for a given book.  This function
-will also update `finito--buffer-books' as necessary."
-  (let ((line-num (line-number-at-pos))
-        (book-alist (finito--create-book-alist book))
-        (inhibit-read-only t))
-    (finito--layout-book-data book-alist)
-    (let ((diff (- (line-number-at-pos) line-num)))
-      (setq finito--buffer-books
-            (--map-when (and (>= (car it) line-num)
-                             (not (equal (cdr it) book-alist)))
-                        (cons (+ (car it) diff) (cdr it))
-                        finito--buffer-books)))
-    (org-display-inline-images)))
-
 (defun finito--replace-book-at-point-from-request
     (plist &optional success-message)
   "Replace the book at point from a request.
@@ -347,18 +330,20 @@ will also update `finito--buffer-books' as necessary."
 Replace the book at point with the response of the request built using the
 request plist PLIST.  When SUCCESS-MESSAGE is non-nil, message it if the
 request is successful"
-  (let ((line (line-number-at-pos))
+  (let ((node (ewoc-locate finito--ewoc (point)))
         (buf (current-buffer)))
     (finito--make-request
      plist
      (lambda (response)
        (when success-message (message success-message))
-       (with-current-buffer buf
-         (save-mark-and-excursion
-           (goto-char (point-min))
-           (forward-line (1- line))
-           (finito--remove-book-region)
-           (finito--insert-book-in-current-buffer response)))))))
+       (let ((book-alist (finito--create-book-alist response)))
+         (with-current-buffer buf
+           (save-mark-and-excursion
+             (let ((inhibit-read-only t)
+                   (book-alist (finito--create-book-alist response)))
+               (ewoc-set-data node book-alist)
+               (ewoc-invalidate finito--ewoc node)
+               (org-display-inline-images)))))))))
 
 (defun finito--goto-buffer-line-and-remove-book-at-point (buf line)
   "Go to the line LINE at buffer BUF, and remove the book at point."
@@ -396,8 +381,7 @@ request is successful"
 
 The following commands are available in this mode:
 \\{finito-view-mode-map}"
-  (setq buffer-read-only     t
-        finito--buffer-books nil)
+  (setq buffer-read-only t)
   (buffer-disable-undo)
   (use-local-map finito-view-mode-map))
 
