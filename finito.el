@@ -440,7 +440,7 @@ would send to the Google Books API (see URL
 set of args.  This is intended to be used for debugging."
   (interactive
    (list (finito--transient-args-plist 'finito-search)))
-  (if (plist-member args :isbn)
+  (if (plist-get args :isbn)
       (finito-isbn-request-curl-dbg (plist-get args :isbn))
     (finito-kw-search-request-curl-dbg (plist-get args :title)
                                        (plist-get args :author))))
@@ -463,9 +463,14 @@ debugging."
                          (url-hexify-string it)
                          (concat "inauthor:" it)))
          (kwords (-flatten (list maybe-title maybe-author)))
+         (fields (list "title" "authors" "description"
+                       "imageLinks" "industryIdentifiers"))
          (url-params (list (s-join "+" kwords)
                            "printType=books"
-                           (concat "langRestrict=" finito-language)))
+                           (concat "langRestrict=" finito-language)
+                           (concat "fields=items/volumeInfo("
+                                   (s-join "," fields)
+                                   ")")))
          (url (concat base-url (s-join "&" url-params))))
     (kill-new (concat "curl -X GET " url))))
 
