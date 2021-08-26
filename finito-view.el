@@ -164,10 +164,11 @@ to the last value used for OBJ."
 (transient-define-prefix finito ()
   "Search for books."
   ["Actions"
-   ("m" "My Books"          finito-open-my-books-collection)
-   ("r" "Currently Reading" finito-open-currently-reading-collection)
-   ("s" "Search"            finito-search)
-   ("c" "Collections"       finito-collection)])
+   ("m" "My Books"           finito-open-my-books-collection)
+   ("r" "Currently Reading"  finito-open-currently-reading-collection)
+   ("s" "Search"             finito-search)
+   ("o" "Open a Collection"  finito-open-collection)
+   ("c" "Collection Actions" finito-collection)])
 
 (transient-define-prefix finito-search ()
   "Search for books."

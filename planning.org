@@ -7,6 +7,7 @@
 *** DONE Make server start asynchronous
 *** DONE Download book images in parallel
 *** DONE Use [[https://www.gnu.org/software/emacs/manual/html_node/elisp/Abstract-Display.html][ewoc]]
+*** TODO Minor mode
 ** Smaller Things
 *** DONE Add version number
 *** DONE Use ~transient-define-infix~ instead of ~transient-define-argument~
