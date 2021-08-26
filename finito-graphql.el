@@ -232,5 +232,24 @@
 
 (defconst finito--delete-book-data-mutation-variables "{\"isbn\": \"%s\"}")
 
+(defconst finito--create-book-mutation
+  (graphql-mutation
+   (:arguments
+    (($book . BookInput!))
+    (createBook
+     :arguments ((book . ($ book)))
+     name))))
+
+(defconst finito--create-book-mutation-variables
+  "{
+     \"book\": {
+       \"title\": \"%s\",
+       \"authors\": %s,
+       \"description\": \"%s\",
+       \"isbn\": \"%s\",
+       \"thumbnailUri\": \"%s\"
+     }
+   }")
+
 (provide 'finito-graphql)
 ;;; finito-graphql.el ends here

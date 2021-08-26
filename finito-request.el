@@ -38,10 +38,6 @@
 
 ;;; Misc functions
 
-(defun finito--quotify (s)
-  "Wrap S in double quotes."
-  (s-wrap s "\""))
-
 (defun finito--search-request-plist
     (title-keywords author-keywords &optional max-results)
   "Return a plist with headers and body suitable for a search query.
@@ -223,6 +219,23 @@ ISBN should be the isbn of the book to remove data for."
                    (format finito--delete-book-data-mutation-variables
                            isbn))))
 
+
+(defun finito--create-book-request-plist (book)
+  "Return a plist with headers and body for an create book request.
+
+BOOK should be an alist of the form returned by `finito--create-book-alist'."
+  `(:headers ,finito--headers
+    :data ,(format "{\"query\":\"%s\", \"variables\": %s}"
+             finito--create-book-mutation
+             (let-alist book
+               (format
+                finito--create-book-mutation-variables
+                (s-replace "\"" "'" .title)
+                (finito--seq-to-json-list .authors)
+                (s-replace "\"" "'" .description)
+                (s-replace "\"" "'" .isbn)
+                (s-replace "\"" "'" .img-uri))))))
+
 (defun finito--seq-to-json-list (seq)
   "Return SEQ as an escaped json list."
   (--> (append seq nil)
@@ -230,6 +243,10 @@ ISBN should be the isbn of the book to remove data for."
     (s-join ", " it)
     (s-prepend "[" it)
     (s-append "]" it)))
+
+(defun finito--quotify (s)
+  "Wrap S in double quotes."
+  (s-wrap s "\""))
 
 (provide 'finito-request)
 ;;; finito-request.el ends here
