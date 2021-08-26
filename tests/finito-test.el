@@ -94,11 +94,7 @@ Occurrences of `.buffer-text' will be replaced by:
 
 (describe "finito--add-book-request-plist"
   (it "plist has headers and data"
-    (let* ((book '((title . "Flowers for Algernon")
-                   (authors . ["Daniel Keyes"])
-                   (description . "A description.")
-                   (isbn . "740253425430.")
-                   (img-uri . "image.png")))
+    (let* ((book finito--stub-book)
            (plist (finito--add-book-request-plist book "name")))
       (expect (plist-get plist :headers))
       (expect (plist-get plist :data)))))
@@ -111,11 +107,7 @@ Occurrences of `.buffer-text' will be replaced by:
 
 (describe "finito--rate-book-request-plist"
   (it "plist has headers and data"
-    (let* ((book '((title . "Flowers for Algernon")
-                   (authors . ["Daniel Keyes"])
-                   (description . "A description.")
-                   (isbn . "740253425430.")
-                   (img-uri . "image.png")))
+    (let* ((book finito--stub-book)
            (plist (finito--rate-book-request-plist book 5)))
       (expect (plist-get plist :headers))
       (expect (plist-get plist :data)))))
@@ -127,11 +119,7 @@ Occurrences of `.buffer-text' will be replaced by:
       (expect (plist-get plist :data)))))
 
 (describe "finito--start-reading-request-plist"
-  :var ((book '((title . "Flowers for Algernon")
-                (authors . ["Daniel Keyes"])
-                (description . "A description.")
-                (isbn . "740253425430.")
-                (img-uri . "image.png"))))
+  :var ((book finito--stub-book))
   (it "plist has headers and data with no date"
     (let ((plist (finito--start-reading-request-plist book nil)))
       (expect (plist-get plist :headers))
@@ -143,11 +131,7 @@ Occurrences of `.buffer-text' will be replaced by:
       (expect (plist-get plist :data)))))
 
 (describe "finito--finish-reading-request-plist"
-  :var ((book '((title . "Flowers for Algernon")
-                (authors . ["Daniel Keyes"])
-                (description . "A description.")
-                (isbn . "740253425430.")
-                (img-uri . "image.png"))))
+  :var ((book finito--stub-book))
   (it "plist has headers and data with no date"
     (let ((plist (finito--finish-reading-request-plist book nil)))
       (expect (plist-get plist :headers))
@@ -155,6 +139,13 @@ Occurrences of `.buffer-text' will be replaced by:
   (it "plist has headers and data specified date"
     (let* ((date "2021-03-12")
            (plist (finito--finish-reading-request-plist book date)))
+      (expect (plist-get plist :headers))
+      (expect (plist-get plist :data)))))
+
+(describe "finito--create-book-request-plist"
+  (it "plist has headers and data"
+    (let* ((book finito--stub-book)
+           (plist (finito--create-book-request-plist book)))
       (expect (plist-get plist :headers))
       (expect (plist-get plist :data)))))
 
