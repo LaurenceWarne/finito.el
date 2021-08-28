@@ -713,3 +713,50 @@ GNU Emacs is awesome!
       (expect copied
               :to-match
               (rx (* any) (literal (url-hexify-string isbn)) (* any))))))
+
+(describe "finito-create-book"
+  :var ((book (let-alist finito--stub-book
+                `((title . ,.title)
+                  (authors . ,(append .authors nil))
+                  (description . ,.description)
+                  (img-uri . ,.img-uri)
+                  (isbn . ,.isbn)))))
+  (before-each
+    (spy-on 'finito--make-request
+            :and-call-fake
+            (lambda (plist callback &rest _)
+              (funcall callback nil)))
+    (spy-on 'finito--wait-for-server :and-call-fake
+            (lambda (callback &rest _)
+              (funcall callback)))
+    (spy-on 'finito--create-book-request-plist :and-call-through)
+    (spy-on 'finito--add-book-request-plist :and-call-through))
+
+  (it "creates book"
+    (let-alist book
+      (finito-create-book
+       .title
+       (s-join "," .authors)
+       .description
+       .img-uri
+       .isbn)
+      (expect 'finito--create-book-request-plist :to-have-been-called-times 1)
+      (expect 'finito--make-request :to-have-been-called)
+      (expect (spy-calls-args-for 'finito--create-book-request-plist 0)
+              :to-equal
+              (list book))))
+
+  (it "adds created book to default collection"
+    (let-alist book
+      (finito-create-book
+       .title
+       (s-join "," .authors)
+       .description
+       .img-uri
+       .isbn)
+      (expect 'finito--create-book-request-plist :to-have-been-called-times 1)
+      (expect 'finito--add-book-request-plist :to-have-been-called-times 1)
+      (expect 'finito--make-request :to-have-been-called-times 2)
+      (expect (spy-calls-args-for 'finito--add-book-request-plist 0)
+              :to-equal
+              (list book finito-my-books-collection)))))

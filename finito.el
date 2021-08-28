@@ -721,13 +721,15 @@ When DATE is specified, mark that as the date the book was finished."
   (let ((finito-save-last-search t))
     (call-interactively #'finito-search)))
 
-(defun finito-create-book (title authors description image-uri isbn)
+(defun finito-create-book (title authors description img-uri isbn)
   "Create a new book.
 
-Use TITLE, AUTHORS, DESCRIPTION, IMAGE-URI and ISBN to create a new book.
+Use TITLE, AUTHORS, DESCRIPTION, IMG-URI and ISBN to create a new book.
+The book will be added to `finito-my-books-collection'.
 
-IMAGE-URI should point to a 128*195 image to be consistent with the sizes of
-the other images.  You can change the size of an image like this:
+IMG-URI should point to a 128*195 image to be consistent with the sizes of
+the other images.  You can for example change the size of an image using
+ImageMagick via:
 
 convert original.png -resize 128x195! new.png."
   (interactive "sPlease input the book title:
@@ -738,7 +740,7 @@ sPlease input a unique identifier (used in place of an isbn):")
   (let ((book `((title . ,title)
                 (authors . ,(s-split "," (s-replace ", " "," authors)))
                 (description . ,description)
-                (img-uri . ,image-uri)
+                (img-uri . ,img-uri)
                 (isbn . ,isbn))))
     (finito--make-request
      (finito--create-book-request-plist book)
