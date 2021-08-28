@@ -494,7 +494,8 @@ This is intended to be used for debugging."
 
 Search for books matching TITLE-KEYWORDS and AUTHOR-KEYWORDS, and ask for a
 maximum of MAX-RESULTS results."
-  (interactive "P\nsPlease input title keywords: \nsPlease input author keywords: ")
+  (interactive
+   "P\nsPlease input title keywords: \nsPlease input author keywords: ")
   (finito--wait-for-server-then
    (let ((request-plist
           (finito--search-request-plist
@@ -719,6 +720,33 @@ When DATE is specified, mark that as the date the book was finished."
   (interactive)
   (let ((finito-save-last-search t))
     (call-interactively #'finito-search)))
+
+(defun finito-create-book (title authors description image-uri isbn)
+  "Create a new book.
+
+Use TITLE, AUTHORS, DESCRIPTION, IMAGE-URI and ISBN to create a new book.
+
+IMAGE-URI should point to a 128*195 image to be consistent with the sizes of
+the other images.  You can change the size of an image like this:
+
+convert original.png -resize 128x195! new.png."
+  (interactive "sPlease input the book title:
+sPlease input the book authors:
+sPlease input the book description:
+sPlease input an image url to be used:
+sPlease input a unique identifier (used in place of an isbn):")
+  (let ((book `((title . ,title)
+                (authors . ,(s-split "," (s-replace ", " "," authors)))
+                (description . ,description)
+                (img-uri . ,image-uri)
+                (isbn . ,isbn))))
+    (finito--make-request
+     (finito--create-book-request-plist book)
+     (lambda (_)
+       (message "Successfully created '%s'" title)
+       (finito--make-request
+        (finito--add-book-request-plist book finito-my-books-collection)
+        #'ignore)))))
 
 (provide 'finito)
 ;;; finito.el ends here

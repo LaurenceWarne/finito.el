@@ -223,7 +223,8 @@ ISBN should be the isbn of the book to remove data for."
 (defun finito--create-book-request-plist (book)
   "Return a plist with headers and body for an create book request.
 
-BOOK should be an alist of the form returned by `finito--create-book-alist'."
+BOOK should be an alist with keys title, authors, description, isbn and
+img-uri."
   `(:headers ,finito--headers
     :data ,(format "{\"query\":\"%s\", \"variables\": %s}"
              finito--create-book-mutation

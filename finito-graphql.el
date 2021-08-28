@@ -238,7 +238,7 @@
     (($book . BookInput!))
     (createBook
      :arguments ((book . ($ book)))
-     name))))
+     title))))
 
 (defconst finito--create-book-mutation-variables
   "{
