@@ -6,6 +6,26 @@ This package is a thin client for https://github.com/laurencewarne/libro-finito,
 
 https://user-images.githubusercontent.com/17688577/129899845-c9b67d25-bf99-41f8-bbd6-04b0f47cdc97.mp4
 
+# Table of Contents
+<!--ts-->
+   * [Installation](#installation)
+   * [Keys](#keys)
+      * [Bindings Available in all finito View Buffers](#bindings-available-in-all-finito-view-buffers)
+      * [Bindings in a Collection Buffer](#bindings-in-a-collection-buffer)
+      * [Bindings in a Search Buffer](#bindings-in-a-search-buffer)
+   * [Cutomization](#cutomization)
+      * [finito-writer-instance](#finito-writer-instance)
+      * [finito-my-books-collection](#finito-my-books-collection)
+      * [finito-currently-reading-collection](#finito-currently-reading-collection)
+      * [Misc Variables](#misc-variables)
+   * [Similar Packages](#similar-packages)
+      * [<a href="https://github.com/lepisma/org-books">org-books</a>](#org-books)
+      * [<a href="https://github.com/chenyanming/calibredb.el">calibredb.el</a>](#calibredbel)
+
+<!-- Added by: laurencewarne, at: Sat 28 Aug 14:06:56 BST 2021 -->
+
+<!--te-->
+
 # Installation
 
 It's not currently on melpa, but you can for example install it from source using [quelpa](https://github.com/quelpa/quelpa-use-package):
