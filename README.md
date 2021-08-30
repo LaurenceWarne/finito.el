@@ -1,5 +1,7 @@
 # finito.el
 
+[![MELPA](https://melpa.org/packages/finito-badge.svg)](https://melpa.org/#/finito)
+
 `finito.el` allows for the management of books from within Emacs.  Books are presented in modified org mode buffers, and books along with user collections can be viewed/queried using [transient](https://github.com/magit/transient).
 
 This package is a thin client for https://github.com/laurencewarne/libro-finito, more information on collection management and cutomization can be found there.  Here's a demo of some of its features:
@@ -29,12 +31,11 @@ https://user-images.githubusercontent.com/17688577/129899845-c9b67d25-bf99-41f8-
 
 # Installation
 
-It's not currently on melpa, but you can for example install it from source using [quelpa](https://github.com/quelpa/quelpa-use-package):
+You can install it from melpa:
 
 ```elisp
 (use-package finito
   :demand t
-  :quelpa (finito :fetcher github :repo "LaurenceWarne/finito.el" :stable t)
   ;; The main entry point for finito commands
   :bind ("C-c b" . finito)
   :config
