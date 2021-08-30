@@ -13,6 +13,7 @@ https://user-images.githubusercontent.com/17688577/129899845-c9b67d25-bf99-41f8-
       * [Bindings Available in all finito View Buffers](#bindings-available-in-all-finito-view-buffers)
       * [Bindings in a Collection Buffer](#bindings-in-a-collection-buffer)
       * [Bindings in a Search Buffer](#bindings-in-a-search-buffer)
+   * [Additional Commands](#additional-commands)
    * [Cutomization](#cutomization)
       * [finito-writer-instance](#finito-writer-instance)
       * [finito-my-books-collection](#finito-my-books-collection)
@@ -22,7 +23,7 @@ https://user-images.githubusercontent.com/17688577/129899845-c9b67d25-bf99-41f8-
       * [<a href="https://github.com/lepisma/org-books">org-books</a>](#org-books)
       * [<a href="https://github.com/chenyanming/calibredb.el">calibredb.el</a>](#calibredbel)
 
-<!-- Added by: laurencewarne, at: Sat 28 Aug 14:06:56 BST 2021 -->
+<!-- Added by: laurencewarne, at: Mon 30 Aug 10:28:16 BST 2021 -->
 
 <!--te-->
 
@@ -88,6 +89,11 @@ It's not currently on melpa, but you can for example install it from source usin
 | `l` | Replay the last search                               |
 
 (in addition to all the [base bindings](#bindings-available-in-all-finito-view-buffers))
+
+# Additional Commands
+
+- `finito-create-book` - Will prompt you to create a book with custom attributes, useful if you cannot find the book you want through searching
+- `finito-delete-data-for-book-at-point` - deletes all held data about the book at point (except for its collection membership), use this for example if you set the incorrect date started/ended
 
 # Cutomization
 
