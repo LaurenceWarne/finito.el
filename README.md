@@ -34,6 +34,7 @@ It's not currently on melpa, but you can for example install it from source usin
 (use-package finito
   :demand t
   :quelpa (finito :fetcher github :repo "LaurenceWarne/finito.el" :stable t)
+  ;; The main entry point for finito commands
   :bind ("C-c b" . finito)
   :config
   ;; Downloads the server aysnchronously, you can also download the server

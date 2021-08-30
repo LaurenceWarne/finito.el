@@ -4,6 +4,10 @@
 
 ;; Author: Laurence Warne
 
+;; Local variables:
+;; package-lint-main-file: "finito.el"
+;; end:
+
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation, either version 3 of the License, or

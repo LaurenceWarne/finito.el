@@ -721,6 +721,7 @@ When DATE is specified, mark that as the date the book was finished."
   (let ((finito-save-last-search t))
     (call-interactively #'finito-search)))
 
+;;;###autoload
 (defun finito-create-book (title authors description img-uri isbn)
   "Create a new book.
 

@@ -4,6 +4,10 @@
 
 ;; Author: Laurence Warne
 
+;; Local variables:
+;; package-lint-main-file: "finito.el"
+;; end:
+
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation, either version 3 of the License, or
@@ -16,6 +20,7 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
 
 ;;; Commentary:
 
@@ -104,24 +109,23 @@ BOOK-ALIST is an alist of the format returned by `finito--create-book-alist'"
 
 (cl-defmethod finito-insert-title ((_ finito-book-writer) title)
   "Insert TITLE into the current buffer."
-  (insert (concat "** " title "\n\n")))
+  (insert "** " title "\n\n"))
 
 (cl-defmethod finito-insert-image ((_ finito-book-writer) image)
   "Insert IMAGE (an image file name) into the current buffer."
-  (insert (concat "[[" image "]]  ")))
+  (insert "[[" image "]]  "))
 
 (cl-defmethod finito-insert-author ((_ finito-book-writer) authors)
   "Insert AUTHORS into the current buffer."
   (let ((authors-str (s-join ", " authors)))
-    (insert (concat authors-str "\n\n"))
+    (insert authors-str "\n\n")
     (overlay-put (make-overlay (- (point) 2) (- (point) (length authors-str) 2))
                  'face
                  'finito-author-name)))
 
 (cl-defmethod finito-insert-rating ((_ finito-book-writer) rating)
   "Insert RATING into the current buffer."
-  (insert
-   (concat (-repeat (min rating 100) ?★) "\n"))
+  (insert (make-string (min rating 100) ?★) "\n")
   (overlay-put (make-overlay (1- (point)) (- (point) (min rating 100) 1))
                  'face
                  'finito-rating))
@@ -130,7 +134,7 @@ BOOK-ALIST is an alist of the format returned by `finito--create-book-alist'"
   ((_ finito-book-writer) _started-reading)
   "Insert STARTED-READING into the current buffer."
   (let ((currently-reading-str "⌛ In Progress ⌛"))
-    (insert (concat currently-reading-str) "\n")
+    (insert currently-reading-str "\n")
     (overlay-put (make-overlay (1- (point)) (- (point)
                                                (length currently-reading-str) 1))
                  'face
@@ -148,7 +152,7 @@ BOOK-ALIST is an alist of the format returned by `finito--create-book-alist'"
 
 (cl-defmethod finito-insert-description ((_ finito-book-writer) description)
   "Insert DESCRIPTION into the current buffer."
-  (insert (concat description "\n"))
+  (insert description "\n")
   (overlay-put (make-overlay (- (point) 2) (- (point) (length description) 2))
                'face
                'finito-book-descriptions))
