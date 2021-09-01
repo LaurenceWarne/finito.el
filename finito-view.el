@@ -105,7 +105,9 @@
 If OBJ has an empty value and `finito-save-last-search' is non-nil, switch
 to the last value used for OBJ."
   (transient--history-init obj)
-  (when (and finito-save-last-search (oref obj value))
+  (when (and finito-save-last-search
+             (not (oref obj value))
+             (cdr (oref obj history)))
     (let ((transient--prefix obj))
       (transient-history-prev))))
 
