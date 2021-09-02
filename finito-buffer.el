@@ -68,6 +68,21 @@
   "Face for last read message."
   :group 'finito)
 
+;;; Custom variables
+
+(defcustom finito-use-image-uris
+  nil
+  "If non-nil, insert raw image uris instead of downloading image thumbnails.
+
+This option will disable the image cache.  It's useful if for example you are
+using `org-display-remote-inline-images'.  In this case org would handle
+display of images even if they are remote uris.
+
+See also URL 'https://github.com/LaurenceWarne/finito.el/issues/2' for more
+information on using `org-display-remote-inline-images' with finito."
+  :group 'finito
+  :type 'boolean)
+
 ;;; Buffer local variables
 
 (defvar-local finito--ewoc
@@ -95,10 +110,9 @@ BOOK-ALIST is an alist of the format returned by `finito--create-book-alist'"
     (finito-insert-title writer .title)
     (finito-insert-image
      writer
-     (let ((display-remote (bound-and-true-p org-display-remote-inline-images)))
-       (if (and display-remote (not (eq display-remote 'skip)))
-           .img-uri
-         .image-file-name)))
+     (if finito-use-image-uris
+         .img-uri
+       .image-file-name))
     (finito-insert-author writer .authors)
     (when .rating (finito-insert-rating writer .rating))
     (when .started-reading

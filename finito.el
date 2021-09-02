@@ -161,14 +161,13 @@ as a symbol."
 
 Use INIT-OBJ, an instance of `finito-buffer-info' to initialize the buffer."
   (make-directory finito-img-cache-directory t)
-  (let ((book-list (-map #'finito--create-book-alist (append data nil)))
-        (display-remote (bound-and-true-p org-display-remote-inline-images)))
+  (let ((book-list (-map #'finito--create-book-alist (append data nil))))
     (cl-flet* ((callback
                 (buffer-ewoc)
                 (-each book-list
                   (apply-partially #'ewoc-enter-last buffer-ewoc)))
                (proc-books () (finito--prepare-buffer init-obj #'callback)))
-      (cond ((and display-remote (not (eq display-remote 'skip)))
+      (cond (finito-use-image-uris
              (proc-books))
             (finito--parallel-img-download
              (finito--download-images-par book-list #'proc-books))

@@ -760,3 +760,21 @@ GNU Emacs is awesome!
       (expect (spy-calls-args-for 'finito--add-book-request-plist 0)
               :to-equal
               (list book finito-my-books-collection)))))
+
+(describe "finito-insert-book"
+  :var ((book finito--stub-book))
+  (it "writes image file if finito-use-image-uris is nil"
+    (let ((finito-use-image-uris nil))
+      (finito--in-buffer
+       (finito-insert-book finito-writer-instance book)
+       (expect .buffer-text
+               :to-match
+               "[[cache/directory/footitleisbn.jpeg]]"))))
+
+  (it "writes image uri if finito-use-image-uris is t"
+    (let ((finito-use-image-uris t))
+      (finito--in-buffer
+       (finito-insert-book finito-writer-instance book)
+       (expect .buffer-text
+               :to-match
+               "[[https://random-url]]")))))

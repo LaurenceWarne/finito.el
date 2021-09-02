@@ -137,17 +137,18 @@ The situation is similar to that of `finito-my-books-collection` above in that t
 
 ## Misc Variables
 
-| Variable                               | Description                                                                       | Default                                      |
-|----------------------------------------|-----------------------------------------------------------------------------------|----------------------------------------------|
-| `finito-language`                      | The language search queries should request responses in                           | `"en"`                                       |
-| `finito-server-directory`              | The directory the finito server should be downloaded to                           | `(concat user-emacs-directory "/finito")`    |
-| `finito-img-cache-directory`           | The directory of the finito image cache                                           | `(concat finito-server-directory "/images")` |
-| `finito-config-directory`              | The directory of the server config file and sqlite db                             | `"~/.config/libro-finito"`                   |
-| `finito-browse-function`               | The function to be invoked by `finito-browse-book-at-point`                       | `finito--browse-function`                    |
-| `finito-add-book-collection-blacklist` | Collections to ignore for `finito-add-book-at-point`                              | `("Currently Reading")`                      |
-| `finito-save-last-search`              | A flag to indicate whether the arguments to the last search query should be saved | `t`                                          |
+| Variable                               | Description                                                                             | Default                                      |
+|----------------------------------------|-----------------------------------------------------------------------------------------|----------------------------------------------|
+| `finito-language`                      | The language search queries should request responses in                                 | `"en"`                                       |
+| `finito-server-directory`              | The directory the finito server should be downloaded to                                 | `(concat user-emacs-directory "/finito")`    |
+| `finito-img-cache-directory`           | The directory of the finito image cache                                                 | `(concat finito-server-directory "/images")` |
+| `finito-config-directory`              | The directory of the server config file and sqlite db                                   | `"~/.config/libro-finito"`                   |
+| `finito-browse-function`               | The function to be invoked by `finito-browse-book-at-point`                             | `finito--browse-function`                    |
+| `finito-add-book-collection-blacklist` | Collections to ignore for `finito-add-book-at-point`                                    | `("Currently Reading")`                      |
+| `finito-save-last-search`              | A flag to indicate whether the arguments to the last search query should be saved       | `t`                                          |
+| `finito-use-image-uris`                | A flag to indicate whether to insert image uris or image file names into finito buffers | `nil`                                        |
 
-More information is available via `C-h v`.  Note if `org-display-remote-inline-images` is set, then finito will defer remote image handling to org and not create its own image cache.
+More information is available via `C-h v`.  A non-nil value for `finito-use-image-uris` can be useful if for example you are using `org-display-remote-inline-images`.
 
 # Similar Packages
 
