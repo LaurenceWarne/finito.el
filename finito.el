@@ -152,7 +152,8 @@ as a symbol."
                           ;; Error doesn't seem to do anything here
                           (message "Received error(s) in gql response: %s"
                                    (cdar first-error))))
-                    (funcall callback (cdadar data))))))
+                    (with-local-quit
+                      (funcall callback (cdadar data)))))))
     :timeout (when sync 5)
     :sync sync))
 
