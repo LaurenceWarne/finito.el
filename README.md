@@ -21,11 +21,12 @@ https://user-images.githubusercontent.com/17688577/129899845-c9b67d25-bf99-41f8-
       * [finito-my-books-collection](#finito-my-books-collection)
       * [finito-currently-reading-collection](#finito-currently-reading-collection)
       * [Misc Variables](#misc-variables)
+   * [Changelog](#changelog)
    * [Similar Packages](#similar-packages)
       * [<a href="https://github.com/lepisma/org-books">org-books</a>](#org-books)
       * [<a href="https://github.com/chenyanming/calibredb.el">calibredb.el</a>](#calibredbel)
 
-<!-- Added by: laurencewarne, at: Mon 30 Aug 10:28:16 BST 2021 -->
+<!-- Added by: laurencewarne, at: Sat  4 Sep 11:08:17 BST 2021 -->
 
 <!--te-->
 
@@ -149,6 +150,10 @@ The situation is similar to that of `finito-my-books-collection` above in that t
 | `finito-use-image-uris`                | A flag to indicate whether to insert image uris or image file names into finito buffers | `nil`                                        |
 
 More information is available via `C-h v`.  A non-nil value for `finito-use-image-uris` can be useful if for example you are using `org-display-remote-inline-images`.
+
+# Changelog
+
+The changelog can be viewed [here](CHANGELOG.md).
 
 # Similar Packages
 

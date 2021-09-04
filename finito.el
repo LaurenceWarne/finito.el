@@ -4,7 +4,7 @@
 
 ;; Author: Laurence Warne
 ;; Maintainer: Laurence Warne
-;; Version: 0.1.0
+;; Version: 0.2.0
 ;; Keywords: outlines
 ;; URL: https://github.com/LaurenceWarne/finito.el
 ;; Package-Requires: ((emacs "27.1") (dash "2.17.0") (request "0.3.2") (f "0.2.0") (s "1.12.0") (transient "0.3.0") (graphql "0.1.1") (async "1.9.3"))
