@@ -27,7 +27,7 @@
 
 ;;; Code:
 
-(defconst finito-version "0.1.0")
+(defconst finito-version "0.2.0")
 
 (defgroup finito nil
   "Book and book collection management."
