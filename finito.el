@@ -575,7 +575,7 @@ maximum of MAX-RESULTS results."
         (message "Successfully updated collection '%s'" chosen-collection))))))
 
 (defun finito-same-author ()
-  "Find books by the author at point."
+  "Find books by the author of the book at point."
   (interactive)
   (let* ((book (finito--book-at-point))
          (book-authors (s-join " " (alist-get 'authors book))))
@@ -729,8 +729,7 @@ Use TITLE, AUTHORS, DESCRIPTION, IMG-URI and ISBN to create a new book.
 The book will be added to `finito-my-books-collection'.
 
 IMG-URI should point to a 128*195 image to be consistent with the sizes of
-the other images.  You can for example change the size of an image using
-ImageMagick via:
+the other images.  You can do this for example using ImageMagick via:
 
 convert original.png -resize 128x195! new.png."
   (interactive "sPlease input the book title:

@@ -47,7 +47,7 @@
 
 (defcustom finito-server-directory
   (f-join user-emacs-directory "finito/")
-  "The directory of the finito and server."
+  "The directory of the finito server."
   :group 'finito
   :type 'directory)
 
@@ -101,7 +101,10 @@ Are there any error messages when you (switch-to-buffer \"finito\") ?")
   "Download a finito server if one is not already downloaded.
 
 If CALLBACK is specified, call that function when the download has
-completed, or if a server has already been downloaded."
+completed, or if a server has already been downloaded.
+
+Existing server jars with versions older than `finito-server-version' will
+be ignored."
   (if (f-exists-p finito--server-path)
       (when callback (funcall callback))
     (finito--download-server callback)))
@@ -111,7 +114,11 @@ completed, or if a server has already been downloaded."
 
 A process obj is returned if a server process was successfully started,
 and nil is returned if a server was detected to already have been started.
-An error is signalled if the server jar cannot be found."
+An error is signalled if the server jar cannot be found.
+
+Note that the server does not necessarily need to be running as a subprocess
+of the current Emacs session.  This function will return nil if any server
+is appears to be running at `finito--host-uri'/health"
   (unless (f-exists-p finito--server-path)
     (error finito--no-server-error-msg))
   (unless (or (process-live-p finito--server-process) (finito--health-check))
@@ -138,8 +145,7 @@ An error is signalled if the server jar cannot be found."
   "Wait for the finito server to start then call CALLBACK.
 
 ATTEMPTS is the max number of attempts to wait (in 0.5 second increments)
-for the server until signalling an error.  It will default to 20 if not
-specified."
+until signalling an error.  The default is 20."
   (finito-start-server-if-not-already)
   (async-start
    `(lambda ()
@@ -163,7 +169,7 @@ specified."
 
 If CALLBACK is specified, call that function when the download has
 completed.  The server version is determined by `finito-server-version',
-and the the server will save it to the file `finito--server-path'."
+and the the server will save the server jar to `finito--server-path'."
   (let* ((request-backend 'url-retrieve))
     (make-directory finito-server-directory t)
     (message "Starting finito server download...")
@@ -180,7 +186,7 @@ and the the server will save it to the file `finito--server-path'."
        (when callback (funcall callback))))))
 
 (defun finito--health-check ()
-  "Return t if the finito server appears to be up, else nil."
+  "Return t if a finito server appears to be up, else nil."
   (not (eq (ignore-errors
              (url-retrieve-synchronously
               (concat finito--host-uri "/health") nil nil 5)) nil)))

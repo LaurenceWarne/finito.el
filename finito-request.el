@@ -23,7 +23,7 @@
 
 ;;; Commentary:
 
-;; This file contains http utilities used by finito.
+;; This file contains http utilities for finito.
 
 ;;; Code:
 

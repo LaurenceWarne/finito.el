@@ -47,7 +47,7 @@
      rating startedReading lastRead))))
 
 ;; We don't add quotes around %s since null is a value that could potentially
-;; be placing, and we shouldn't quote that
+;; be used, and we shouldn't quote that
 (defconst finito--search-query-variables
   "{
      \"titleKeywords\": %s,
