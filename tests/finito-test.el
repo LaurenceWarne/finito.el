@@ -149,6 +149,13 @@ Occurrences of `.buffer-text' will be replaced by:
       (expect (plist-get plist :headers))
       (expect (plist-get plist :data)))))
 
+(describe "finito--series-request-plist"
+  (it "plist has headers and data"
+    (let* ((book finito--stub-book)
+           (plist (finito--series-request-plist book)))
+      (expect (plist-get plist :headers))
+      (expect (plist-get plist :data)))))
+
 (describe "finito--insert-book-data"
   :var ((writer (finito-book-writer)))
   (it "inserted data is reasonable"

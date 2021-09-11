@@ -255,5 +255,25 @@
      }
    }")
 
+(defconst finito--series-query
+  (graphql-query
+   (:arguments
+    (($book . BookInput!))
+    (series
+     :arguments ((book . ($ book)))
+     title authors description isbn thumbnailUri
+     rating startedReading lastRead))))
+
+(defconst finito--series-query-variables
+  "{
+     \"book\": {
+       \"title\": \"%s\",
+       \"authors\": %s,
+       \"description\": \"%s\",
+       \"isbn\": \"%s\",
+       \"thumbnailUri\": \"%s\"
+     }
+   }")
+
 (provide 'finito-graphql)
 ;;; finito-graphql.el ends here

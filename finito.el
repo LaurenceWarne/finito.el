@@ -363,6 +363,7 @@ request is successful"
     (define-key map "S" #'finito-start-and-date-book-at-point)
     (define-key map "f" #'finito-finish-book-at-point)
     (define-key map "F" #'finito-finish-and-date-book-at-point)
+    (define-key map "e" #'finito-series-at-point)
     (define-key map (kbd "C-m") #'finito-open-my-books-collection)
     (define-key map (kbd "C-r") #'finito-open-currently-reading-collection)
     map))
@@ -749,6 +750,18 @@ sPlease input a unique identifier (used in place of an isbn):")
        (finito--make-request
         (finito--add-book-request-plist book finito-my-books-collection)
         #'ignore)))))
+
+(defun finito-series-at-point ()
+  "Find books in the same series as the book at point."
+  (interactive)
+  (let* ((book (finito--book-at-point))
+         (title (alist-get 'title book)))
+    (message "Searching for books in the same series as '%s'" title)
+    (finito--make-request
+     (finito--series-request-plist book)
+     (lambda (data) (finito--process-books-data
+                     data
+                     finito-keyword-search-buffer-init-instance)))))
 
 (provide 'finito)
 ;;; finito.el ends here

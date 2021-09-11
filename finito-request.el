@@ -245,6 +245,23 @@ img-uri."
                                (s-replace "\"" "'" .isbn)
                                (s-replace "\"" "'" .img-uri))))))
 
+(defun finito--series-request-plist (book)
+  "Return a plist with headers and body for a series request.
+
+BOOK should be an alist with keys title, authors, description, isbn and
+img-uri."
+  `(:headers ,finito--headers
+             :data ,(format "{\"query\":\"%s\", \"variables\": %s}"
+                            finito--series-query
+                            (let-alist book
+                              (format
+                               finito--series-query-variables
+                               (s-replace "\"" "'" .title)
+                               (finito--seq-to-json-list .authors)
+                               (s-replace "\"" "'" .description)
+                               (s-replace "\"" "'" .isbn)
+                               (s-replace "\"" "'" .img-uri))))))
+
 (defun finito--seq-to-json-list (seq)
   "Return SEQ as an escaped json list."
   (--> (append seq nil)
