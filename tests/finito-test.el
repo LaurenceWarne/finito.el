@@ -789,25 +789,46 @@ GNU Emacs is awesome!
                "[[https://random-url]]")))))
 
 (describe "finito-series-at-point"
-  :var ((book finito--stub-book))
+  :var ((book finito--stub-book)
+        (response-alist
+          '((title . "A Random Book")
+            (authors . ["???"])
+            (description . "GNU Emacs is awesome!")
+            (isbn . "a random isbn")
+            (thumbnailUri . "some-thumbnail")
+            (startedReading . nil)
+            (lastRead . nil))))
+  
   (before-each
-    (spy-on 'finito--make-request
-            :and-call-fake
-            (lambda (plist callback &rest _)
-              (funcall callback nil)))
     (spy-on 'finito--wait-for-server :and-call-fake
-            (lambda (callback &rest _)
-              (funcall callback)))
+            (lambda (callback &rest _) (funcall callback)))
     (spy-on 'finito--book-at-point :and-return-value book)
     (spy-on 'finito--series-request-plist :and-call-through)
     (spy-on 'finito--process-books-data :and-return-value nil))
 
   (it "open same series"
+    (spy-on 'finito--make-request
+            :and-call-fake
+            (lambda (plist callback &rest _)
+              (funcall callback (vector response-alist))))
     (finito-series-at-point)
     (expect 'finito--wait-for-server :to-have-been-called-times 1)
     (expect 'finito--series-request-plist :to-have-been-called-times 1)
     (expect 'finito--make-request :to-have-been-called-times 1)
     (expect 'finito--process-books-data :to-have-been-called-times 1)
+    (expect (spy-calls-args-for 'finito--series-request-plist 0)
+            :to-equal
+            (list book)))
+
+  (it "no new buffer opened if book not in a series"
+    (spy-on 'finito--make-request :and-call-fake
+            (lambda (plist callback &rest _)
+              (funcall callback nil)))
+    (finito-series-at-point)
+    (expect 'finito--wait-for-server :to-have-been-called-times 1)
+    (expect 'finito--series-request-plist :to-have-been-called-times 1)
+    (expect 'finito--make-request :to-have-been-called-times 1)
+    (expect 'finito--process-books-data :not :to-have-been-called)
     (expect (spy-calls-args-for 'finito--series-request-plist 0)
             :to-equal
             (list book))))

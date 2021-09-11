@@ -759,9 +759,12 @@ sPlease input a unique identifier (used in place of an isbn):")
      (message "Searching for books in the same series as '%s'" title)
      (finito--make-request
       (finito--series-request-plist book)
-      (lambda (data) (finito--process-books-data
-                      data
-                      finito-keyword-search-buffer-init-instance))))))
+      (lambda (data)
+        (if (= 0 (length data))
+            (message "Could not find a book series containing '%s'" title)
+          (finito--process-books-data
+           data
+           finito-keyword-search-buffer-init-instance)))))))
 
 (provide 'finito)
 ;;; finito.el ends here
