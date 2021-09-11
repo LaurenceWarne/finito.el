@@ -519,7 +519,7 @@ maximum of MAX-RESULTS results."
        (finito--make-request
         request-plist
         (lambda (c)
-          (message "Successfully created collection '%s'" (cdar c)))))))
+          (message "Created collection '%s'" (cdar c)))))))
 
 ;;;###autoload
 (defun finito-open-collection (&optional _)
@@ -552,7 +552,7 @@ maximum of MAX-RESULTS results."
       (finito--make-request
        (finito--delete-collection-request-plist chosen-collection)
        (lambda (_)
-         (message "Successfully deleted collection '%s'" chosen-collection)))))))
+         (message "Deleted collection '%s'" chosen-collection)))))))
 
 ;;;###autoload
 (defun finito-update-collection-request (&optional args)
@@ -573,7 +573,7 @@ maximum of MAX-RESULTS results."
       (finito--update-collection-request-plist
        chosen-collection new-name preferred-sort sort-asc)
       (lambda (_)
-        (message "Successfully updated collection '%s'" chosen-collection))))))
+        (message "Updated collection '%s'" chosen-collection))))))
 
 (defun finito-same-author ()
   "Find books by the author of the book at point."
@@ -601,7 +601,7 @@ maximum of MAX-RESULTS results."
         (finito--make-request
          (finito--add-book-request-plist book chosen-collection)
          (lambda (_)
-           (message "Successfully added '%s' to '%s'"
+           (message "Added '%s' to '%s'"
                     (alist-get 'title book)
                     chosen-collection))))
       (lambda (collection)
@@ -615,7 +615,7 @@ maximum of MAX-RESULTS results."
      (finito--make-request
       (finito--add-book-request-plist book)
       (lambda (_)
-        (message "Successfully added '%s'" (alist-get 'title book)))))))
+        (message "Added '%s'" (alist-get 'title book)))))))
 
 (defun finito-remove-book-at-point ()
   "Remove the book at point from the current collection."
@@ -643,7 +643,7 @@ maximum of MAX-RESULTS results."
      (kill-current-buffer)
      (finito--open-specified-collection collection t)
      (goto-char old-point)
-     (message "Successful refreshed '%s'" collection))))
+     (message "Refreshed collection '%s'" collection))))
 
 (defun finito-browse-book-at-point ()
   "Browse the book at point."
@@ -658,7 +658,7 @@ maximum of MAX-RESULTS results."
          (rating (read-string "Rating: ")))
      (finito--replace-book-at-point-from-request
       (finito--rate-book-request-plist book rating)
-      (format "Successfully gave '%s' a rating of %s"
+      (format "Gave '%s' a rating of %s"
               (alist-get 'title book)
               rating)))))
 
@@ -671,7 +671,7 @@ When DATE is specified, mark that as the date the book was started."
    (let ((book (finito--book-at-point)))
      (finito--replace-book-at-point-from-request
       (finito--start-reading-request-plist book date)
-      (format "Successfully added '%s' to currently reading"
+      (format "Added '%s' to currently reading"
               (alist-get 'title book))))))
 
 (defun finito-start-and-date-book-at-point ()
@@ -687,8 +687,7 @@ When DATE is specified, mark that as the date the book was finished."
   (finito--wait-for-server-then
    (let* ((book (finito--book-at-point))
           (request-plist (finito--finish-reading-request-plist book date))
-          (msg (format "Successfully marked '%s' as finished"
-                       (alist-get 'title book))))
+          (msg (format "Marked '%s' as finished" (alist-get 'title book))))
      (if (string= finito--collection finito-currently-reading-collection)
          (let ((line (line-number-at-pos))
                (buf (current-buffer)))
@@ -712,8 +711,7 @@ When DATE is specified, mark that as the date the book was finished."
      (finito--make-request
       (finito--delete-book-data-request-plist (alist-get 'isbn book))
       (lambda (_)
-        (message "Successfully deleted info held about '%s'"
-                 (alist-get 'title book))
+        (message "Deleted info held about '%s'" (alist-get 'title book))
         (finito-refresh-collection))))))
 
 (defun finito-replay-search ()
@@ -747,7 +745,7 @@ sPlease input a unique identifier (used in place of an isbn):")
      (finito--make-request
       (finito--create-book-request-plist book)
       (lambda (_)
-        (message "Successfully created '%s'" title)
+        (message "Created the custom book '%s'" title)
         (finito--make-request
          (finito--add-book-request-plist book finito-my-books-collection)
          #'ignore))))))
