@@ -747,6 +747,7 @@ GNU Emacs is awesome!
        .description
        .img-uri
        .isbn)
+      (expect 'finito--wait-for-server :to-have-been-called-times 1)
       (expect 'finito--create-book-request-plist :to-have-been-called-times 1)
       (expect 'finito--make-request :to-have-been-called)
       (expect (spy-calls-args-for 'finito--create-book-request-plist 0)
@@ -761,6 +762,7 @@ GNU Emacs is awesome!
        .description
        .img-uri
        .isbn)
+      (expect 'finito--wait-for-server :to-have-been-called-times 1)
       (expect 'finito--create-book-request-plist :to-have-been-called-times 1)
       (expect 'finito--add-book-request-plist :to-have-been-called-times 1)
       (expect 'finito--make-request :to-have-been-called-times 2)
@@ -785,3 +787,27 @@ GNU Emacs is awesome!
        (expect .buffer-text
                :to-match
                "[[https://random-url]]")))))
+
+(describe "finito-series-at-point"
+  :var ((book finito--stub-book))
+  (before-each
+    (spy-on 'finito--make-request
+            :and-call-fake
+            (lambda (plist callback &rest _)
+              (funcall callback nil)))
+    (spy-on 'finito--wait-for-server :and-call-fake
+            (lambda (callback &rest _)
+              (funcall callback)))
+    (spy-on 'finito--book-at-point :and-return-value book)
+    (spy-on 'finito--series-request-plist :and-call-through)
+    (spy-on 'finito--process-books-data :and-return-value nil))
+
+  (it "open same series"
+    (finito-series-at-point)
+    (expect 'finito--wait-for-server :to-have-been-called-times 1)
+    (expect 'finito--series-request-plist :to-have-been-called-times 1)
+    (expect 'finito--make-request :to-have-been-called-times 1)
+    (expect 'finito--process-books-data :to-have-been-called-times 1)
+    (expect (spy-calls-args-for 'finito--series-request-plist 0)
+            :to-equal
+            (list book))))

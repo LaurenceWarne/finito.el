@@ -738,30 +738,32 @@ sPlease input the book authors:
 sPlease input the book description:
 sPlease input an image url to be used:
 sPlease input a unique identifier (used in place of an isbn):")
-  (let ((book `((title . ,title)
-                (authors . ,(s-split "," (s-replace ", " "," authors)))
-                (description . ,description)
-                (img-uri . ,img-uri)
-                (isbn . ,isbn))))
-    (finito--make-request
-     (finito--create-book-request-plist book)
-     (lambda (_)
-       (message "Successfully created '%s'" title)
-       (finito--make-request
-        (finito--add-book-request-plist book finito-my-books-collection)
-        #'ignore)))))
+  (finito--wait-for-server-then
+   (let ((book `((title . ,title)
+                 (authors . ,(s-split "," (s-replace ", " "," authors)))
+                 (description . ,description)
+                 (img-uri . ,img-uri)
+                 (isbn . ,isbn))))
+     (finito--make-request
+      (finito--create-book-request-plist book)
+      (lambda (_)
+        (message "Successfully created '%s'" title)
+        (finito--make-request
+         (finito--add-book-request-plist book finito-my-books-collection)
+         #'ignore))))))
 
 (defun finito-series-at-point ()
   "Find books in the same series as the book at point."
   (interactive)
-  (let* ((book (finito--book-at-point))
-         (title (alist-get 'title book)))
-    (message "Searching for books in the same series as '%s'" title)
-    (finito--make-request
-     (finito--series-request-plist book)
-     (lambda (data) (finito--process-books-data
-                     data
-                     finito-keyword-search-buffer-init-instance)))))
+  (finito--wait-for-server-then
+   (let* ((book (finito--book-at-point))
+          (title (alist-get 'title book)))
+     (message "Searching for books in the same series as '%s'" title)
+     (finito--make-request
+      (finito--series-request-plist book)
+      (lambda (data) (finito--process-books-data
+                      data
+                      finito-keyword-search-buffer-init-instance))))))
 
 (provide 'finito)
 ;;; finito.el ends here
