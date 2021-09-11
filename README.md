@@ -8,6 +8,8 @@ This package is a thin client for https://github.com/laurencewarne/libro-finito,
 
 https://user-images.githubusercontent.com/17688577/129899845-c9b67d25-bf99-41f8-bbd6-04b0f47cdc97.mp4
 
+https://user-images.githubusercontent.com/17688577/132958359-563e9940-9105-4c36-802c-cf34dc96e8c0.mp4
+
 # Table of Contents
 <!--ts-->
    * [Installation](#installation)
@@ -72,6 +74,7 @@ You can install it from melpa:
 | `S`   | Start the book at point at a prompted date                                 |
 | `f`   | Finish the book at point                                                   |
 | `F`   | Finish the book at point at a prompted date                                |
+| `e`   | Search for books in the same series                                        |
 | `C-m` | Open the "My Books" collection                                             |
 | `C-r` | Open the "Currently Reading" collection                                    |
 
