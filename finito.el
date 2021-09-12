@@ -169,7 +169,7 @@ Use INIT-OBJ, an instance of `finito-buffer-info' to initialize the buffer."
                          ;; ewoc adds a newline after each node and after
                          ;; the footer even if it is empty
                          (goto-char (point-max))
-                         (delete-backward-char 3))
+                         (delete-char -3))
                (proc-books () (finito--prepare-buffer init-obj #'callback)))
       (cond (finito-use-image-uris
              (proc-books))
