@@ -163,10 +163,13 @@ as a symbol."
 Use INIT-OBJ, an instance of `finito-buffer-info' to initialize the buffer."
   (make-directory finito-img-cache-directory t)
   (let ((book-list (-map #'finito--create-book-alist (append data nil))))
-    (cl-flet* ((callback
-                (buffer-ewoc)
-                (-each book-list
-                  (apply-partially #'ewoc-enter-last buffer-ewoc)))
+    (cl-flet* ((callback (buffer-ewoc)
+                         (-each book-list
+                           (apply-partially #'ewoc-enter-last buffer-ewoc))
+                         ;; ewoc adds a newline after each node and after
+                         ;; the footer even if it is empty
+                         (goto-char (point-max))
+                         (delete-backward-char 3))
                (proc-books () (finito--prepare-buffer init-obj #'callback)))
       (cond (finito-use-image-uris
              (proc-books))
@@ -175,17 +178,6 @@ Use INIT-OBJ, an instance of `finito-buffer-info' to initialize the buffer."
             (t
              (finito--download-images book-list)
              (proc-books))))))
-
-(defun finito--process-single-book (data init-obj)
-  "Insert the book data DATA into a buffer.
-
-Use INIT-OBJ, an instance of `finito-buffer-info' to initialize the buffer."
-  (make-directory finito-img-cache-directory t)
-  (finito--prepare-buffer init-obj
-                          (lambda (buffer-ewoc)
-                            (ewoc-enter-last
-                             buffer-ewoc
-                             (finito--create-book-alist data)))))
 
 (defun finito--prepare-buffer (init-obj callback)
   "Prepare a finito buffer.
