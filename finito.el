@@ -196,6 +196,8 @@ in some way, and then apply some final configuration to the buffer."
           (format "* %s\n" (oref init-obj title)))))
     (setq finito--ewoc buffer-ewoc)
     (funcall callback buffer-ewoc))
+  (let ((inhibit-message t))
+    (toggle-truncate-lines -1))
   (goto-char (point-min))
   (org-display-inline-images))
 
