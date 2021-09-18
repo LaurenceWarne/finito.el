@@ -97,8 +97,9 @@ You can install it from melpa:
 
 # Additional Commands
 
-- `finito-create-book` - Will prompt you to create a book with custom attributes, useful if you cannot find the book you want through searching
+- `finito-create-book` - will prompt you to create a book with custom attributes, useful if you cannot find the book you want through searching
 - `finito-delete-data-for-book-at-point` - deletes all held data about the book at point (except for its collection membership), use this for example if you set the incorrect date started/ended
+- `finito-open-playground` - opens the finito server's graphql playground
 
 # Cutomization
 

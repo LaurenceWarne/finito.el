@@ -760,5 +760,11 @@ sPlease input a unique identifier (used in place of an isbn):")
            data
            finito-keyword-search-buffer-init-instance)))))))
 
+(defun finito-open-playground ()
+  "Open the finito server's graphql playground - useful for debugging."
+  (interactive)
+  (finito--wait-for-server-then
+   (browse-url (s-replace "/api/graphql" "/graphiql" finito--host-uri))))
+
 (provide 'finito)
 ;;; finito.el ends here

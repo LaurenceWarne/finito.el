@@ -11,7 +11,7 @@
 ** Smaller Things
 *** DONE Add version number
 *** DONE Use ~transient-define-infix~ instead of ~transient-define-argument~
-*** TODO Add integration with ~createBook~ mutation
+*** DONE Add integration with ~createBook~ mutation
 *** DONE Hide "Currently Reading" in addBook
 *** DONE Add curl debugging for search requests
 *** DONE Add binding for "modify search" in search view buffers
