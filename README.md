@@ -62,7 +62,7 @@ You can install it from melpa:
 |-------|----------------------------------------------------------------------------|
 | `a`   | Add the book at point to some prompted collection                          |
 | `m`   | Add the book at point to the "My Books" collection                         |
-| `A`   | Search for books by the same author                                        |
+| `A`   | Search for books by the same author as the book at point                   |
 | `n`   | Goto the next book                                                         |
 | `p`   | Goto the previous book                                                     |
 | `o`   | Dump this buffer's contents in a normal org mode buffer                    |
@@ -75,6 +75,7 @@ You can install it from melpa:
 | `f`   | Finish the book at point                                                   |
 | `F`   | Finish the book at point at a prompted date                                |
 | `e`   | Search for books in the same series                                        |
+| `w`   | Copy the title of the book at point to the kill ring                       |
 | `C-m` | Open the "My Books" collection                                             |
 | `C-r` | Open the "Currently Reading" collection                                    |
 
