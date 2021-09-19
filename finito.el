@@ -358,6 +358,7 @@ request is successful"
     (define-key map "f" #'finito-finish-book-at-point)
     (define-key map "F" #'finito-finish-and-date-book-at-point)
     (define-key map "e" #'finito-series-at-point)
+    (define-key map "w" #'finito-title-of-book-at-point)
     (define-key map (kbd "C-m") #'finito-open-my-books-collection)
     (define-key map (kbd "C-r") #'finito-open-currently-reading-collection)
     map))
@@ -765,6 +766,15 @@ sPlease input a unique identifier (used in place of an isbn):")
   (interactive)
   (finito--wait-for-server-then
    (browse-url (s-replace "/api/graphql" "/graphiql" finito--host-uri))))
+
+(defun finito-title-of-book-at-point ()
+  "Copy the title of the book at point to the kill ring."
+  (interactive)
+  (finito--wait-for-server-then
+   (let* ((book (finito--book-at-point))
+          (title (alist-get 'title book)))
+     (kill-new title)
+     (message "Copied '%s' to the kill ring" title))))
 
 (provide 'finito)
 ;;; finito.el ends here

@@ -832,3 +832,20 @@ GNU Emacs is awesome!
     (expect (spy-calls-args-for 'finito--series-request-plist 0)
             :to-equal
             (list book))))
+
+(describe "finito-title-of-book-at-point"
+  :var ((book finito--stub-book))
+  (before-each
+    (spy-on 'finito--wait-for-server :and-call-fake
+            (lambda (callback &rest _)
+              (funcall callback)))
+    (spy-on 'finito--book-at-point :and-return-value book))
+
+  (it "Copies to kill ring"
+    (finito-title-of-book-at-point)
+    (let ((copied (car kill-ring)))
+      (expect 'finito--wait-for-server :to-have-been-called-times 1)
+      (expect 'finito--book-at-point :to-have-been-called-times 1)
+      (expect copied
+              :to-equal
+              (alist-get 'title book)))))
