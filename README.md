@@ -50,7 +50,9 @@ You can install it from melpa:
    ;; Optional, but we can specify a callback to run when the server has
    ;; finished downloading, we choose here to start the server to override
    ;; the default lazy behaviour which starts the server whenever a finito
-   ;; command is invoked
+   ;; command is invoked.
+   ;; Note this callback is still called in the event a server has already
+   ;; been downloaded
    (lambda () (finito-start-server-if-not-already))))
 ```
 
@@ -74,10 +76,12 @@ You can install it from melpa:
 | `S`   | Start the book at point at a prompted date                                 |
 | `f`   | Finish the book at point                                                   |
 | `F`   | Finish the book at point at a prompted date                                |
-| `e`   | Search for books in the same series                                        |
+| `e`   | Search for books in the same series*                                        |
 | `w`   | Copy the title of the book at point to the kill ring                       |
 | `C-m` | Open the "My Books" collection                                             |
 | `C-r` | Open the "Currently Reading" collection                                    |
+
+*Results may vary, thoughts on the Wikidata [implementation](https://github.com/LaurenceWarne/libro-finito/blob/1ae5766f880b4899f0d77f2a8cdf4238e2a15c3c/finito/core/src/fin/service/book/WikidataSeriesInfoService.scala#L72) are very welcome.  If you see 'Could not find a series for xyz', you may find that it's just the case that the relevant Wikidata information is incomplete, in which case Wikidata welcomes [contributions](https://www.wikidata.org/wiki/Wikidata:Contribute)!
 
 ## Bindings in a Collection Buffer
 
