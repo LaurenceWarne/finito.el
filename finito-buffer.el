@@ -46,7 +46,8 @@
   :group 'finito)
 
 (defface finito-book-descriptions
-  '((t :inherit default))
+  '((t :slant oblique
+       :inherit default))
   "Face for book descriptions."
   :group 'finito)
 
