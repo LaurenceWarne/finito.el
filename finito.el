@@ -136,7 +136,9 @@ as a symbol."
     :type "POST"
     :headers (plist-get request-plist :headers)
     :data (plist-get request-plist :data)
-    :parser 'json-read
+    :parser (lambda ()
+              (set-buffer-multibyte t)
+              (json-read))
     :error
     (cl-function (lambda (&rest args &key error-thrown &allow-other-keys)
     	           (message "Got error: '%s', is the server up?" error-thrown)))
