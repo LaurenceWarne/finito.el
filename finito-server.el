@@ -170,7 +170,7 @@ until signalling an error.  The default is 20."
 If CALLBACK is specified, call that function when the download has
 completed.  The server version is determined by `finito-server-version',
 and the the server will save the server jar to `finito--server-path'."
-  (let* ((request-backend 'url-retrieve))
+  (let ((request-backend 'url-retrieve))
     (make-directory finito-server-directory t)
     (message "Starting finito server download...")
     (async-start

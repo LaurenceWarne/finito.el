@@ -1,4 +1,4 @@
-;;; test-ox-yaow.el --- Tests for finito.el -*- lexical-binding: t -*-
+;;; finito-test.el --- Tests for finito.el -*- lexical-binding: t -*-
 
 ;;; Commentary:
 

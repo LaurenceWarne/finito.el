@@ -6,3 +6,27 @@
 (eldev-use-plugin 'undercover)
 
 (setq eldev-test-framework 'buttercup)
+
+
+;; Copied from eldev's own Eldev
+
+;; Avoid including files in test "projects".
+(setf eldev-standard-excludes
+      (append eldev-standard-excludes
+              '((eldev-pcase-exhaustive eldev-test-type
+                  (`main        "./test/*/")
+                  (`integration '("./test/"   "!./test/integration"))
+                  (`all         '("./test/*/" "!./test/integration")))
+                "./webinstall")))
+
+(defvar eldev-test-type 'main)
+
+(eldev-defoption eldev-test-selection (type)
+  "Select tests to run; type can be `main', `integration' or `all'"
+  :options        (-T --test-type)
+  :for-command    test
+  :value          TYPE
+  :default-value  eldev-test-type
+  (unless (memq (intern type) '(main integration all))
+    (signal 'eldev-wrong-option-usage `("unknown test type `%s'" ,type)))
+  (setf eldev-test-type (intern type)))
