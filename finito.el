@@ -767,7 +767,7 @@ sPlease input a unique identifier (used in place of an isbn):")
   "Open the finito server's graphql playground - useful for debugging."
   (interactive)
   (finito--wait-for-server-then
-   (browse-url (s-replace "/api/graphql" "/graphiql" finito--host-uri))))
+   (browse-url (concat finito--base-uri "/graphiql"))))
 
 (defun finito-title-of-book-at-point ()
   "Copy the title of the book at point to the kill ring."

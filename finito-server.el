@@ -88,7 +88,11 @@
 
 Are there any error messages when you (switch-to-buffer \"finito\") ?")
 
-(defvar finito--host-uri "http://localhost:56848/api/graphql")
+(defvar finito--base-uri "http://localhost:56848")
+
+(defvar finito--host-uri (concat finito--base-uri "/api/graphql"))
+
+(defvar finito--health-uri (concat finito--base-uri "/health"))
 
 (defvar finito--server-path
   (f-join finito-server-directory finito--jar-name))
@@ -147,22 +151,24 @@ is appears to be running at `finito--host-uri'/health"
 ATTEMPTS is the max number of attempts to wait (in 0.5 second increments)
 until signalling an error.  The default is 20."
   (finito-start-server-if-not-already)
-  (async-start
-   `(lambda ()
-      ,(async-inject-variables "finito--host-uri")
-      ;; TODO how can I inject functions with async.el?
-      (defun finito--health-check ()
-        (not (eq (ignore-errors
-                   (url-retrieve-synchronously
-                    (concat finito--host-uri "/health") nil nil 5)) nil)))
-      (require 'cl-lib)
-      (cl-find-if
-       (lambda (_) (or (finito--health-check) (ignore (sleep-for 0.5))))
-       (make-list ,(or attempts 40) t)))
-   (lambda (response)
-     (if response
-         (funcall callback)
-       (error finito--server-startup-timeout-msg)))))
+  (if (process-live-p finito--server-process)
+      (funcall callback)
+    (async-start
+     `(lambda ()
+        ,(async-inject-variables "finito--host-uri")
+        ;; TODO how can I inject functions with async.el?
+        (defun finito--health-check ()
+          (not (eq (ignore-errors
+                     (url-retrieve-synchronously finito--health-uri nil nil 5))
+                   nil)))
+        (require 'cl-lib)
+        (cl-find-if
+         (lambda (_) (or (finito--health-check) (ignore (sleep-for 0.5))))
+         (make-list ,(or attempts 40) t)))
+     (lambda (response)
+       (if response
+           (funcall callback)
+         (error finito--server-startup-timeout-msg))))))
 
 (defun finito--download-server (&optional callback)
   "Download a finito server asynchronously.
@@ -188,8 +194,7 @@ and the the server will save the server jar to `finito--server-path'."
 (defun finito--health-check ()
   "Return t if a finito server appears to be up, else nil."
   (not (eq (ignore-errors
-             (url-retrieve-synchronously
-              (concat finito--host-uri "/health") nil nil 5)) nil)))
+             (url-retrieve-synchronously finito--health-uri nil nil 5)) nil)))
 
 (provide 'finito-server)
 ;;; finito-server.el ends here
