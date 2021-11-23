@@ -92,7 +92,7 @@ Are there any error messages when you (switch-to-buffer \"finito\") ?")
 
 (defvar finito--host-uri (concat finito--base-uri "/api/graphql"))
 
-(defvar finito--health-uri (concat finito--base-uri "/health"))
+(defvar finito--health-uri (concat finito--base-uri "/version"))
 
 (defvar finito--server-path
   (f-join finito-server-directory finito--jar-name))
