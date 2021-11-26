@@ -150,12 +150,12 @@ is appears to be running at `finito--host-uri'/health"
 
 ATTEMPTS is the max number of attempts to wait (in 0.5 second increments)
 until signalling an error.  The default is 20."
-  (finito-start-server-if-not-already)
   (if (process-live-p finito--server-process)
       (funcall callback)
+    (finito-start-server-if-not-already)
     (async-start
      `(lambda ()
-        ,(async-inject-variables "finito--host-uri")
+        ,(async-inject-variables "finito--health-uri")
         ;; TODO how can I inject functions with async.el?
         (defun finito--health-check ()
           (not (eq (ignore-errors
@@ -181,7 +181,11 @@ and the the server will save the server jar to `finito--server-path'."
     (message "Starting finito server download...")
     (async-start
      `(lambda ()
-        ,(async-inject-variables "^finito-")
+        ;; No regex for workaround to 'Invalid read syntax: "#"'
+        ,(async-inject-variables "finito--download-url")
+        ,(async-inject-variables "finito-server-version")
+        ,(async-inject-variables "finito--jar-name")
+        ,(async-inject-variables "finito--server-path")
         (require 'subr-x)
         (thread-first
             (concat finito--download-url "v" finito-server-version)
