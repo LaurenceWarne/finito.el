@@ -150,7 +150,7 @@ is appears to be running at `finito--host-uri'/health"
 
 ATTEMPTS is the max number of attempts to wait (in 0.5 second increments)
 until signalling an error.  The default is 20."
-  (if (process-live-p finito--server-process)
+  (if (finito--server-subprocess-bootstrap-complete)
       (funcall callback)
     (finito-start-server-if-not-already)
     (async-start
@@ -167,8 +167,25 @@ until signalling an error.  The default is 20."
          (make-list ,(or attempts 40) t)))
      (lambda (response)
        (if response
-           (funcall callback)
+           (progn (when-let ((buf (finito--process-buffer)))
+                    (with-current-buffer buf
+                      (setq-local finito--bootstrap-complete t)))
+                  (funcall callback))
          (error finito--server-startup-timeout-msg))))))
+
+(defun finito--server-subprocess-bootstrap-complete ()
+  "Return t if the the finito subprocess has completed bootstrapping else nil.
+
+Note if finito is not running as a subprocess, this function will always
+return nil."
+  (when-let ((buf (finito--process-buffer)))
+    (with-current-buffer buf
+      (bound-and-true-p finito--bootstrap-complete))))
+
+(defun finito--process-buffer ()
+  "Return the buffer of the finito process, or nil if it does not exist."
+  (when (process-live-p finito--server-process)
+    (process-buffer finito--server-process)))
 
 (defun finito--download-server (&optional callback)
   "Download a finito server asynchronously.
