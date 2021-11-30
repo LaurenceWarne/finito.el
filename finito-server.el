@@ -99,6 +99,8 @@ Are there any error messages when you (switch-to-buffer \"finito\") ?")
 
 (defvar finito--jvm-args "-Xmx100M")
 
+(defvar-local finito--bootstrap-complete nil)
+
 ;;; User facing functions
 
 (defun finito-download-server-if-not-exists (&optional callback)
@@ -169,7 +171,7 @@ until signalling an error.  The default is 20."
        (if response
            (progn (when-let ((buf (finito--process-buffer)))
                     (with-current-buffer buf
-                      (setq-local finito--bootstrap-complete t)))
+                      (setq finito--bootstrap-complete t)))
                   (funcall callback))
          (error finito--server-startup-timeout-msg))))))
 
