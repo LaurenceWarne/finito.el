@@ -41,11 +41,11 @@ jobs:
         eldev -dtT -C compile --warnings-as-errors
         eldev -s -dtT test
         eldev -s -dtT test --test-type integration
-    - name: Coveralls
-      env:
-        COVERALLS_FLAG_NAME: Emacs ${{ matrix.emacs_version }}
-        COVERALLS_PARALLEL: 1
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: |
-        curl "https://coveralls.io/webhook?repo_name=$GITHUB_REPOSITORY&repo_token=${{ secrets.GITHUB_TOKEN }}" -d "payload[build_num]=$GITHUB_RUN_NUMBER&payload[status]=done"
+    # - name: Coveralls
+    #   env:
+    #     COVERALLS_FLAG_NAME: Emacs ${{ matrix.emacs_version }}
+    #     COVERALLS_PARALLEL: 1
+    #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    #   run: |
+    #     curl "https://coveralls.io/webhook?repo_name=$GITHUB_REPOSITORY&repo_token=${{ secrets.GITHUB_TOKEN }}" -d "payload[build_num]=$GITHUB_RUN_NUMBER&payload[status]=done"
 
