@@ -40,6 +40,7 @@ jobs:
       run: |
         eldev -dtT -C compile --warnings-as-errors
         eldev -s -dtT test
+        eldev -s -dtT test --test-type integration
     - name: Coveralls
       env:
         COVERALLS_FLAG_NAME: Emacs ${{ matrix.emacs_version }}
