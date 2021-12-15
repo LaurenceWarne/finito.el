@@ -779,6 +779,28 @@ sPlease input a unique identifier (used in place of an isbn):")
            data
            finito-keyword-search-buffer-init-instance)))))))
 
+;;;###autoload
+(defun finito-summary ()
+  "Open a summary buffer of reading highlights."
+  (interactive)
+  (finito--wait-for-server-then
+   (finito--make-request
+    (finito--summary-request-plist "2021-01-01" "2021-12-29")
+    (lambda (response)
+      (let-alist response
+        (let ((montage-path (f-join finito-img-cache-directory "montage.png")))
+          (f-write-bytes (base64-decode-string .montage) montage-path)
+          (switch-to-buffer (generate-new-buffer "finito summary"))
+          (org-mode)
+          (insert "* Year In Books\n")
+          (insert (format "*Read* %d\n" .read))
+          (insert (format "*Added* %d\n" .added))
+          (insert (format "*Average Rating* %f\n" .averageRating))
+          (insert (format "[[%s]]" montage-path))
+          (org-display-inline-images)
+          (read-only-mode)
+          (beginning-of-buffer)))))))
+
 (defun finito-open-playground ()
   "Open the finito server's graphql playground - useful for debugging."
   (interactive)

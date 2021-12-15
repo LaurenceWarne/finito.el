@@ -285,14 +285,14 @@
      :arguments ((from . ($ from))
                  (to . ($ to))
                  (montageInput . ($ montageInput)))
-     read added averageRating))))
+     read added averageRating montage))))
 
 (defconst finito--summary-query-variables
   "{
      \"from\": %s,
      \"to\": %s,
      \"montageInput\": {
-         \"columns:\": %s,
+         \"columns\": %s,
          \"largeImageWidth\": %s,
          \"largeImageHeight\": %s,
          \"largeImgScaleFactor\": %s,
