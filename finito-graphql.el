@@ -275,5 +275,30 @@
      }
    }")
 
+(defconst finito--summary-query
+  (graphql-query
+   (:arguments
+    (($from . DateTime)
+     ($to . DateTime)
+     ($montageInput . MontageInput))
+    (summary
+     :arguments ((from . ($ from))
+                 (to . ($ to))
+                 (montageInput . ($ montageInput)))
+     read added averageRating))))
+
+(defconst finito--summary-query-variables
+  "{
+     \"from\": %s,
+     \"to\": %s,
+     \"montageInput\": {
+         \"columns:\": %s,
+         \"largeImageWidth\": %s,
+         \"largeImageHeight\": %s,
+         \"largeImgScaleFactor\": %s,
+         \"largeImageRatingThreshold\": %s
+     }
+   }")
+
 (provide 'finito-graphql)
 ;;; finito-graphql.el ends here

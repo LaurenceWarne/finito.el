@@ -115,6 +115,22 @@ invoked from the `finito' prefix command."
   :group 'finito
   :type '(repeat string))
 
+(defcustom finito-montage-image-columns 6
+  "Max number of images per row in a finito montage."
+  :group 'finito
+  :type 'integer)
+
+(defcustom finito-montage-large-image-rating-threshold 5
+  "Minimum rating value for images to be rendered as large on montages."
+  :group 'finito
+  :type 'integer)
+
+(defconst finito--montage-large-image-width 128)
+
+(defconst finito--montage-large-image-height 196)
+
+(defconst finito--montage-large-image-scale-factor 2)
+
 ;;; Internal variables
 
 (defvar finito--special-collections

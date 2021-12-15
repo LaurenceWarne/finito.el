@@ -262,6 +262,24 @@ img-uri."
                                (s-replace "\"" "'" .isbn)
                                (s-replace "\"" "'" .img-uri))))))
 
+(defun finito--summary-request-plist (from to)
+  "Return a plist with headers and body for a summary request.
+
+FROM and TO should be dates corresponding to the start and end of the summary
+period"
+  `(:headers ,finito--headers
+             :data ,(format "{\"query\":\"%s\", \"variables\": %s}"
+                            finito--summary-query
+                            (format
+                             finito--summary-query-variables
+                             (finito--quotify from)
+                             (finito--quotify to)
+                             finito-montage-image-columns
+                             finito--montage-large-image-width
+                             finito--montage-large-image-height
+                             finito--montage-large-image-scale-factor
+                             finito-montage-large-image-rating-threshold))))
+
 (defun finito--seq-to-json-list (seq)
   "Return SEQ as an escaped json list."
   (--> (append seq nil)
