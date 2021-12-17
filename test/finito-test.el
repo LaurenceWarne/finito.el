@@ -155,10 +155,17 @@ Occurrences of `.buffer-text' will be replaced by:
            (plist (finito--series-request-plist book)))
       (expect (plist-get plist :headers))
       (expect (plist-get plist :data)))))
-
+ 
 (describe "finito--summary-request-plist"
   (it "plist has headers and data"
-    (let* ((plist (finito--summary-request-plist "2021-01-01" "2021-12-29")))
+    (let ((plist (finito--summary-request-plist
+                  "2021-01-01"
+                  "2021-12-29"
+                  finito-montage-image-columns
+                  finito--montage-large-image-width
+                  finito--montage-large-image-height
+                  finito--montage-large-image-scale-factor
+                  finito-montage-large-image-rating-threshold)))
       (expect (plist-get plist :headers))
       (expect (plist-get plist :data)))))
 

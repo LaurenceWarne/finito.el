@@ -32,6 +32,7 @@
 (require 'dash)
 (require 'eieio)
 (require 'iso8601)
+(require 'org)
 (require 's)
 
 (require 'finito-core)
@@ -204,6 +205,20 @@ BOOK-ALIST is an alist of the format returned by `finito--create-book-alist'"
   "Initialise the current buffer according to the properties of BUFFER-INFO."
   (cl-call-next-method)
   (setq finito--collection (oref buffer-info title)))
+
+(defun finito--init-summary-buffer (summary-alist)
+  "Create a summary buffer using data from SUMMARY-ALIST."
+  (switch-to-buffer (generate-new-buffer "finito summary"))
+  (org-mode)
+  (let-alist summary-alist
+    (insert "* Year In Books\n")
+    (insert (format "*Read* %d\n" .read))
+    (insert (format "*Added* %d\n" .added))
+    (insert (format "*Average Rating* %f\n" .average-rating))
+    (insert (format "[[%s]]" .montage-path))
+    (org-display-inline-images)
+    (setq buffer-read-only t)
+    (goto-char (point-min))))
 
 (provide 'finito-buffer)
 ;;; finito-buffer.el ends here

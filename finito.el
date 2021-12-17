@@ -38,6 +38,7 @@
 ;;; Code:
 
 (require 'async)
+(require 'calendar)
 (require 'cl-lib)
 (require 'dash)
 (require 'ewoc)
@@ -124,6 +125,20 @@ invoked from the `finito' prefix command."
   "Minimum rating value for images to be rendered as large on montages."
   :group 'finito
   :type 'integer)
+
+(defcustom finito-init-summary-buffer-function
+  #'finito--init-summary-buffer
+  "Function used to generate a finito summary buffer.
+
+It should take a book alist as a parameter which will contain the following
+keys:
+
+read
+added
+average-rating
+montage-path"
+  :group 'finito
+  :type 'function)
 
 (defconst finito--montage-large-image-width 128)
 
@@ -355,6 +370,12 @@ request is successful"
       (goto-char (point-min))
       (forward-line (1- line))
       (finito--remove-book-region))))
+
+(defun finito--get-summary-from-to ()
+  "Return (from . to) for a summary request."
+  (-let (((month day year) (calendar-current-date))
+         ((_ _ from-year) (calendar-current-date -30)))
+    (cons (format "%s-01-01" from-year) (format "%s-%s-%s" year month day))))
 
 ;;; Modes
 
@@ -784,22 +805,24 @@ sPlease input a unique identifier (used in place of an isbn):")
   "Open a summary buffer of reading highlights."
   (interactive)
   (finito--wait-for-server-then
-   (finito--make-request
-    (finito--summary-request-plist "2021-01-01" "2021-12-29")
-    (lambda (response)
-      (let-alist response
-        (let ((montage-path (f-join finito-img-cache-directory "montage.png")))
-          (f-write-bytes (base64-decode-string .montage) montage-path)
-          (switch-to-buffer (generate-new-buffer "finito summary"))
-          (org-mode)
-          (insert "* Year In Books\n")
-          (insert (format "*Read* %d\n" .read))
-          (insert (format "*Added* %d\n" .added))
-          (insert (format "*Average Rating* %f\n" .averageRating))
-          (insert (format "[[%s]]" montage-path))
-          (org-display-inline-images)
-          (read-only-mode)
-          (beginning-of-buffer)))))))
+   (-let (((from . to) (finito--get-summary-from-to)))
+     (finito--make-request
+      (finito--summary-request-plist
+       from
+       to
+       finito-montage-image-columns
+       finito--montage-large-image-width
+       finito--montage-large-image-height
+       finito--montage-large-image-scale-factor
+       finito-montage-large-image-rating-threshold)
+      (lambda (response)
+        (let-alist response
+          (let ((montage-path (f-join finito-img-cache-directory "montage.png")))
+            (f-write-bytes (base64-decode-string .montage) montage-path)
+            (funcall finito-init-summary-buffer-function
+                     (append `((montage-path . ,montage-path)
+                               (average-rating . ,.averageRating))
+                             response)))))))))
 
 (defun finito-open-playground ()
   "Open the finito server's graphql playground - useful for debugging."
