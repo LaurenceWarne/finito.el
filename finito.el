@@ -140,6 +140,8 @@ montage-path"
   :group 'finito
   :type 'function)
 
+;;; Constants
+
 (defconst finito--montage-large-image-width 128)
 
 (defconst finito--montage-large-image-height 196)

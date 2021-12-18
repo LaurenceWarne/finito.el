@@ -70,6 +70,23 @@
   "Face for last read message."
   :group 'finito)
 
+(defface finito-summary-read
+  '((t :foreground "purple"
+       :weight bold))
+  "Face for the number of read books in a finite summary buffer."
+  :group 'finito)
+
+(defface finito-summary-added
+  '((t :foreground "light blue"
+       :weight bold))
+  "Face for the number of added books in a finite summary buffer."
+  :group 'finito)
+
+(defface finito-summary-average-rating
+  '((t :foreground "light green"))
+  "Face for the average rating in a summary buffer."
+  :group 'finito)
+
 ;;; Custom variables
 
 (defcustom finito-use-image-uris
@@ -84,6 +101,21 @@ See also URL 'https://github.com/LaurenceWarne/finito.el/issues/2' for more
 information on using `org-display-remote-inline-images' with finito."
   :group 'finito
   :type 'boolean)
+
+(defcustom finito-summary-show-recommended
+  t
+  "If non-nil, output a list of recommended sources for book searching."
+  :group 'finito
+  :type 'boolean)
+
+;;; Constants
+
+(defconst finito--summary-recommended-text
+  "** Looking for books?
+
+- If you're interested in science fiction or fantasy check out the [[https://en.wikipedia.org/wiki/Hugo_Award_for_Best_Novel][Hugo Awards]] and the [[https://en.wikipedia.org/wiki/Nebula_Award_for_Best_Novel][Nebula Awards]]
+- For general fiction there is the [[https://en.wikipedia.org/wiki/Pulitzer_Prize_for_Fiction][Pulitzer Prize]]
+- Also check out [[https://openlibrary.org/][openlibrary.org]]")
 
 ;;; Buffer local variables
 
@@ -211,11 +243,27 @@ BOOK-ALIST is an alist of the format returned by `finito--create-book-alist'"
   (switch-to-buffer (generate-new-buffer "finito summary"))
   (org-mode)
   (let-alist summary-alist
-    (insert "* Year In Books\n")
-    (insert (format "*Read* %d\n" .read))
-    (insert (format "*Added* %d\n" .added))
-    (insert (format "*Average Rating* %f\n" .average-rating))
-    (insert (format "[[%s]]" .montage-path))
+    (insert "* Year In Books\n\n")
+    (insert (format "[[%s]]\n\n" .montage-path))
+    (insert (format "- You've read %d" .read))
+    (overlay-put
+     (make-overlay (- (point) (length (number-to-string .read))) (point))
+     'face 'finito-summary-read)
+    (insert (format " books in %d and added a total of %d." 2021 .added))
+    (overlay-put
+     (make-overlay (1- (- (point) (length (number-to-string .added))))
+                   (1- (point)))
+     'face 'finito-summary-added)
+    (let ((rating-str (if (= (floor .average-rating) .average-rating)
+                          (number-to-string (floor .average-rating))
+                        (format "%0.2f" .average-rating))))
+      (insert (format "\n- You gave an average rating of %s." rating-str))
+      (overlay-put
+       (make-overlay (- (point) (length (number-to-string .read)) 1)
+                     (- (point) 1))
+       'face 'finito-summary-average-rating))
+    (when finito-summary-show-recommended
+      (insert (concat "\n\n" finito--summary-recommended-text)))
     (org-display-inline-images)
     (setq buffer-read-only t)
     (goto-char (point-min))))
