@@ -445,6 +445,27 @@ The following commands are available in this mode:
   (setq finito--collection nil)
   (use-local-map finito-collection-view-mode-map))
 
+(defvar finito-summary-mode-map
+  (let ((map (make-sparse-keymap)))
+    (suppress-keymap map t)
+    (define-key map "n" #'outline-next-heading)
+    (define-key map "p" #'outline-previous-heading)
+    (define-key map "o" #'finito-to-org-buffer)
+    (define-key map "q" #'kill-current-buffer)
+    (define-key map "k" #'kill-current-buffer)
+    (define-key map (kbd "C-m") #'finito-open-my-books-collection)
+    (define-key map (kbd "C-r") #'finito-open-currently-reading-collection)
+    map))
+
+(define-derived-mode finito-summary-mode org-mode "finito-summary"
+  "A mode for viewing finito summaries.
+
+The following commands are available in this mode:
+\\{finito-summary-mode-map}"
+  (setq buffer-read-only t)
+  (buffer-disable-undo)
+  (use-local-map finito-summary-mode-map))
+
 ;;; Commands
 
 (defun finito-search-request (&optional args)
