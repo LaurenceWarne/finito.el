@@ -379,6 +379,13 @@ request is successful"
          ((_ _ from-year) (calendar-current-date -30)))
     (cons (format "%s-01-01" from-year) (format "%s-%s-%s" year month day))))
 
+(defun finito--set-show-description-for-collection (collection flag)
+  "Set show description to FLAG for COLLECTION."
+  (if (member collection (mapcar #'car finito-show-description-alist))
+      (setf (cdr (assoc finito--collection finito-show-description-alist)) flag)
+    (setq finito-show-description-alist
+          `((,collection . ,flag) . ,finito-show-description-alist))))
+
 ;;; Modes
 
 (defvar finito-view-mode-map
@@ -400,6 +407,7 @@ request is successful"
     (define-key map "F" #'finito-finish-and-date-book-at-point)
     (define-key map "e" #'finito-series-at-point)
     (define-key map "w" #'finito-title-of-book-at-point)
+    (define-key map "d" #'finito-toggle-show-descriptions)
     (define-key map (kbd "C-m") #'finito-open-my-books-collection)
     (define-key map (kbd "C-r") #'finito-open-currently-reading-collection)
     map))
@@ -861,6 +869,27 @@ sPlease input a unique identifier (used in place of an isbn):")
           (title (alist-get 'title book)))
      (kill-new title)
      (message "Copied '%s' to the kill ring" title))))
+
+(defun finito-toggle-show-descriptions ()
+  "Toggle display of descriptions."
+  (interactive)
+  (let ((local-val (bound-and-true-p finito--show-descriptions))
+        (alist-val (when (bound-and-true-p finito--collection)
+                     (alist-get finito--collection
+                                finito-show-description-alist
+                                finito-show-descriptions-default
+                                nil
+                                'equal))))
+    (cond ((bound-and-true-p finito--show-descriptions)
+           (setq finito--show-descriptions (not local-val)))
+          ((bound-and-true-p finito--collection)
+           (finito--set-show-description-for-collection finito--collection
+                                                        (not alist-val)))
+          (t (setq-local finito--show-descriptions
+                         (not finito-show-descriptions-default))))
+    (ewoc-refresh finito--ewoc)
+    (goto-char (point-min))
+    (org-display-inline-images)))
 
 (provide 'finito)
 ;;; finito.el ends here

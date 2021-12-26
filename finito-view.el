@@ -35,7 +35,7 @@
 
 (require 'finito-core)
 
-;;; Custom Variables
+;;; Custom variables
 
 (defcustom finito-save-last-search
   t
@@ -43,7 +43,7 @@
   :group 'finito
   :type 'boolean)
 
-;;; Internal Variables
+;;; Internal variables
 
 (defvar finito--sort-asc-alist '(("ascending" . true) ("descending" . false)))
 

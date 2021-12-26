@@ -34,6 +34,7 @@
 (require 'iso8601)
 (require 'org)
 (require 's)
+(require 'savehist)
 
 (require 'finito-core)
 
@@ -73,17 +74,17 @@
 (defface finito-summary-read
   '((t :foreground "purple"
        :weight bold))
-  "Face for the number of read books in a finite summary buffer."
+  "Face for the number of read books in a finito summary buffer."
   :group 'finito)
 
 (defface finito-summary-added
-  '((t :foreground "light blue"
+  '((t :foreground "sky blue"
        :weight bold))
-  "Face for the number of added books in a finite summary buffer."
+  "Face for the number of added books in a finito summary buffer."
   :group 'finito)
 
 (defface finito-summary-average-rating
-  '((t :foreground "light green"))
+  '((t :foreground "gold"))
   "Face for the average rating in a summary buffer."
   :group 'finito)
 
@@ -108,6 +109,15 @@ information on using `org-display-remote-inline-images' with finito."
   :group 'finito
   :type 'boolean)
 
+(defcustom finito-show-descriptions-default
+  t
+  "If non-nil, write descriptions when displaying books in a finito buffer.
+
+This can be overridden locally on a buffer by buffer basis via the
+\"d\" key, or alternatively via the `finito--show-descriptions' local variable."
+  :group 'finito
+  :type 'boolean)
+
 ;;; Constants
 
 (defconst finito--summary-recommended-text
@@ -117,6 +127,11 @@ information on using `org-display-remote-inline-images' with finito."
 - For general fiction there is the [[https://en.wikipedia.org/wiki/Pulitzer_Prize_for_Fiction][Pulitzer Prize]]
 - You can ask for recommendations on [[https://www.reddit.com/r/books/][r/books]]
 - Also check out [[https://openlibrary.org/][openlibrary.org]]")
+
+;;; Internal variables
+
+(defvar finito-show-description-alist nil)
+(cl-pushnew 'finito-show-description-alist savehist-additional-variables)
 
 ;;; Buffer local variables
 
@@ -201,10 +216,17 @@ BOOK-ALIST is an alist of the format returned by `finito--create-book-alist'"
 
 (cl-defmethod finito-insert-description ((_ finito-book-writer) description)
   "Insert DESCRIPTION into the current buffer."
-  (insert description "\n")
-  (overlay-put (make-overlay (- (point) 2) (- (point) (length description) 2))
-               'face
-               'finito-book-descriptions))
+  (when (or (bound-and-true-p finito--show-descriptions)
+            (not (bound-and-true-p finito--collection))
+            (alist-get finito--collection
+                       finito-show-description-alist
+                       finito-show-descriptions-default
+                       nil
+                       'equal))
+    (insert description "\n")
+    (overlay-put (make-overlay (- (point) 2) (- (point) (length description) 2))
+                 'face
+                 'finito-book-descriptions)))
 
 (defclass finito-buffer-info ()
   ((title :initarg :title
