@@ -862,3 +862,27 @@ GNU Emacs is awesome!
       (expect copied
               :to-equal
               (alist-get 'title book)))))
+
+(describe "finito-toggle-show-descriptions"
+
+  (it "toggles shown descriptions"
+    (let ((finito-use-image-uris t)
+          (init-obj (finito-collection-buffer-info
+                     :title "collection"
+                     :mode #'finito-collection-view-mode
+                     :buf-name (concat "Collection ")
+                     :buf-name-unique t))
+          (data '[((title . "book") (authors . ["author"]) (description . "description") (isbn . "isbn") (thumbnailUri . "uri") (rating) (startedReading) (lastRead))]))
+      (finito--process-books-data data init-obj)
+      (expect (buffer-substring-no-properties (point-min) (point-max))
+              :to-match
+              "description")
+      (finito-toggle-show-descriptions)
+      (expect (buffer-substring-no-properties (point-min) (point-max))
+              :not
+              :to-match
+              "description")
+      (finito-toggle-show-descriptions)
+      (expect (buffer-substring-no-properties (point-min) (point-max))
+              :to-match
+              "description"))))
