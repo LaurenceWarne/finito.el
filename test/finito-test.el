@@ -280,6 +280,7 @@ GNU Emacs is awesome!
 
 
 "))
+  
   (it "book replaced correctly"
     (cl-letf (((symbol-function 'finito--make-request)
                (lambda (plist callback) (funcall callback response-alist)))
@@ -288,7 +289,8 @@ GNU Emacs is awesome!
        (let ((finito--ewoc
               (ewoc-create
                (lambda (obj) (finito-insert-book finito-writer-instance obj))
-               (format "* My Books\n"))))
+               (format "* My Books\n")))
+             (finito--collection "my collection"))
          (ewoc-enter-last finito--ewoc book1-alist)
          (ewoc-enter-last finito--ewoc book2-alist)
          (ewoc-refresh finito--ewoc)

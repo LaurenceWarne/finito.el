@@ -216,13 +216,13 @@ BOOK-ALIST is an alist of the format returned by `finito--create-book-alist'"
 
 (cl-defmethod finito-insert-description ((_ finito-book-writer) description)
   "Insert DESCRIPTION into the current buffer."
-  (when (or (bound-and-true-p finito--show-descriptions)
-            (not (bound-and-true-p finito--collection))
-            (alist-get finito--collection
-                       finito-show-description-alist
-                       finito-show-descriptions-default
-                       nil
-                       'equal))
+  (when (or (and (bound-and-true-p finito--collection)
+                 (alist-get finito--collection
+                            finito-show-description-alist
+                            finito-show-descriptions-default
+                            nil
+                            'equal))
+            (bound-and-true-p finito--show-descriptions))
     (insert description "\n")
     (overlay-put (make-overlay (- (point) 2) (- (point) (length description) 2))
                  'face

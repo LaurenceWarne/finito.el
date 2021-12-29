@@ -351,7 +351,7 @@ If SYNC it non-nil, perform all actions synchronously."
 Replace the book at point with the response of the request built using the
 request plist PLIST.  When SUCCESS-MESSAGE is non-nil, message it if the
 request is successful"
-  (let ((node (ewoc-locate finito--ewoc (point)))
+  (let ((node (ewoc-locate finito--ewoc))
         (buf (current-buffer)))
     (finito--make-request
      plist
@@ -434,7 +434,8 @@ The following commands are available in this mode:
 
 The following commands are available in this mode:
 \\{finito-search-view-mode-map}"
-  (use-local-map finito-search-view-mode-map))
+  (use-local-map finito-search-view-mode-map)
+  (setq-local finito--show-descriptions finito-show-descriptions-default))
 
 (defvar finito-collection-view-mode-map
   (let ((map (make-sparse-keymap)))
@@ -880,15 +881,16 @@ sPlease input a unique identifier (used in place of an isbn):")
                                 finito-show-descriptions-default
                                 nil
                                 'equal))))
-    (cond ((bound-and-true-p finito--show-descriptions)
+    (cond ((boundp 'finito--show-descriptions)
            (setq finito--show-descriptions (not local-val)))
           ((bound-and-true-p finito--collection)
            (finito--set-show-description-for-collection finito--collection
                                                         (not alist-val)))
           (t (setq-local finito--show-descriptions
                          (not finito-show-descriptions-default))))
-    (ewoc-refresh finito--ewoc)
-    (goto-char (point-min))
+    (let ((node (ewoc-locate finito--ewoc)))
+      (ewoc-refresh finito--ewoc)
+      (ewoc-goto-node finito--ewoc node))
     (org-display-inline-images)))
 
 (provide 'finito)
