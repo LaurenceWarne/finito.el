@@ -1,8 +1,8 @@
 # finito.el
 
-[![MELPA](https://melpa.org/packages/finito-badge.svg)](https://melpa.org/#/finito)
+[![MELPA](https://melpa.org/packages/finito-badge.svg)](https://melpa.org/#/finito) [![Min Emacs Version](https://img.shields.io/badge/Emacs-27+-7F5AB6?logo=gnu-emacs)](https://www.gnu.org/software/emacs/) [![Version](https://img.shields.io/github/v/tag/laurencewarne/finito.el?label=release)](CHANGELOG.md)
 
-`finito.el` allows for the management of books from within Emacs.  Books are presented in modified org mode buffers, and books along with user collections can be viewed/queried using [transient](https://github.com/magit/transient).
+`finito.el` allows for the management of books and reading lists from within Emacs.  Books are presented in modified org mode buffers, and books along with user collections can be viewed/queried using [transient](https://github.com/magit/transient).
 
 This package is a thin client for https://github.com/laurencewarne/libro-finito, more information on collection management and cutomization can be found there.  Here's a demo of some of its features:
 
