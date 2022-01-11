@@ -126,8 +126,7 @@ invoked from the `finito' prefix command."
   :group 'finito
   :type 'integer)
 
-(defcustom finito-init-summary-buffer-function
-  #'finito--init-summary-buffer
+(defcustom finito-init-summary-buffer-function #'finito--init-summary-buffer
   "Function used to generate a finito summary buffer.
 
 It should take a book alist as a parameter which will contain the following
@@ -377,7 +376,7 @@ request is successful"
   "Return (from . to) for a summary request."
   (-let (((month day year) (calendar-current-date))
          ((_ _ from-year) (calendar-current-date -30)))
-    (cons (format "%s-01-01" from-year) (format "%s-%s-%s" year month day))))
+    (cons (format "%s-01-01" from-year) (format "%s-%02d-%02d" year month day))))
 
 (defun finito--set-show-description-for-collection (collection flag)
   "Set show description to FLAG for COLLECTION."
@@ -385,6 +384,37 @@ request is successful"
       (setf (cdr (assoc finito--collection finito-show-description-alist)) flag)
     (setq finito-show-description-alist
           `((,collection . ,flag) . ,finito-show-description-alist))))
+
+(defun finito--init-summary-buffer (summary-alist)
+  "Create a summary buffer using data from SUMMARY-ALIST."
+  (switch-to-buffer (generate-new-buffer "finito summary"))
+  (finito-summary-mode)
+  (let ((inhibit-read-only t))
+    (let-alist summary-alist
+      (insert "* Year In Books\n\n")
+      (insert (format "[[%s]]\n\n" .montage-path))
+      (insert "** Your Statistics\n\n")
+      (insert (format "- You've read %d" .read))
+      (overlay-put
+       (make-overlay (- (point) (length (number-to-string .read))) (point))
+       'face 'finito-summary-read)
+      (insert (format " books in %d and added a total of %d." 2021 .added))
+      (overlay-put
+       (make-overlay (1- (- (point) (length (number-to-string .added))))
+                     (1- (point)))
+       'face 'finito-summary-added)
+      (let ((rating-str (if (= (floor .average-rating) .average-rating)
+                            (number-to-string (floor .average-rating))
+                          (format "%0.2f" .average-rating))))
+        (insert (format "\n- You gave an average rating of %s." rating-str))
+        (overlay-put
+         (make-overlay (- (point) (length (number-to-string .read)) 1)
+                       (- (point) 1))
+         'face 'finito-summary-average-rating))
+      (when finito-summary-show-recommended
+        (insert (concat "\n\n" finito--summary-recommended-text)))
+      (org-display-inline-images)
+      (goto-char (point-min)))))
 
 ;;; Modes
 
@@ -881,11 +911,11 @@ sPlease input a unique identifier (used in place of an isbn):")
                                 finito-show-descriptions-default
                                 nil
                                 'equal))))
-    (cond ((boundp 'finito--show-descriptions)
-           (setq finito--show-descriptions (not local-val)))
-          ((bound-and-true-p finito--collection)
+    (cond ((bound-and-true-p finito--collection)
            (finito--set-show-description-for-collection finito--collection
                                                         (not alist-val)))
+          ((boundp 'finito--show-descriptions)
+           (setq finito--show-descriptions (not local-val)))
           (t (setq-local finito--show-descriptions
                          (not finito-show-descriptions-default))))
     (let ((node (ewoc-locate finito--ewoc)))

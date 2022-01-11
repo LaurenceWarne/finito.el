@@ -146,6 +146,10 @@ Its nodes should be alists of the form returned by
   nil
   "The name of the current collection.")
 
+(defvar-local finito--show-descriptions
+  nil
+  "An override that can be used to show/hide descriptions in all finito buffers.")
+
 ;;; Classes for working with buffers
 
 (defclass finito-book-writer ()
@@ -260,37 +264,6 @@ BOOK-ALIST is an alist of the format returned by `finito--create-book-alist'"
   "Initialise the current buffer according to the properties of BUFFER-INFO."
   (cl-call-next-method)
   (setq finito--collection (oref buffer-info title)))
-
-(defun finito--init-summary-buffer (summary-alist)
-  "Create a summary buffer using data from SUMMARY-ALIST."
-  (switch-to-buffer (generate-new-buffer "finito summary"))
-  (finito-summary-mode)
-  (let ((inhibit-read-only t))
-    (let-alist summary-alist
-      (insert "* Year In Books\n\n")
-      (insert (format "[[%s]]\n\n" .montage-path))
-      (insert "** Your Statistics\n\n")
-      (insert (format "- You've read %d" .read))
-      (overlay-put
-       (make-overlay (- (point) (length (number-to-string .read))) (point))
-       'face 'finito-summary-read)
-      (insert (format " books in %d and added a total of %d." 2021 .added))
-      (overlay-put
-       (make-overlay (1- (- (point) (length (number-to-string .added))))
-                     (1- (point)))
-       'face 'finito-summary-added)
-      (let ((rating-str (if (= (floor .average-rating) .average-rating)
-                            (number-to-string (floor .average-rating))
-                          (format "%0.2f" .average-rating))))
-        (insert (format "\n- You gave an average rating of %s." rating-str))
-        (overlay-put
-         (make-overlay (- (point) (length (number-to-string .read)) 1)
-                       (- (point) 1))
-         'face 'finito-summary-average-rating))
-      (when finito-summary-show-recommended
-        (insert (concat "\n\n" finito--summary-recommended-text)))
-      (org-display-inline-images)
-      (goto-char (point-min)))))
 
 (provide 'finito-buffer)
 ;;; finito-buffer.el ends here
