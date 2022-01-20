@@ -13,6 +13,7 @@ https://user-images.githubusercontent.com/17688577/132958359-563e9940-9105-4c36-
 # Table of Contents
 <!--ts-->
    * [Installation](#installation)
+   * [Features](#features)
    * [Keys](#keys)
       * [Bindings Available in all finito View Buffers](#bindings-available-in-all-finito-view-buffers)
       * [Bindings in a Collection Buffer](#bindings-in-a-collection-buffer)
@@ -56,6 +57,16 @@ You can install it from melpa:
    (lambda () (finito-start-server-if-not-already))))
 ```
 
+# Features
+
+Most of the features can be navigated through via the transient prefix command `finito`, available via `C-c b` with the recommended installation.  Some highlights are:
+
+- Create a new collection: `C-c b` `c` `s`
+- Search for books: `C-c b` `s`
+- Generate a yearly summary: `M-x finito-summary`
+
+![summary](https://user-images.githubusercontent.com/17688577/150370428-449d4a59-1bb7-4244-a7a2-b31bdde12538.png)
+
 # Keys
 
 ## Bindings Available in all finito View Buffers
@@ -68,6 +79,7 @@ You can install it from melpa:
 | `n`   | Goto the next book                                                         |
 | `p`   | Goto the previous book                                                     |
 | `o`   | Dump this buffer's contents in a normal org mode buffer                    |
+| `d`   | Toggle                                                                     |
 | `q`   | Kill the current buffer                                                    |
 | `k`   | Kill the current buffer                                                    |
 | `b`   | Open an [Open Library](https://openlibrary.org) page for the book at point |
@@ -76,7 +88,7 @@ You can install it from melpa:
 | `S`   | Start the book at point at a prompted date                                 |
 | `f`   | Finish the book at point                                                   |
 | `F`   | Finish the book at point at a prompted date                                |
-| `e`   | Search for books in the same series*                                        |
+| `e`   | Search for books in the same series*                                       |
 | `w`   | Copy the title of the book at point to the kill ring                       |
 | `C-m` | Open the "My Books" collection                                             |
 | `C-r` | Open the "Currently Reading" collection                                    |
@@ -85,18 +97,20 @@ You can install it from melpa:
 
 ## Bindings in a Collection Buffer
 
-| Key | Action                                               |
-|-----|------------------------------------------------------|
-| `g` | Refresh the collection for changes                   |
-| `D` | Delete the book at point from the current collection |
+| Key | Action                                                    |
+|-----|-----------------------------------------------------------|
+| `g` | Refresh the collection for changes                        |
+| `d` | Toggle display of descriptions for the current collection |
+| `D` | Delete the book at point from the current collection      |
 
 (in addition to all the [base bindings](#bindings-available-in-all-finito-view-buffers))
 
 ## Bindings in a Search Buffer
 
-| Key | Action                                               |
-|-----|------------------------------------------------------|
-| `l` | Replay the last search                               |
+| Key | Action                                                |
+|-----|-------------------------------------------------------|
+| `l` | Replay the last search                                |
+| `d` | Toggle display of descriptions for the current buffer |
 
 (in addition to all the [base bindings](#bindings-available-in-all-finito-view-buffers))
 
@@ -147,16 +161,18 @@ The situation is similar to that of `finito-my-books-collection` above in that t
 
 ## Misc Variables
 
-| Variable                               | Description                                                                             | Default                                      |
-|----------------------------------------|-----------------------------------------------------------------------------------------|----------------------------------------------|
-| `finito-language`                      | The language search queries should request responses in                                 | `"en"`                                       |
-| `finito-server-directory`              | The directory the finito server should be downloaded to                                 | `(concat user-emacs-directory "/finito")`    |
-| `finito-img-cache-directory`           | The directory of the finito image cache                                                 | `(concat finito-server-directory "/images")` |
-| `finito-config-directory`              | The directory of the server config file and sqlite db                                   | `"~/.config/libro-finito"`                   |
-| `finito-browse-function`               | The function to be invoked by `finito-browse-book-at-point`                             | `finito--browse-function`                    |
-| `finito-add-book-collection-blacklist` | Collections to ignore for `finito-add-book-at-point`                                    | `("Currently Reading")`                      |
-| `finito-save-last-search`              | A flag to indicate whether the arguments to the last search query should be saved       | `t`                                          |
-| `finito-use-image-uris`                | A flag to indicate whether to insert image uris or image file names into finito buffers | `nil`                                        |
+| Variable                                      | Description                                                                                       | Default                                      |
+|-----------------------------------------------|---------------------------------------------------------------------------------------------------|----------------------------------------------|
+| `finito-language`                             | The language search queries should request responses in                                           | `"en"`                                       |
+| `finito-server-directory`                     | The directory the finito server should be downloaded to                                           | `(concat user-emacs-directory "/finito")`    |
+| `finito-img-cache-directory`                  | The directory of the finito image cache                                                           | `(concat finito-server-directory "/images")` |
+| `finito-config-directory`                     | The directory of the server config file and sqlite db                                             | `"~/.config/libro-finito"`                   |
+| `finito-browse-function`                      | The function to be invoked by `finito-browse-book-at-point`                                       | `finito--browse-function`                    |
+| `finito-add-book-collection-blacklist`        | Collections to ignore for `finito-add-book-at-point`                                              | `("Currently Reading")`                      |
+| `finito-save-last-search`                     | A flag to indicate whether the arguments to the last search query should be saved                 | `t`                                          |
+| `finito-use-image-uris`                       | A flag to indicate whether to insert image uris or image file names into finito buffers           | `nil`                                        |
+| `finito-montage-image-columns`                | How many columns per row in a book montage (generated by summaries)                               | `6`                                          |
+| `finito-montage-large-image-rating-threshold` | If the rating for a given book is `>=` this value, then render the book as large on a book montage | `5`                                            |
 
 More information is available via `C-h v`.  A non-nil value for `finito-use-image-uris` can be useful if for example you are using `org-display-remote-inline-images`.
 
