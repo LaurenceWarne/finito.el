@@ -61,7 +61,7 @@ You can install it from melpa:
 
 Most of the features can be navigated through via the transient prefix command `finito`, available via `C-c b` with the recommended installation.  Some highlights are:
 
-- Create a new collection: `C-c b` `c` `s`
+- Create a new collection: `C-c b` `c` `n`
 - Search for books: `C-c b` `s`
 - Generate a yearly summary: `M-x finito-summary`
 
