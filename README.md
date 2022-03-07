@@ -176,6 +176,8 @@ The situation is similar to that of `finito-my-books-collection` above in that t
 
 More information is available via `C-h v`.  A non-nil value for `finito-use-image-uris` can be useful if for example you are using `org-display-remote-inline-images`.
 
+To transport your data, you can copy `~/.config/libro-finito/db.sqlite` across to a different machine.
+
 # Changelog
 
 The changelog can be viewed [here](CHANGELOG.md).

@@ -40,7 +40,7 @@
 ;;; Constants
 
 (defconst finito-server-minimum-required-version
-  "0.7.0"
+  "0.7.1"
   "The minimum compatible finito server version.")
 
 ;;; Custom variables
@@ -97,7 +97,7 @@ Are there any error messages when you (switch-to-buffer \"finito\") ?")
 (defvar finito--server-path
   (f-join finito-server-directory finito--jar-name))
 
-(defvar finito--jvm-args "-Xmx100M")
+(defvar finito--jvm-args "-Xmx256M")
 
 (defvar-local finito--bootstrap-complete nil)
 
