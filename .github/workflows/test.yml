@@ -17,8 +17,7 @@ jobs:
         emacs_version:
           - 27.1
           - 27.2
-          # TODO let-alist not working on snapshot?!
-          #- snapshot
+          - 28.1
 
     steps:
     - name: Set up Emacs

@@ -16,5 +16,6 @@
 *** DONE Add curl debugging for search requests
 *** DONE Add binding for "modify search" in search view buffers
 *** DONE Allow jar args
-*** TODO Read collection does not show in most recently read order
+*** DONE Read collection does not show in most recently read order
 *** TODO Add read collection to transient?
+*** TODO Search with more than max allowed books gives HTTP 400
