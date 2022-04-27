@@ -40,7 +40,7 @@
 ;;; Constants
 
 (defconst finito-server-minimum-required-version
-  "0.7.1"
+  "0.7.2"
   "The minimum compatible finito server version.")
 
 ;;; Custom variables
@@ -110,9 +110,14 @@ If CALLBACK is specified, call that function when the download has
 completed, or if a server has already been downloaded.
 
 Existing server jars with versions older than `finito-server-version' will
-be ignored."
+be deleted."
   (if (f-exists-p finito--server-path)
       (when callback (funcall callback))
+    (--each
+        (ignore-errors (f-entries finito-server-directory))
+      (when (and (s-starts-with-p "finito-" (f-filename it))
+                 (f-ext-p it "jar"))
+        (f-delete it)))
     (finito--download-server callback)))
 
 (defun finito-start-server-if-not-already ()
