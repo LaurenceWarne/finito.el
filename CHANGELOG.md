@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.4.0
+
+* [6526a84](https://github.com/LaurenceWarne/finito.el/commit/6526a847d6ec9059ebecd17112eef531887bf27d) Support for summaries
+* [0421274](https://github.com/LaurenceWarne/finito.el/commit/0421274c3e4bd663e8d2c2aec5bb55d778e8f23c) Allow for toggling of descriptions with `d`
+* [e837837](https://github.com/LaurenceWarne/finito.el/commit/e83783729fc037efbeb07f3e9f16164956476aa3) Bump the server version to v0.7.2
+
 ## v0.3.0
 
 * [101e232](https://github.com/LaurenceWarne/finito.el/commit/101e232b98e8be0ea9b95c427290867c92b460e6) Provisional support for looking up book series
