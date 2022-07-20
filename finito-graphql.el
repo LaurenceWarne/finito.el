@@ -70,13 +70,23 @@
 (defconst finito--collection-query
   (graphql-query
    (:arguments
-    (($name . String!))
+    (($name . String!)
+     ($booksPagination . PaginationInput))
     (collection
-     :arguments ((name . ($ name)))
+     :arguments ((name . ($ name))
+                 (booksPagination . ($ booksPagination)))
      (books title authors description isbn thumbnailUri
-            rating startedReading lastRead)))))
+            rating startedReading lastRead)
+     (pageInfo totalBooks)))))
 
-(defconst finito--collection-query-variables "{\"name\": \"%s\"}")
+(defconst finito--collection-query-variables
+  "{
+     \"name\": \"%s\",
+     \"booksPagination\": {
+       \"first\": %s,
+       \"after\": %s
+     }
+  }")
 
 (defconst finito--collections-query
   (graphql-query

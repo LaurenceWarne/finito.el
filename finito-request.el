@@ -71,15 +71,19 @@ ISBN should be isbn of the book to query for."
                       finito--isbn-query
                       (format finito--isbn-query-variables isbn))))
 
-(defun finito--collection-request-plist (name)
+(defun finito--collection-request-plist (name &optional offset)
   "Return a plist with headers and body suitable for a collection request.
 
-NAME should be the name of the collection to query for."
+NAME should be the name of the collection to query for.
+OFFSET correspond the offset of the collections's books."
   `(:headers ,finito--headers
              :data
              ,(format "{\"query\":\"%s\", \"variables\": %s}"
                       finito--collection-query
-                      (format finito--collection-query-variables name))))
+                      (format finito--collection-query-variables
+                              name
+                              finito-collection-books-limit
+                              (or offset 0)))))
 
 (defun finito--collections-request-plist ()
   "Return a plist with headers and body suitable for a collections query."

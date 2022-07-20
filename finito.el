@@ -139,6 +139,11 @@ montage-path"
   :group 'finito
   :type 'function)
 
+(defcustom finito-collection-books-limit 15
+  "Maximum number of books per collection view (pagination)."
+  :group 'finito
+  :type 'integer)
+
 ;;; Constants
 
 (defconst finito--montage-large-image-width 128)
@@ -227,7 +232,7 @@ in some way, and then apply some final configuration to the buffer."
         (buffer-ewoc
          (ewoc-create
           (lambda (obj) (finito-insert-book finito-writer-instance obj))
-          (format "* %s\n" (oref init-obj title)))))
+          (finito-title-string init-obj))))
     (setq finito--ewoc buffer-ewoc)
     (funcall callback buffer-ewoc))
   (let ((inhibit-message t))
@@ -322,12 +327,13 @@ BOOK-ALIST should be of the form returned by `finito--create-book-alist'."
   (browse-url
    (concat "https://openlibrary.org/isbn/" (alist-get 'isbn book-alist))))
 
-(defun finito--open-specified-collection (collection &optional sync)
+(defun finito--open-specified-collection (collection &optional sync offset)
   "Open the collection COLLECTION in a view buffer.
 
-If SYNC it non-nil, perform all actions synchronously."
+If SYNC it non-nil, perform all actions synchronously.
+OFFSET is the offset of the books in collection."
   (finito--make-request
-   (finito--collection-request-plist collection)
+   (finito--collection-request-plist collection (or offset 0))
    (lambda (response)
      (finito--process-books-data
       (cdar response)
@@ -335,7 +341,9 @@ If SYNC it non-nil, perform all actions synchronously."
        :title collection
        :mode #'finito-collection-view-mode
        :buf-name (concat "Collection: " collection)
-       :buf-name-unique t)))
+       :buf-name-unique t
+       :books-offset (or offset 0)
+       :total-books (cdadar (last response)))))
    :sync sync))
 
 (defun finito--remove-book-region ()
@@ -472,6 +480,8 @@ The following commands are available in this mode:
     (suppress-keymap map t)
     (define-key map "g" #'finito-refresh-collection)
     (define-key map "D" #'finito-remove-book-at-point)
+    (define-key map "N" #'finito-collection-next)
+    (define-key map "P" #'finito-collection-previous)
     map))
 
 (define-derived-mode finito-collection-view-mode
@@ -815,6 +825,24 @@ When DATE is specified, mark that as the date the book was finished."
   (interactive)
   (let ((finito-save-last-search t))
     (call-interactively #'finito-search)))
+
+(defun finito-collection-next ()
+  "Get the next page of books for the current collection."
+  (interactive)
+  (let ((new-offset (+ finito--collection-books-current-offset
+                       finito-collection-books-limit)))
+    (if (>= new-offset finito--collection-total-books)
+        (message "Already at the end of %s!" finito--collection)
+      (finito--open-specified-collection finito--collection nil new-offset))))
+
+(defun finito-collection-previous ()
+  "Get the previous page of books for the current collection."
+  (interactive)
+  (let ((new-offset (- finito--collection-books-current-offset
+                       finito-collection-books-limit)))
+    (if (< new-offset 0)
+        (message "Already at the start of %s!" finito--collection)
+      (finito--open-specified-collection finito--collection nil new-offset))))
 
 ;;;###autoload
 (defun finito-create-book (title authors description img-uri isbn)

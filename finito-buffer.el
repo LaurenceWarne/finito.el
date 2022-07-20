@@ -146,6 +146,14 @@ Its nodes should be alists of the form returned by
   nil
   "The name of the current collection.")
 
+(defvar-local finito--collection-books-current-offset
+  nil
+  "Books offset for the current collection (for pagination).")
+
+(defvar-local finito--collection-total-books
+  nil
+  "The total number of books in the current collection.")
+
 (defvar-local finito--show-descriptions
   nil
   "An override that can be used to show/hide descriptions in all finito buffers.")
@@ -256,14 +264,43 @@ BOOK-ALIST is an alist of the format returned by `finito--create-book-alist'"
   "Initialise the current buffer according to the properties of BUFFER-INFO."
   (funcall (oref buffer-info mode)))
 
+(cl-defmethod finito-title-string ((buffer-info finito-buffer-info))
+  "Get the title string using the properties of BUFFER-INFO."
+  (format "* %s\n" (oref buffer-info title)))
+
 (defclass finito-collection-buffer-info (finito-buffer-info)
-  nil
+  ((books-offset :initarg :books-offset
+                 :type integer
+                 :custom integer
+                 :documentation "The current books offset of the collection")
+   (total-books :initarg :total-books
+                :type integer
+                :custom integer
+                :documentation "The total number of books in the current collection"))
   "A class for holding information about a finito collection buffer.")
 
 (cl-defmethod finito-init-buffer ((buffer-info finito-collection-buffer-info))
   "Initialise the current buffer according to the properties of BUFFER-INFO."
   (cl-call-next-method)
-  (setq finito--collection (oref buffer-info title)))
+  (setq finito--collection (oref buffer-info title)
+        finito--collection-books-current-offset (oref buffer-info books-offset)
+        finito--collection-total-books (oref buffer-info total-books)))
+
+(cl-defmethod finito-title-string ((buffer-info finito-collection-buffer-info))
+  "Get the title string using the properties of BUFFER-INFO."
+  (let* ((books-offset (oref buffer-info books-offset))
+         (total-books (oref buffer-info total-books))
+         (can-go-next (< (+ books-offset finito-collection-books-limit) total-books))
+         (can-go-previous (>= (- books-offset finito-collection-books-limit) 0)))
+    (concat "* " (oref buffer-info title) "\n\n"
+            (format "Showing ~%s~-~%s~ of =%s= books"
+                    (min (1+ books-offset) total-books)
+                    (min total-books (+ books-offset finito-collection-books-limit))
+                    total-books)
+            (and can-go-previous " ~P~: Previous page")
+            (and can-go-previous can-go-next ",")
+            (and can-go-next " ~N~: Next page")
+            "\n")))
 
 (provide 'finito-buffer)
 ;;; finito-buffer.el ends here
