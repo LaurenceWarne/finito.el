@@ -139,11 +139,6 @@ montage-path"
   :group 'finito
   :type 'function)
 
-(defcustom finito-collection-books-limit 15
-  "Maximum number of books per collection view (pagination)."
-  :group 'finito
-  :type 'integer)
-
 ;;; Constants
 
 (defconst finito--montage-large-image-width 128)

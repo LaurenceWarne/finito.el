@@ -97,11 +97,13 @@ Most of the features can be navigated through via the transient prefix command `
 
 ## Bindings in a Collection Buffer
 
-| Key | Action                                                    |
-|-----|-----------------------------------------------------------|
-| `g` | Refresh the collection for changes                        |
-| `d` | Toggle display of descriptions for the current collection |
-| `D` | Delete the book at point from the current collection      |
+| Key | Action                                                              |
+|-----|---------------------------------------------------------------------|
+| `g` | Refresh the collection for changes                                  |
+| `d` | Toggle display of descriptions for the current collection           |
+| `D` | Delete the book at point from the current collection                |
+| `N` | Open the next page (if applicable) of books for this collection     |
+| `P` | Open the previous page (if applicable) of books for this collection |
 
 (in addition to all the [base bindings](#bindings-available-in-all-finito-view-buffers))
 
@@ -109,7 +111,7 @@ Most of the features can be navigated through via the transient prefix command `
 
 | Key | Action                                                |
 |-----|-------------------------------------------------------|
-| `l` | Replay the last search                                |
+| `l` | Edit the last search                                  |
 | `d` | Toggle display of descriptions for the current buffer |
 
 (in addition to all the [base bindings](#bindings-available-in-all-finito-view-buffers))
