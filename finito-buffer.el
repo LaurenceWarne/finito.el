@@ -118,11 +118,6 @@ This can be overridden locally on a buffer by buffer basis via the
   :group 'finito
   :type 'boolean)
 
-(defcustom finito-collection-books-limit 15
-  "Maximum number of books per collection view (pagination)."
-  :group 'finito
-  :type 'integer)
-
 ;;; Constants
 
 (defconst finito--summary-recommended-text

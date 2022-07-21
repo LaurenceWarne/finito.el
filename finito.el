@@ -338,7 +338,7 @@ OFFSET is the offset of the books in collection."
        :buf-name (concat "Collection: " collection)
        :buf-name-unique t
        :books-offset (or offset 0)
-       :total-books (cdadar (last response)))))
+       :total-books (or (ignore-errors (cdadar (last response))) 0))))
    :sync sync))
 
 (defun finito--remove-book-region ()

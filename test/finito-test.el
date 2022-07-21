@@ -429,7 +429,7 @@ GNU Emacs is awesome!
     (expect 'finito--process-books-data :to-have-been-called-times 1)
     (expect (spy-calls-args-for 'finito--collection-request-plist 0)
             :to-equal
-            (list collection))))
+            (list collection 0))))
 
 (describe "finito-open-my-books-collection"
   (before-each
@@ -452,7 +452,7 @@ GNU Emacs is awesome!
     (expect 'finito--process-books-data :to-have-been-called-times 1)
     (expect (spy-calls-args-for 'finito--collection-request-plist 0)
             :to-equal
-            (list finito-my-books-collection))))
+            (list finito-my-books-collection 0))))
 
 (describe "finito-open-currently-reading-collection"
   (before-each
@@ -475,7 +475,7 @@ GNU Emacs is awesome!
     (expect 'finito--process-books-data :to-have-been-called-times 1)
     (expect (spy-calls-args-for 'finito--collection-request-plist 0)
             :to-equal
-            (list finito-currently-reading-collection))))
+            (list finito-currently-reading-collection 0))))
 
 (describe "finito-delete-collection"
   :var ((collection "collection to delete"))
@@ -873,8 +873,12 @@ GNU Emacs is awesome!
                      :title "collection"
                      :mode #'finito-collection-view-mode
                      :buf-name (concat "Collection ")
-                     :buf-name-unique t))
+                     :buf-name-unique t
+                     :books-offset 0
+                     :total-books 1))
           (data '[((title . "book") (authors . ["author"]) (description . "description") (isbn . "isbn") (thumbnailUri . "uri") (rating) (startedReading) (lastRead))]))
+      ;; TODO why is this necessary?
+      (spy-on 'finito-refresh-collection :and-return-value nil)
       (finito--process-books-data data init-obj)
       (expect (buffer-substring-no-properties (point-min) (point-max))
               :to-match

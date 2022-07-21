@@ -41,5 +41,10 @@
   :group 'finito
   :type 'string)
 
+(defcustom finito-collection-books-limit 15
+  "Maximum number of books per collection view (pagination)."
+  :group 'finito
+  :type 'integer)
+
 (provide 'finito-core)
 ;;; finito-core.el ends here
