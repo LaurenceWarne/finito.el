@@ -152,7 +152,7 @@
   "{
      \"currentName\": \"%s\",
      \"newName\": %s,
-     \"preferredSort\": %s,
+     \"preferredSortType\": \"%s\",
      \"sortAscending\": %s
    }")
 
