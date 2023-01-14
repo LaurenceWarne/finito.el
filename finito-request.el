@@ -267,11 +267,23 @@ img-uri."
                                (s-replace "\"" "'" .img-uri))))))
 
 (defun finito--summary-request-plist
-    (from to montage-image-columns montage-large-image-width montage-large-image-height montage-large-image-scale-factor montage-large-image-rating-threshold)
+    (from to montage-image-columns montage-large-image-width montage-large-image-height montage-large-image-scale-factor montage-large-image-rating-threshold include-added)
   "Return a plist with headers and body for a summary request.
 
 FROM and TO should be dates corresponding to the start and end of the summary
 period"
+  (print (format "{\"query\":\"%s\", \"variables\": %s}"
+                 finito--summary-query
+                 (format
+                  finito--summary-query-variables
+                  (finito--quotify from)
+                  (finito--quotify to)
+                  montage-image-columns
+                  montage-large-image-width
+                  montage-large-image-height
+                  montage-large-image-scale-factor
+                  montage-large-image-rating-threshold
+                  (if include-added "true" "false"))))
   `(:headers ,finito--headers
              :data ,(format "{\"query\":\"%s\", \"variables\": %s}"
                             finito--summary-query
@@ -283,15 +295,16 @@ period"
                              montage-large-image-width
                              montage-large-image-height
                              montage-large-image-scale-factor
-                             montage-large-image-rating-threshold))))
+                             montage-large-image-rating-threshold
+                             (if include-added "true" "false")))))
 
 (defun finito--seq-to-json-list (seq)
   "Return SEQ as an escaped json list."
   (--> (append seq nil)
-    (-map #'finito--quotify it)
-    (s-join ", " it)
-    (s-prepend "[" it)
-    (s-append "]" it)))
+       (-map #'finito--quotify it)
+       (s-join ", " it)
+       (s-prepend "[" it)
+       (s-append "]" it)))
 
 (defun finito--quotify (s)
   "Wrap S in double quotes."

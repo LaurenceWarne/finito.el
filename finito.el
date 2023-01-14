@@ -139,6 +139,12 @@ montage-path"
   :group 'finito
   :type 'function)
 
+(defcustom finito-summary-include-added
+  t
+  "If non-nil, include added books in addition to read books in the montage image."
+  :group 'finito
+  :type 'boolean)
+
 ;;; Constants
 
 (defconst finito--montage-large-image-width 128)
@@ -899,7 +905,8 @@ sPlease input a unique identifier (used in place of an isbn):")
        finito--montage-large-image-width
        finito--montage-large-image-height
        finito--montage-large-image-scale-factor
-       finito-montage-large-image-rating-threshold)
+       finito-montage-large-image-rating-threshold
+       finito-summary-include-added)
       (lambda (response)
         (let-alist response
           (let ((montage-path (f-join finito-img-cache-directory "montage.png")))

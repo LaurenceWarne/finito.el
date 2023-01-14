@@ -290,11 +290,13 @@
    (:arguments
     (($from . DateTime)
      ($to . DateTime)
-     ($montageInput . MontageInput))
+     ($montageInput . MontageInput)
+     ($includeAdded . Boolean))
     (summary
      :arguments ((from . ($ from))
                  (to . ($ to))
-                 (montageInput . ($ montageInput)))
+                 (montageInput . ($ montageInput))
+                 (includeAdded . ($ includeAdded)))
      read added averageRating montage))))
 
 (defconst finito--summary-query-variables
@@ -307,7 +309,8 @@
          \"largeImageHeight\": %s,
          \"largeImgScaleFactor\": %s,
          \"largeImageRatingThreshold\": %s
-     }
+     },
+     \"includeAdded\": %s
    }")
 
 (provide 'finito-graphql)
