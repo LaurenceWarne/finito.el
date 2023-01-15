@@ -108,7 +108,16 @@ more information on how special collections can be configured."
  This collection will be opened when the \"Currently Reading\" suffix is
 invoked from the `finito' prefix command."
   :group 'finito
-  :type 'object)
+  :type 'string)
+
+(defcustom finito-read-collection
+  "Read"
+  "The name of the collection which holds books which have been read.
+
+ This collection will be opened when the \"Read\" suffix is
+invoked from the `finito' prefix command."
+  :group 'finito
+  :type 'string)
 
 (defcustom finito-add-book-collection-blacklist
   (list finito-currently-reading-collection)
@@ -479,6 +488,7 @@ The following commands are available in this mode:
 (defvar finito-collection-view-mode-map
   (let ((map (make-sparse-keymap)))
     (suppress-keymap map t)
+    (define-key map "g" #'revert-buffer)
     (define-key map "D" #'finito-remove-book-at-point)
     (define-key map "N" #'finito-collection-next)
     (define-key map "P" #'finito-collection-previous)
@@ -648,6 +658,13 @@ maximum of MAX-RESULTS results."
   (interactive)
   (finito--wait-for-server-then
    (finito--open-specified-collection finito-currently-reading-collection)))
+
+;;;###autoload
+(defun finito-open-read-collection (&optional _)
+  "Open \"Read\"."
+  (interactive)
+  (finito--wait-for-server-then
+   (finito--open-specified-collection finito-read-collection)))
 
 ;;;###autoload
 (defun finito-delete-collection (&optional _)
