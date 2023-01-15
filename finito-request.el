@@ -272,18 +272,6 @@ img-uri."
 
 FROM and TO should be dates corresponding to the start and end of the summary
 period"
-  (print (format "{\"query\":\"%s\", \"variables\": %s}"
-                 finito--summary-query
-                 (format
-                  finito--summary-query-variables
-                  (finito--quotify from)
-                  (finito--quotify to)
-                  montage-image-columns
-                  montage-large-image-width
-                  montage-large-image-height
-                  montage-large-image-scale-factor
-                  montage-large-image-rating-threshold
-                  (if include-added "true" "false"))))
   `(:headers ,finito--headers
              :data ,(format "{\"query\":\"%s\", \"variables\": %s}"
                             finito--summary-query

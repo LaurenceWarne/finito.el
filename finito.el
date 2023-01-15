@@ -893,10 +893,18 @@ sPlease input a unique identifier (used in place of an isbn):")
 
 ;;;###autoload
 (defun finito-summary ()
-  "Open a summary buffer of reading highlights."
+  "Open a summary buffer of reading highlights in the past year."
+  (interactive)
+  (-let (((from . to) (finito--get-summary-from-to)))
+    (finito-summary-in-period from to)))
+
+;;;###autoload
+(defun finito-summary-in-period (&optional from to)
+  "Open a summary buffer of reading highlights between FROM and TO."
   (interactive)
   (finito--wait-for-server-then
-   (-let (((from . to) (finito--get-summary-from-to)))
+   (let ((from (or from (org-read-date nil nil nil "From: ")))
+         (to (or to (org-read-date nil nil nil "To:"))))
      (finito--make-request
       (finito--summary-request-plist
        from
