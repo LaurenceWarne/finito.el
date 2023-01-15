@@ -172,6 +172,7 @@ to the last value used for OBJ."
   ["Actions"
    ("m" "My Books"           finito-open-my-books-collection)
    ("r" "Currently Reading"  finito-open-currently-reading-collection)
+   ("R" "Read"               finito-open-read-collection)
    ("s" "Search"             finito-search)
    ("o" "Open a Collection"  finito-open-collection)
    ("c" "Collection Actions" finito-collection)])

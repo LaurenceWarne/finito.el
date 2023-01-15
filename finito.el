@@ -479,7 +479,6 @@ The following commands are available in this mode:
 (defvar finito-collection-view-mode-map
   (let ((map (make-sparse-keymap)))
     (suppress-keymap map t)
-    (define-key map "g" #'finito-refresh-collection)
     (define-key map "D" #'finito-remove-book-at-point)
     (define-key map "N" #'finito-collection-next)
     (define-key map "P" #'finito-collection-previous)
@@ -493,7 +492,8 @@ The following commands are available in this mode:
 The following commands are available in this mode:
 \\{finito-collection-view-mode-map}"
   (setq finito--collection nil)
-  (use-local-map finito-collection-view-mode-map))
+  (use-local-map finito-collection-view-mode-map)
+  (setq-local revert-buffer-function #'finito-collection-revert))
 
 (defvar finito-summary-mode-map
   (let ((map (make-sparse-keymap)))
@@ -740,8 +740,8 @@ maximum of MAX-RESULTS results."
                  finito--collection)
         (finito--goto-buffer-line-and-remove-book-at-point buf line))))))
 
-(defun finito-refresh-collection ()
-  "Refresh the current collection."
+(defun finito-collection-revert (&optional _ignore-auto _noconfirm)
+  "Refresh the current collection, _IGNORE-AUTO and _NOCONFIRM are ignored."
   (interactive)
   (finito--wait-for-server-then
    (let ((collection finito--collection)
@@ -751,6 +751,11 @@ maximum of MAX-RESULTS results."
      (finito--open-specified-collection collection t)
      (goto-char old-point)
      (message "Refreshed collection '%s'" collection))))
+
+(define-obsolete-function-alias
+  'finito-refresh-collection
+  'finito-collection-revert
+  "0.5.0")
 
 (defun finito-browse-book-at-point ()
   "Browse the book at point."
@@ -819,7 +824,7 @@ When DATE is specified, mark that as the date the book was finished."
       (finito--delete-book-data-request-plist (alist-get 'isbn book))
       (lambda (_)
         (message "Deleted info held about '%s'" (alist-get 'title book))
-        (finito-refresh-collection))))))
+        (finito-collection-revert))))))
 
 (defun finito-replay-search ()
   "Open the search transient prefix with the last args that were used."

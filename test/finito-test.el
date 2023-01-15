@@ -165,7 +165,8 @@ Occurrences of `.buffer-text' will be replaced by:
                   finito--montage-large-image-width
                   finito--montage-large-image-height
                   finito--montage-large-image-scale-factor
-                  finito-montage-large-image-rating-threshold)))
+                  finito-montage-large-image-rating-threshold
+                  finito-summary-include-added)))
       (expect (plist-get plist :headers))
       (expect (plist-get plist :data)))))
 
