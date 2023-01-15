@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.5.0
+* [84aef51](https://github.com/LaurenceWarne/finito.el/commit/84aef517f3a61713f6093de981d404080e8ef7d8) Support for pagination
+* [f497747](https://github.com/LaurenceWarne/finito.el/commit/f4977474417689bc18dbdf1fcbfa706658b74bfa) Allow read books to be accessed straight from the `finito` transient
+* [4e83091](https://github.com/LaurenceWarne/finito.el/commit/4e83091ac289f2595563244379b5882a6e1ddcc4) Allow for summaries over custom time periods
+
 ## v0.4.0
 
 * [6526a84](https://github.com/LaurenceWarne/finito.el/commit/6526a847d6ec9059ebecd17112eef531887bf27d) Support for summaries

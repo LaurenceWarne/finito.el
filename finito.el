@@ -150,7 +150,7 @@ montage-path"
 
 (defcustom finito-summary-include-added
   t
-  "If non-nil, include added books in addition to read books in the montage image."
+  "If non-nil, include added books in addition to read books in montage images."
   :group 'finito
   :type 'boolean)
 
