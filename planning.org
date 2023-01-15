@@ -17,5 +17,5 @@
 *** DONE Add binding for "modify search" in search view buffers
 *** DONE Allow jar args
 *** DONE Read collection does not show in most recently read order
-*** TODO Add read collection to transient?
+*** DONE Add read collection to transient?
 *** TODO Search with more than max allowed books gives HTTP 400
