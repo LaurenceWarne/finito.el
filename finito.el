@@ -196,8 +196,8 @@ as a symbol."
                       (let ((first-error (elt (cdadr data) 0)))
                         (if graphql-error
                             (--> (cdr (-last-item (-last-item first-error)))
-                              (s-dashed-words it)
-                              (funcall graphql-error (intern it)))
+                                 (s-dashed-words it)
+                                 (funcall graphql-error (intern it)))
                           ;; Error doesn't seem to do anything here
                           (message "Received error(s) in gql response: %s"
                                    (cdar first-error))))
@@ -237,18 +237,19 @@ in some way, and then apply some final configuration to the buffer."
   (when (oref init-obj buf-name-unique)
     (ignore-errors (kill-buffer (oref init-obj buf-name))))
   (switch-to-buffer (generate-new-buffer-name (oref init-obj buf-name)))
-  (finito-init-buffer init-obj)
-  (let ((inhibit-read-only t)
-        (buffer-ewoc
-         (ewoc-create
-          (lambda (obj) (finito-insert-book finito-writer-instance obj))
-          (finito-title-string init-obj))))
-    (setq finito--ewoc buffer-ewoc)
-    (funcall callback buffer-ewoc))
-  (let ((inhibit-message t))
-    (toggle-truncate-lines -1))
-  (goto-char (point-min))
-  (org-display-inline-images))
+  (finito--benchmark finito--debug "Buffer insertion took: %ss"
+    (finito-init-buffer init-obj)
+    (let ((inhibit-read-only t)
+          (buffer-ewoc
+           (ewoc-create
+            (lambda (obj) (finito-insert-book finito-writer-instance obj))
+            (finito-title-string init-obj))))
+      (setq finito--ewoc buffer-ewoc)
+      (funcall callback buffer-ewoc))
+    (let ((inhibit-message t))
+      (toggle-truncate-lines -1))
+    (goto-char (point-min))
+    (org-display-inline-images)))
 
 (defun finito--download-images (books)
   "Download the images for BOOKS."

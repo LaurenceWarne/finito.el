@@ -27,6 +27,8 @@
 
 ;;; Code:
 
+(require 'benchmark)
+
 (defconst finito-version "0.2.0")
 
 (defgroup finito nil
@@ -45,6 +47,17 @@
   "Maximum number of books per collection view (pagination)."
   :group 'finito
   :type 'integer)
+
+(defvar finito--debug nil
+  "If non-nil, print timings and other debug information.")
+
+(defmacro finito--benchmark (condition f-string &rest forms)
+  "Benchmark FORMS and message the time using F-STRING if CONDITION is non-nil."
+  (declare (indent 2) (debug t))
+  `(if ,(or (and (functionp condition) (funcall condition)) condition)
+       (let ((elapsed (benchmark-elapse ,@forms)))
+         (message ,f-string elapsed))
+     ,@forms))
 
 (provide 'finito-core)
 ;;; finito-core.el ends here

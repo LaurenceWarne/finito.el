@@ -103,6 +103,7 @@ Are there any error messages when you (switch-to-buffer \"finito\") ?")
 
 ;;; User facing functions
 
+;;;###autoload
 (defun finito-download-server-if-not-exists (&optional callback)
   "Download a finito server if one is not already downloaded.
 
@@ -165,9 +166,8 @@ until signalling an error.  The default is 20."
         ,(async-inject-variables "finito--health-uri")
         ;; TODO how can I inject functions with async.el?
         (defun finito--health-check ()
-          (not (eq (ignore-errors
-                     (url-retrieve-synchronously finito--health-uri nil nil 5))
-                   nil)))
+          (not (null (ignore-errors
+                       (url-retrieve-synchronously finito--health-uri nil nil 5)))))
         (require 'cl-lib)
         (cl-find-if
          (lambda (_) (or (finito--health-check) (ignore (sleep-for 0.5))))
