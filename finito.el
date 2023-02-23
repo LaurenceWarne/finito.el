@@ -56,12 +56,6 @@
 
 ;;; Custom variables
 
-(defcustom finito-writer-instance
-  (finito-book-writer)
-  "This object will be used to write books in finito buffers."
-  :group 'finito
-  :type 'object)
-
 (defcustom finito-img-cache-directory
   (f-join finito-server-directory "images/")
   "The directory of the finito image cache."
@@ -179,7 +173,7 @@ CALLBACK is called with the parsed json if the request is successful.
 If SYNC is non-nil make the request synchronous.  If errors are detected
 in the graphql response body, then call GRAPHQL-ERROR with the first error
 as a symbol."
-  (request finito--host-uri
+  (request (finito--host-uri)
     :type "POST"
     :headers (plist-get request-plist :headers)
     :data (plist-get request-plist :data)
@@ -344,7 +338,8 @@ BOOK-ALIST should be of the form returned by `finito--create-book-alist'."
 If SYNC it non-nil, perform all actions synchronously.
 OFFSET is the offset of the books in collection."
   (finito--make-request
-   (finito--collection-request-plist collection (or offset 0))
+   (finito--collection-request-plist
+    collection (and (finito--use-pagination) finito-collection-books-limit) (or offset 0))
    (lambda (response)
      (finito--process-books-data
       (cdar response)
@@ -493,6 +488,7 @@ The following commands are available in this mode:
     (define-key map "D" #'finito-remove-book-at-point)
     (define-key map "N" #'finito-collection-next)
     (define-key map "P" #'finito-collection-previous)
+    (define-key map "M" #'finito-toggle-minimal)
     map))
 
 (define-derived-mode finito-collection-view-mode
@@ -853,20 +849,22 @@ When DATE is specified, mark that as the date the book was finished."
 (defun finito-collection-next ()
   "Get the next page of books for the current collection."
   (interactive)
-  (let ((new-offset (+ finito--collection-books-current-offset
-                       finito-collection-books-limit)))
-    (if (>= new-offset finito--collection-total-books)
-        (message "Already at the end of %s!" finito--collection)
-      (finito--open-specified-collection finito--collection nil new-offset))))
+  (when (finito--use-pagination)
+    (let ((new-offset (+ finito--collection-books-current-offset
+                         finito-collection-books-limit)))
+      (if (>= new-offset finito--collection-total-books)
+          (message "Already at the end of %s!" finito--collection)
+        (finito--open-specified-collection finito--collection nil new-offset)))))
 
 (defun finito-collection-previous ()
   "Get the previous page of books for the current collection."
   (interactive)
-  (let ((new-offset (- finito--collection-books-current-offset
-                       finito-collection-books-limit)))
-    (if (< new-offset 0)
-        (message "Already at the start of %s!" finito--collection)
-      (finito--open-specified-collection finito--collection nil new-offset))))
+  (when (finito--use-pagination)
+    (let ((new-offset (- finito--collection-books-current-offset
+                         finito-collection-books-limit)))
+      (if (< new-offset 0)
+          (message "Already at the start of %s!" finito--collection)
+        (finito--open-specified-collection finito--collection nil new-offset)))))
 
 ;;;###autoload
 (defun finito-create-book (title authors description img-uri isbn)
@@ -983,6 +981,15 @@ sPlease input a unique identifier (used in place of an isbn):")
       (ewoc-refresh finito--ewoc)
       (ewoc-goto-node finito--ewoc node))
     (org-display-inline-images)))
+
+(defun finito-toggle-minimal ()
+  "Toggle the book writer instance to/from a minimal book writer."
+  (interactive)
+  (setq finito-writer-instance
+        (if (finito-minimal-book-writer-p finito-writer-instance)
+            (finito-book-writer)
+          (finito-minimal-book-writer)))
+  (revert-buffer))
 
 (provide 'finito)
 ;;; finito.el ends here

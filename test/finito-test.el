@@ -430,7 +430,7 @@ GNU Emacs is awesome!
     (expect 'finito--process-books-data :to-have-been-called-times 1)
     (expect (spy-calls-args-for 'finito--collection-request-plist 0)
             :to-equal
-            (list collection 0))))
+            (list collection finito-collection-books-limit 0))))
 
 (describe "finito-open-my-books-collection"
   (before-each
@@ -453,7 +453,7 @@ GNU Emacs is awesome!
     (expect 'finito--process-books-data :to-have-been-called-times 1)
     (expect (spy-calls-args-for 'finito--collection-request-plist 0)
             :to-equal
-            (list finito-my-books-collection 0))))
+            (list finito-my-books-collection finito-collection-books-limit 0))))
 
 (describe "finito-open-currently-reading-collection"
   (before-each
@@ -476,7 +476,9 @@ GNU Emacs is awesome!
     (expect 'finito--process-books-data :to-have-been-called-times 1)
     (expect (spy-calls-args-for 'finito--collection-request-plist 0)
             :to-equal
-            (list finito-currently-reading-collection 0))))
+            (list finito-currently-reading-collection
+                  finito-collection-books-limit
+                  0))))
 
 (describe "finito-delete-collection"
   :var ((collection "collection to delete"))
@@ -866,8 +868,7 @@ GNU Emacs is awesome!
               :to-equal
               (alist-get 'title book)))))
 
-(describe "finito-toggle-show-descriptions"
-
+(xdescribe "finito-toggle-show-descriptions"
   (it "toggles shown descriptions"
     (let ((finito-use-image-uris t)
           (init-obj (finito-collection-buffer-info

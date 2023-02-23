@@ -90,9 +90,9 @@ Are there any error messages when you (switch-to-buffer \"finito\") ?")
 
 (defvar finito--base-uri "http://localhost:56848")
 
-(defvar finito--host-uri (concat finito--base-uri "/api/graphql"))
+(defvar finito--host-uri nil)
 
-(defvar finito--health-uri (concat finito--base-uri "/version"))
+(defvar finito--health-uri nil)
 
 (defvar finito--server-path
   (f-join finito-server-directory finito--jar-name))
@@ -130,7 +130,7 @@ An error is signalled if the server jar cannot be found.
 
 Note that the server does not necessarily need to be running as a subprocess
 of the current Emacs session.  This function will return nil if any server
-is appears to be running at `finito--host-uri'/health"
+appears to be running at `finito--host-uri'/health"
   (unless (f-exists-p finito--server-path)
     (error finito--no-server-error-msg))
   (unless (or (process-live-p finito--server-process) (finito--health-check))
@@ -163,11 +163,14 @@ until signalling an error.  The default is 20."
     (finito-start-server-if-not-already)
     (async-start
      `(lambda ()
-        ,(async-inject-variables "finito--health-uri")
+        ,(async-inject-variables "finito--base-uri\\|finito--health-uri")
         ;; TODO how can I inject functions with async.el?
+        (defun finito--health-uri ()
+          "Return the uri to use for health checks."
+          (or finito--health-uri (concat finito--base-uri "/version")))
         (defun finito--health-check ()
           (not (null (ignore-errors
-                       (url-retrieve-synchronously finito--health-uri nil nil 5)))))
+                       (url-retrieve-synchronously (finito--health-uri) nil nil 5)))))
         (require 'cl-lib)
         (cl-find-if
          (lambda (_) (or (finito--health-check) (ignore (sleep-for 0.5))))
@@ -212,12 +215,20 @@ and the the server will save the server jar to `finito--server-path'."
         ,(async-inject-variables "finito--server-path")
         (require 'subr-x)
         (thread-first
-            (concat finito--download-url "v" finito-server-version)
+          (concat finito--download-url "v" finito-server-version)
           (concat "/" finito--jar-name)
           (url-copy-file finito--server-path)))
      (lambda (_)
        (message "Finished downloading the finito server")
        (when callback (funcall callback))))))
+
+(defun finito--host-uri ()
+  "Return the uri to use for finito graphql calls."
+  (or finito--host-uri (concat finito--base-uri "/api/graphql")))
+
+(defun finito--health-uri ()
+  "Return the uri to use for health checks."
+  (or finito--health-uri (concat finito--base-uri "/version")))
 
 (defun finito--health-check ()
   "Return t if a finito server appears to be up, else nil."

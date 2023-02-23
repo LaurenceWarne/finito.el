@@ -82,10 +82,7 @@
 (defconst finito--collection-query-variables
   "{
      \"name\": \"%s\",
-     \"booksPagination\": {
-       \"first\": %s,
-       \"after\": %s
-     }
+     \"booksPagination\": %s
   }")
 
 (defconst finito--collections-query
@@ -312,6 +309,12 @@
      },
      \"includeAdded\": %s
    }")
+
+(defun finito--books-pagination-input (limit offset)
+  "Return a string BooksPaginationInput from LIMIT and OFFSET."
+  (if (and limit offset)
+      (format "{\"first\": %s, \"after\": %s}" limit offset)
+    "null"))
 
 (provide 'finito-graphql)
 ;;; finito-graphql.el ends here

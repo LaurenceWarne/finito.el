@@ -284,10 +284,19 @@ BOOK-ALIST is an alist of the format returned by `finito--create-book-alist'"
                  'face
                  'finito-currently-reading)))
 
-(cl-defmethod finito-insert-last-read
-  ((_ finito-minimal-book-writer) last-read)
+(cl-defmethod finito-insert-last-read ((_ finito-minimal-book-writer) _)
   "Insert LAST-READ into the current buffer."
   (insert "📕 "))
+
+(cl-defmethod finito-use-pagination ((_ finito-minimal-book-writer))
+  "Return non-nil if pagination should be used alongside this writer."
+  nil)
+
+(defcustom finito-writer-instance
+  (finito-book-writer)
+  "This object will be used to write books in finito buffers."
+  :group 'finito
+  :type 'object)
 
 (defclass finito-buffer-info ()
   ((title :initarg :title
@@ -337,19 +346,27 @@ BOOK-ALIST is an alist of the format returned by `finito--create-book-alist'"
 
 (cl-defmethod finito-title-string ((buffer-info finito-collection-buffer-info))
   "Get the title string using the properties of BUFFER-INFO."
-  (let* ((books-offset (oref buffer-info books-offset))
-         (total-books (oref buffer-info total-books))
-         (can-go-next (< (+ books-offset finito-collection-books-limit) total-books))
-         (can-go-previous (>= (- books-offset finito-collection-books-limit) 0)))
-    (concat "* " (oref buffer-info title) "\n\n"
-            (format "Showing ~%s~-~%s~ of =%s= books"
-                    (min (1+ books-offset) total-books)
-                    (min total-books (+ books-offset finito-collection-books-limit))
-                    total-books)
-            (and can-go-previous " ~P~: Previous page")
-            (and can-go-previous can-go-next ",")
-            (and can-go-next " ~N~: Next page")
-            "\n")))
+  (let ((base (concat "* " (oref buffer-info title) "\n")))
+    (if (finito--use-pagination)
+        (let* ((books-offset (oref buffer-info books-offset))
+               (total-books (oref buffer-info total-books))
+               (can-go-next (< (+ books-offset finito-collection-books-limit) total-books))
+               (can-go-previous (>= (- books-offset finito-collection-books-limit) 0)))
+          (concat base "\n" (format "Showing ~%s~-~%s~ of =%s= books"
+                                    (min (1+ books-offset) total-books)
+                                    (min total-books (+ books-offset finito-collection-books-limit))
+                                    total-books)
+                  (and can-go-previous " ~P~: Previous page")
+                  (and can-go-previous can-go-next ",")
+                  (and can-go-next " ~N~: Next page")
+                  "\n"))
+      base)))
+
+;;; Misc functions
+
+(defun finito--use-pagination ()
+  "Return non-nil if pagination should be used."
+  (finito-use-pagination finito-writer-instance))
 
 (provide 'finito-buffer)
 ;;; finito-buffer.el ends here
