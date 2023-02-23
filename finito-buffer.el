@@ -161,7 +161,11 @@ Its nodes should be alists of the form returned by
 ;;; Classes for working with buffers
 
 (defclass finito-book-writer ()
-  nil
+  ((insert-order :initarg :books-offset
+                 :initform '(title image author rating started-reading last-read description)
+                 :type list
+                 :custom '(repeat symbol)
+                 :documentation "The order of which to insert books attributes"))
   "A class for writing book information to a buffer.")
 
 (cl-defmethod finito-insert-book ((writer finito-book-writer) book-alist)
@@ -169,19 +173,21 @@ Its nodes should be alists of the form returned by
 
 BOOK-ALIST is an alist of the format returned by `finito--create-book-alist'"
   (let-alist book-alist
-    (finito-insert-title writer .title)
-    (finito-insert-image
-     writer
-     (if finito-use-image-uris
-         .img-uri
-       .image-file-name))
-    (finito-insert-author writer .authors)
-    (when .rating (finito-insert-rating writer .rating))
-    (when .started-reading
-      (finito-insert-started-reading writer .started-reading))
-    (when .last-read
-      (finito-insert-last-read writer .last-read))
-    (finito-insert-description writer .description)))
+    (--each (oref writer insert-order)
+      (cond
+       ((eq it 'title) (finito-insert-title writer .title))
+       ((eq it 'image) (finito-insert-image
+                        writer
+                        (if finito-use-image-uris
+                            .img-uri
+                          .image-file-name)))
+       ((eq it 'author) (finito-insert-author writer .authors))
+       ((eq it 'rating) (when .rating (finito-insert-rating writer .rating)))
+       ((eq it 'started-reading) (when .started-reading
+                                   (finito-insert-started-reading writer .started-reading)))
+       ((eq it 'last-read) (when .last-read
+                             (finito-insert-last-read writer .last-read)))
+       ((eq it 'description) (finito-insert-description writer .description))))))
 
 (cl-defmethod finito-insert-title ((_ finito-book-writer) title)
   "Insert TITLE into the current buffer."
@@ -201,10 +207,11 @@ BOOK-ALIST is an alist of the format returned by `finito--create-book-alist'"
 
 (cl-defmethod finito-insert-rating ((_ finito-book-writer) rating)
   "Insert RATING into the current buffer."
-  (insert (make-string (min rating 100) ?★) "\n")
-  (overlay-put (make-overlay (1- (point)) (- (point) (min rating 100) 1))
+  (let ((rating-str (make-string (min rating 100) ?★)))
+    (insert rating-str "\n")
+    (overlay-put (make-overlay (1- (point)) (- (point) (length rating-str) 1))
                  'face
-                 'finito-rating))
+                 'finito-rating)))
 
 (cl-defmethod finito-insert-started-reading
   ((_ finito-book-writer) _started-reading)
@@ -239,6 +246,48 @@ BOOK-ALIST is an alist of the format returned by `finito--create-book-alist'"
     (overlay-put (make-overlay (- (point) 2) (- (point) (length description) 2))
                  'face
                  'finito-book-descriptions)))
+
+(cl-defmethod finito-use-pagination ((_ finito-book-writer))
+  "Return non-nil if pagination should be used alongside this writer."
+  t)
+
+(defclass finito-minimal-book-writer (finito-book-writer)
+  ((insert-order :initform '(title last-read author rating started-reading)))
+  "A class for writing book information to a buffer.")
+
+(cl-defmethod finito-insert-title ((_ finito-minimal-book-writer) title)
+  "Insert TITLE into the current buffer."
+  (insert "** " title " "))
+
+(cl-defmethod finito-insert-author ((_ finito-minimal-book-writer) authors)
+  "Insert AUTHORS into the current buffer."
+  (let ((authors-str (concat (s-join ", " authors))))
+    (insert authors-str " ")
+    (overlay-put (make-overlay (1- (point)) (- (point) (length authors-str) 1))
+                 'face
+                 'finito-author-name)))
+
+(cl-defmethod finito-insert-rating ((_ finito-minimal-book-writer) rating)
+  "Insert RATING into the current buffer."
+  (let ((rating-str (format "%s★" rating)))
+    (insert rating-str " ")
+    (overlay-put (make-overlay (1- (point)) (- (point) (length rating-str) 1))
+                 'face
+                 'finito-rating)))
+
+(cl-defmethod finito-insert-started-reading
+  ((_ finito-minimal-book-writer) _started-reading)
+  "Insert STARTED-READING into the current buffer."
+  (let ((currently-reading-str "In Progress"))
+    (insert currently-reading-str)
+    (overlay-put (make-overlay (point) (- (point) (length currently-reading-str)))
+                 'face
+                 'finito-currently-reading)))
+
+(cl-defmethod finito-insert-last-read
+  ((_ finito-minimal-book-writer) last-read)
+  "Insert LAST-READ into the current buffer."
+  (insert "📕 "))
 
 (defclass finito-buffer-info ()
   ((title :initarg :title
