@@ -284,7 +284,7 @@ BOOK-ALIST is an alist of the format returned by `finito--create-book-alist'"
                  'face
                  'finito-currently-reading)))
 
-(cl-defmethod finito-insert-last-read ((_ finito-minimal-book-writer) _)
+(cl-defmethod finito-insert-last-read ((_ finito-minimal-book-writer) _last-read)
   "Insert LAST-READ into the current buffer."
   (insert "📕 "))
 
@@ -294,19 +294,19 @@ BOOK-ALIST is an alist of the format returned by `finito--create-book-alist'"
 
 (defcustom finito-detailed-writer-instance
   (finito-book-writer)
-  "This object will be used to write books in finito buffers when minimal mode is not active."
+  "Like `finito-writer-instance', but used only when minimal mode is inactive."
   :group 'finito
   :type 'object)
 
 (defcustom finito-minimal-writer-instance
   (finito-minimal-book-writer)
-  "This object will be used to write books in finito buffers when minimal mode is active."
+  "Like `finito-writer-instance', but used only when minimal mode is active."
   :group 'finito
   :type 'object)
 
 (defcustom finito-writer-instance
   finito-detailed-writer-instance
-  "This object will be used to write books in finito buffers."
+  "`finito-book-writer' instance used to write books in finito buffers."
   :group 'finito
   :type 'object)
 

@@ -615,7 +615,7 @@ GNU Emacs is awesome!
               :to-equal
               (list finito--collection (alist-get 'isbn book))))))
 
-(describe "finito-refresh-collection"
+(describe "finito-collection-revert"
   (before-each
     (spy-on 'finito--open-specified-collection :and-return-value nil)
     (spy-on 'finito--wait-for-server :and-call-fake
@@ -624,7 +624,7 @@ GNU Emacs is awesome!
 
   (it "refreshes collection"
     (let ((finito--collection "collection to refresh"))
-      (finito-refresh-collection)
+      (finito-collection-revert)
       (expect 'finito--open-specified-collection :to-have-been-called-times 1)
       (expect (car (spy-calls-args-for 'finito--open-specified-collection 0))
               :to-equal
@@ -880,7 +880,7 @@ GNU Emacs is awesome!
                      :total-books 1))
           (data '[((title . "book") (authors . ["author"]) (description . "description") (isbn . "isbn") (thumbnailUri . "uri") (rating) (startedReading) (lastRead))]))
       ;; TODO why is this necessary?
-      (spy-on 'finito-refresh-collection :and-return-value nil)
+      (spy-on 'finito-collection-revert :and-return-value nil)
       (finito--process-books-data data init-obj)
       (expect (buffer-substring-no-properties (point-min) (point-max))
               :to-match

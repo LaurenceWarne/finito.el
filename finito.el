@@ -309,7 +309,7 @@ last-read"
 The returned alist will match the format returned by
 `finito--create-book-alist'."
   (unless (ewoc-nth finito--ewoc 0) (error "No books in the current buffer!"))
-  (ewoc-data (ewoc-locate finito--ewoc (point))))
+  (ewoc-data (ewoc-locate finito--ewoc)))
 
 (defun finito--select-collection (callback &optional collection-filter sync)
   "Prompt for a collection, and then call CALLBACK with that collection.
@@ -357,7 +357,7 @@ OFFSET is the offset of the books in collection."
 (defun finito--remove-book-region ()
   "Remove the book at point from the current buffer."
   (let ((inhibit-read-only t))
-    (ewoc-delete finito--ewoc (ewoc-locate finito--ewoc (point)))))
+    (ewoc-delete finito--ewoc (ewoc-locate finito--ewoc))))
 
 (defun finito--replace-book-at-point-from-request
     (plist &optional success-message)
@@ -432,6 +432,16 @@ request is successful"
       (org-display-inline-images)
       (goto-char (point-min)))))
 
+(defun finito--ewoc-node-index (ewoc node)
+  "Return the index of NODE in EWOC."
+  (let* ((head-node (ewoc-nth ewoc 0))
+         (cur-node head-node)
+         (idx 0))
+    (while (and (not (eq cur-node node)) (or (zerop idx) (not (eq cur-node head-node))))
+      (setq cur-node (ewoc-next ewoc cur-node))
+      (cl-incf idx))
+    (and (eq node cur-node) idx)))
+
 ;;; Modes
 
 (defvar finito-view-mode-map
@@ -454,6 +464,8 @@ request is successful"
     (define-key map "e" #'finito-series-at-point)
     (define-key map "w" #'finito-title-of-book-at-point)
     (define-key map "d" #'finito-toggle-show-descriptions)
+    (define-key map "M" #'finito-toggle-minimal)
+    (define-key map "g" #'revert-buffer)
     (define-key map (kbd "C-m") #'finito-open-my-books-collection)
     (define-key map (kbd "C-r") #'finito-open-currently-reading-collection)
     map))
@@ -481,16 +493,15 @@ The following commands are available in this mode:
 The following commands are available in this mode:
 \\{finito-search-view-mode-map}"
   (use-local-map finito-search-view-mode-map)
+  (setq-local revert-buffer-function #'finito-search-revert)
   (setq-local finito--show-descriptions finito-show-descriptions-default))
 
 (defvar finito-collection-view-mode-map
   (let ((map (make-sparse-keymap)))
     (suppress-keymap map t)
-    (define-key map "g" #'revert-buffer)
     (define-key map "D" #'finito-remove-book-at-point)
     (define-key map "N" #'finito-collection-next)
     (define-key map "P" #'finito-collection-previous)
-    (define-key map "M" #'finito-toggle-minimal)
     map))
 
 (define-derived-mode finito-collection-view-mode
@@ -762,11 +773,24 @@ maximum of MAX-RESULTS results."
   (finito--wait-for-server-then
    (let ((collection finito--collection)
          (old-point (point))
+         (node-idx (or (ignore-errors
+                         (finito--ewoc-node-index finito--ewoc (ewoc-locate finito--ewoc)))
+                       0))
          (request-backend 'url-retrieve))
      (kill-current-buffer)
      (finito--open-specified-collection collection t)
-     (goto-char old-point)
+     (unless (ignore-errors (ewoc-goto-node
+                             finito--ewoc (ewoc-nth finito--ewoc node-idx)))
+       (goto-char (min old-point (point-max))))
      (message "Refreshed collection '%s'" collection))))
+
+(defun finito-search-revert (&optional _ignore-auto _noconfirm)
+  "Refresh the current search, _IGNORE-AUTO and _NOCONFIRM are ignored."
+  (interactive)
+  (let ((node (ewoc-locate finito--ewoc)))
+    (ewoc-refresh finito--ewoc)
+    (ewoc-goto-node finito--ewoc node))
+  (org-display-inline-images))
 
 (define-obsolete-function-alias
   'finito-refresh-collection
