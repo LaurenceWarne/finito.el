@@ -212,7 +212,9 @@ Use INIT-OBJ, an instance of `finito-buffer-info' to initialize the buffer."
                          ;; ewoc adds a newline after each node and after
                          ;; the footer even if it is empty
                          (goto-char (point-max))
-                         (delete-char -3))
+                         (while (s-blank-str-p (buffer-substring-no-properties
+                                                (1- (point)) (point)))
+                           (delete-char -1)))
                (proc-books () (finito--prepare-buffer init-obj #'callback)))
       (cond (finito-use-image-uris
              (proc-books))
@@ -987,8 +989,8 @@ sPlease input a unique identifier (used in place of an isbn):")
   (interactive)
   (setq finito-writer-instance
         (if (finito-minimal-book-writer-p finito-writer-instance)
-            (finito-book-writer)
-          (finito-minimal-book-writer)))
+            finito-detailed-writer-instance
+          finito-minimal-writer-instance))
   (revert-buffer))
 
 (provide 'finito)

@@ -292,8 +292,20 @@ BOOK-ALIST is an alist of the format returned by `finito--create-book-alist'"
   "Return non-nil if pagination should be used alongside this writer."
   nil)
 
-(defcustom finito-writer-instance
+(defcustom finito-detailed-writer-instance
   (finito-book-writer)
+  "This object will be used to write books in finito buffers when minimal mode is not active."
+  :group 'finito
+  :type 'object)
+
+(defcustom finito-minimal-writer-instance
+  (finito-minimal-book-writer)
+  "This object will be used to write books in finito buffers when minimal mode is active."
+  :group 'finito
+  :type 'object)
+
+(defcustom finito-writer-instance
+  finito-detailed-writer-instance
   "This object will be used to write books in finito buffers."
   :group 'finito
   :type 'object)
