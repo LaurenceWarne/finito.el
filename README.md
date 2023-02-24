@@ -43,7 +43,7 @@ You can install it from melpa:
   ;; The main entry point for finito commands
   :bind ("C-c b" . finito)
   :config
-  ;; Downloads the server aysnchronously, you can also download the server
+  ;; Downloads the server asynchronously, you can also download the server
   ;; jar manually from the releases page:
   ;; https://github.com/LaurenceWarne/libro-finito/releases and place it in
   ;; `finito-server-directory'
@@ -90,6 +90,8 @@ Most of the features can be navigated through via the transient prefix command `
 | `F`   | Finish the book at point at a prompted date                                |
 | `e`   | Search for books in the same series*                                       |
 | `w`   | Copy the title of the book at point to the kill ring                       |
+| `g`   | Refresh the buffer                                                         |
+| `M`   | Toggle display of minimal mode                                             |
 | `C-m` | Open the "My Books" collection                                             |
 | `C-r` | Open the "Currently Reading" collection                                    |
 
@@ -99,7 +101,6 @@ Most of the features can be navigated through via the transient prefix command `
 
 | Key | Action                                                              |
 |-----|---------------------------------------------------------------------|
-| `g` | Refresh the collection for changes                                  |
 | `d` | Toggle display of descriptions for the current collection           |
 | `D` | Delete the book at point from the current collection                |
 | `N` | Open the next page (if applicable) of books for this collection     |
@@ -140,6 +141,10 @@ This object can be used to customize how books are written into finito buffers. 
 ```
 
 This writer class will insert titles as level one headings, and otherwise behave exactly the same way as the default writer.
+
+`finito` also defines the custom `finito-book-writer` implementation `finito-minimal-book-writer`, which displays each book on a single line.  By default `M` can be used to toggle this view, or you can alternatively set it as the default using `(setq finito-writer-instance finito-minimal-writer-instance)`.
+
+The two instances used for for toggling minimal and detailed mode, `finito-minimal-writer-instance` and `finito-detailed-writer-instance`, can be customised similarly.
 
 ## `finito-my-books-collection`
 
