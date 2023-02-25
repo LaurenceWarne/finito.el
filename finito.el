@@ -419,7 +419,7 @@ request is successful"
           (overlay-put
            (make-overlay (- (point) (length (number-to-string .read))) (point))
            'face 'finito-summary-read)
-          (insert (format " books in %d and added a total of %d." 2021 .added))
+          (insert (format (format-time-string " books in %Y and added a total of %d.") .added))
           (overlay-put
            (make-overlay (1- (- (point) (length (number-to-string .added))))
                          (1- (point)))
