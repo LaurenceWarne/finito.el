@@ -232,20 +232,23 @@ instance, then call CALLBACK with an ewoc, which should use it to insert text
 in some way, and then apply some final configuration to the buffer."
   (when (oref init-obj buf-name-unique)
     (ignore-errors (kill-buffer (oref init-obj buf-name))))
-  (switch-to-buffer (generate-new-buffer-name (oref init-obj buf-name)))
-  (finito--benchmark finito--debug "Buffer insertion took: %ss"
-    (finito-init-buffer init-obj)
-    (let ((inhibit-read-only t)
-          (buffer-ewoc
-           (ewoc-create
-            (lambda (obj) (finito-insert-book finito-writer-instance obj))
-            (finito-title-string init-obj))))
-      (setq finito--ewoc buffer-ewoc)
-      (funcall callback buffer-ewoc))
-    (let ((inhibit-message t))
-      (toggle-truncate-lines -1))
-    (goto-char (point-min))
-    (org-display-inline-images)))
+  (let ((buf (generate-new-buffer (oref init-obj buf-name)))
+        (display-buffer-base-action '(display-buffer-same-window . nil)))
+    (with-current-buffer buf
+      (finito--benchmark finito--debug "Buffer insertion took: %ss"
+        (finito-init-buffer init-obj)
+        (let ((inhibit-read-only t)
+              (buffer-ewoc
+               (ewoc-create
+                (lambda (obj) (finito-insert-book finito-writer-instance obj))
+                (finito-title-string init-obj))))
+          (setq finito--ewoc buffer-ewoc)
+          (funcall callback buffer-ewoc))
+        (let ((inhibit-message t))
+          (toggle-truncate-lines -1))
+        (goto-char (point-min))
+        (org-display-inline-images)))
+    (display-buffer buf)))
 
 (defun finito--download-images (books)
   "Download the images for BOOKS."
@@ -403,34 +406,37 @@ request is successful"
 
 (defun finito--init-summary-buffer (summary-alist)
   "Create a summary buffer using data from SUMMARY-ALIST."
-  (switch-to-buffer (generate-new-buffer "finito summary"))
-  (finito-summary-mode)
-  (let ((inhibit-read-only t))
-    (let-alist summary-alist
-      (insert "* Year In Books\n\n")
-      (insert (format "[[%s]]\n\n" .montage-path))
-      (insert "** Your Statistics\n\n")
-      (insert (format "- You've read %d" .read))
-      (overlay-put
-       (make-overlay (- (point) (length (number-to-string .read))) (point))
-       'face 'finito-summary-read)
-      (insert (format " books in %d and added a total of %d." 2021 .added))
-      (overlay-put
-       (make-overlay (1- (- (point) (length (number-to-string .added))))
-                     (1- (point)))
-       'face 'finito-summary-added)
-      (let ((rating-str (if (= (floor .average-rating) .average-rating)
-                            (number-to-string (floor .average-rating))
-                          (format "%0.2f" .average-rating))))
-        (insert (format "\n- You gave an average rating of %s." rating-str))
-        (overlay-put
-         (make-overlay (- (point) (length (number-to-string .read)) 1)
-                       (- (point) 1))
-         'face 'finito-summary-average-rating))
-      (when finito-summary-show-recommended
-        (insert (concat "\n\n" finito--summary-recommended-text)))
-      (org-display-inline-images)
-      (goto-char (point-min)))))
+  (let ((display-buffer-base-action '(display-buffer-same-window . nil))
+        (buf (generate-new-buffer "finito summary")))
+    (with-current-buffer buf
+      (finito-summary-mode)
+      (let ((inhibit-read-only t))
+        (let-alist summary-alist
+          (insert "* Year In Books\n\n")
+          (insert (format "[[%s]]\n\n" .montage-path))
+          (insert "** Your Statistics\n\n")
+          (insert (format "- You've read %d" .read))
+          (overlay-put
+           (make-overlay (- (point) (length (number-to-string .read))) (point))
+           'face 'finito-summary-read)
+          (insert (format " books in %d and added a total of %d." 2021 .added))
+          (overlay-put
+           (make-overlay (1- (- (point) (length (number-to-string .added))))
+                         (1- (point)))
+           'face 'finito-summary-added)
+          (let ((rating-str (if (= (floor .average-rating) .average-rating)
+                                (number-to-string (floor .average-rating))
+                              (format "%0.2f" .average-rating))))
+            (insert (format "\n- You gave an average rating of %s." rating-str))
+            (overlay-put
+             (make-overlay (- (point) (length (number-to-string .read)) 1)
+                           (- (point) 1))
+             'face 'finito-summary-average-rating))
+          (when finito-summary-show-recommended
+            (insert (concat "\n\n" finito--summary-recommended-text)))
+          (org-display-inline-images)
+          (goto-char (point-min)))))
+    (display-buffer buf)))
 
 (defun finito--ewoc-node-index (ewoc node)
   "Return the index of NODE in EWOC."
@@ -720,9 +726,10 @@ maximum of MAX-RESULTS results."
 (defun finito-to-org-buffer ()
   "Open the current buffer as a normal org mode buffer."
   (interactive)
-  (let ((buf (generate-new-buffer "finito org")))
+  (let ((buf (generate-new-buffer "finito org"))
+        (display-buffer-base-action '(display-buffer-same-window . nil)))
     (copy-to-buffer buf (point-min) (point-max))
-    (switch-to-buffer buf)
+    (display-buffer buf)
     (org-display-inline-images)))
 
 (defun finito-add-book-at-point ()
