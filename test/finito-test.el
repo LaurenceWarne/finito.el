@@ -603,7 +603,8 @@ GNU Emacs is awesome!
               (funcall callback)))
     (spy-on 'finito--make-request :and-return-value nil)
     (spy-on 'finito--book-at-point :and-return-value book)
-    (spy-on 'finito--remove-book-request-plist :and-call-through))
+    (spy-on 'finito--remove-book-request-plist :and-call-through)
+    (spy-on 'y-or-n-p :and-return-value t))
 
   (it "removes book"
     (let ((finito--collection "collection to remove from"))
@@ -703,7 +704,8 @@ GNU Emacs is awesome!
             (lambda (callback &rest _)
               (funcall callback)))
     (spy-on 'finito--book-at-point :and-return-value book)
-    (spy-on 'finito--delete-book-data-request-plist :and-call-through))
+    (spy-on 'finito--delete-book-data-request-plist :and-call-through)
+    (spy-on 'y-or-n-p :and-return-value t))
 
   (it "finishes book"
     (let ((finito--collection "collection to refresh"))

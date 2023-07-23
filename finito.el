@@ -430,7 +430,7 @@ request is successful"
             (insert (format "\n- You gave an average rating of %s." rating-str))
             (overlay-put
              (make-overlay (- (point) (length (number-to-string .read)) 1)
-                           (- (point) 1))
+                           (1- (point)))
              'face 'finito-summary-average-rating))
           (when finito-summary-show-recommended
             (insert (concat "\n\n" finito--summary-recommended-text)))
@@ -763,16 +763,18 @@ maximum of MAX-RESULTS results."
   (interactive)
   (finito--wait-for-server-then
    (let* ((book (finito--book-at-point))
+          (title (alist-get 'title book))
           (isbn (alist-get 'isbn book))
           (line (line-number-at-pos))
           (buf (current-buffer)))
-     (finito--make-request
-      (finito--remove-book-request-plist finito--collection isbn)
-      (lambda (_)
-        (message "Removed '%s' from %s"
-                 (alist-get 'title book)
-                 finito--collection)
-        (finito--goto-buffer-line-and-remove-book-at-point buf line))))))
+     (when (y-or-n-p (format "Remove '%s' from %s?" title finito--collection))
+       (finito--make-request
+        (finito--remove-book-request-plist finito--collection isbn)
+        (lambda (_)
+          (message "Removed '%s' from %s"
+                   (alist-get 'title book)
+                   finito--collection)
+          (finito--goto-buffer-line-and-remove-book-at-point buf line)))))))
 
 (defun finito-collection-revert (&optional _ignore-auto _noconfirm)
   "Refresh the current collection, _IGNORE-AUTO and _NOCONFIRM are ignored."
@@ -867,11 +869,15 @@ When DATE is specified, mark that as the date the book was finished."
   (interactive)
   (finito--wait-for-server-then
    (let ((book (finito--book-at-point)))
-     (finito--make-request
-      (finito--delete-book-data-request-plist (alist-get 'isbn book))
-      (lambda (_)
-        (message "Deleted info held about '%s'" (alist-get 'title book))
-        (finito-collection-revert))))))
+     (when (y-or-n-p
+            (format
+             "Remove held data for '%s' (note this won't remove the book from any collections)?"
+             (alist-get 'title book)))
+       (finito--make-request
+        (finito--delete-book-data-request-plist (alist-get 'isbn book))
+        (lambda (_)
+          (message "Deleted info held about '%s'" (alist-get 'title book))
+          (finito-collection-revert)))))))
 
 (defun finito-replay-search ()
   "Open the search transient prefix with the last args that were used."
