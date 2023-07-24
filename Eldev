@@ -2,6 +2,7 @@
 
 ;; Autodetermined by `eldev init'.
 (eldev-use-package-archive 'melpa)
+(eldev-use-package-archive 'gnu-elpa)
 
 (setq eldev-test-framework 'buttercup)
 
