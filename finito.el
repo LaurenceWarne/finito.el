@@ -232,8 +232,7 @@ instance, then call CALLBACK with an ewoc, which should use it to insert text
 in some way, and then apply some final configuration to the buffer."
   (when (oref init-obj buf-name-unique)
     (ignore-errors (kill-buffer (oref init-obj buf-name))))
-  (let ((buf (generate-new-buffer (oref init-obj buf-name)))
-        (display-buffer-base-action '(display-buffer-same-window . nil)))
+  (let ((buf (generate-new-buffer (oref init-obj buf-name))))
     (with-current-buffer buf
       (finito--benchmark finito--debug "Buffer insertion took: %ss"
         (finito-init-buffer init-obj)
@@ -248,7 +247,7 @@ in some way, and then apply some final configuration to the buffer."
           (toggle-truncate-lines -1))
         (goto-char (point-min))
         (org-display-inline-images)))
-    (display-buffer buf)))
+    (display-buffer buf '(display-buffer-same-window . nil))))
 
 (defun finito--download-images (books)
   "Download the images for BOOKS."
@@ -406,8 +405,7 @@ request is successful"
 
 (defun finito--init-summary-buffer (summary-alist)
   "Create a summary buffer using data from SUMMARY-ALIST."
-  (let ((display-buffer-base-action '(display-buffer-same-window . nil))
-        (buf (generate-new-buffer "finito summary")))
+  (let ((buf (generate-new-buffer "finito summary")))
     (with-current-buffer buf
       (finito-summary-mode)
       (let ((inhibit-read-only t))
@@ -436,7 +434,7 @@ request is successful"
             (insert (concat "\n\n" finito--summary-recommended-text)))
           (org-display-inline-images)
           (goto-char (point-min)))))
-    (display-buffer buf)))
+    (display-buffer buf '(display-buffer-same-window . nil))))
 
 (defun finito--ewoc-node-index (ewoc node)
   "Return the index of NODE in EWOC."
@@ -726,10 +724,9 @@ maximum of MAX-RESULTS results."
 (defun finito-to-org-buffer ()
   "Open the current buffer as a normal org mode buffer."
   (interactive)
-  (let ((buf (generate-new-buffer "finito org"))
-        (display-buffer-base-action '(display-buffer-same-window . nil)))
+  (let ((buf (generate-new-buffer "finito org")))
     (copy-to-buffer buf (point-min) (point-max))
-    (display-buffer buf)
+    (display-buffer buf '(display-buffer-same-window . nil))
     (org-display-inline-images)))
 
 (defun finito-add-book-at-point ()
