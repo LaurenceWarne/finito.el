@@ -98,7 +98,7 @@ This option will disable the image cache.  It's useful if for example you are
 using `org-display-remote-inline-images'.  In this case org would handle
 display of images even if they are remote uris.
 
-See also URL 'https://github.com/LaurenceWarne/finito.el/issues/2' for more
+See also URL `https://github.com/LaurenceWarne/finito.el/issues/2' for more
 information on using `org-display-remote-inline-images' with finito."
   :group 'finito
   :type 'boolean)

@@ -90,7 +90,7 @@ This instance will be used to initialise a buffer after a keyword search."
  This collection will be opened when the \"My Books\" suffix is invoked from
 the `finito' prefix command.  Typically this collection will hold all
 books which have been added at some point to some collection.  See
-URL 'https://github.com/LaurenceWarne/libro-finito#special-collections' for
+URL `https://github.com/LaurenceWarne/libro-finito#special-collections' for
 more information on how special collections can be configured."
   :group 'finito
   :type 'string)
@@ -568,7 +568,7 @@ The following commands are available in this mode:
 
 Copy to the kill ring a curl request string corresponding to what the server
 would send to the Google Books API (see URL
-'https://developers.google.com/books/docs/v1/using') for the same
+`https://developers.google.com/books/docs/v1/using') for the same
 set of args.  This is intended to be used for debugging."
   (interactive
    (list (finito--transient-args-plist 'finito-search)))
@@ -582,7 +582,7 @@ set of args.  This is intended to be used for debugging."
 
 Copy to the kill ring a curl request string corresponding to what the server
 would send to the Google Books API (see URL
-'https://developers.google.com/books/docs/v1/using') for a keyword
+`https://developers.google.com/books/docs/v1/using') for a keyword
 search using TITLE and AUTHOR keywords.  This is intended to be used for
 debugging."
   (unless (or title author)
@@ -611,7 +611,7 @@ debugging."
 
 Copy to the kill ring a curl request string corresponding to what the server
 would send to the Google Books API (see URL
-'https://developers.google.com/books/docs/v1/using') for the given ISBN.
+`https://developers.google.com/books/docs/v1/using') for the given ISBN.
 This is intended to be used for debugging."
   (let* ((base-url "https://www.googleapis.com/books/v1/volumes?q=")
          (url-params (list (concat "isbn:" isbn)
