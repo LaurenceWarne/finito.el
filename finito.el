@@ -949,11 +949,16 @@ sPlease input a unique identifier (used in place of an isbn):")
            finito-keyword-search-buffer-init-instance)))))))
 
 ;;;###autoload
-(defun finito-summary ()
-  "Open a summary buffer of reading highlights in the past year."
+(defun finito-summary (&optional from to)
+  "Open a summary buffer of reading highlights in the past year.
+
+If either FROM or TO are specified, use these dates instead of the default of
+the past year.
+
+Example: `(let ((finito-montage-image-columns 16)) (finito-summary \"2021-01-01\" \"2099-01-01\"))'."
   (interactive)
-  (-let (((from . to) (finito--get-summary-from-to)))
-    (finito-summary-in-period from to)))
+  (-let (((default-from . default-to) (finito--get-summary-from-to)))
+    (finito-summary-in-period (or from default-from) (or to default-to))))
 
 ;;;###autoload
 (defun finito-summary-in-period (&optional from to)
