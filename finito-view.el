@@ -65,30 +65,7 @@
   "Initialize the value of OBJ using the value of the current prefix."
   (let* ((prefix-plist (oref transient--prefix value))
          (val-or-nil (plist-get prefix-plist (oref obj plist-key))))
-      (oset obj value val-or-nil)))
-
-(cl-defmethod transient-infix-set :around
-  ((obj finito--transient-argument) value)
-  "Unset incompatible infix arguments."
-  (let ((arg (if (slot-boundp obj 'argument)
-                 (oref obj argument)
-               (oref obj argument-regexp))))
-    (if-let* ((sic (and value arg transient--unset-incompatible))
-              (spec (oref transient--prefix incompatible))
-              (incomp-matching (cl-remove-if-not
-                                (lambda (elt) (member arg elt)) spec))
-              (incomp (flatten-list
-                       (mapcar (lambda (e) (remove arg e)) incomp-matching))))
-        (progn
-          (cl-call-next-method obj value)
-          (dolist (arg incomp)
-            (when-let ((obj (cl-find-if (lambda (obj)
-                                          (and (slot-boundp obj 'argument)
-                                               (equal (oref obj argument) arg)))
-                                        transient--suffixes)))
-              (let ((transient--unset-incompatible nil))
-                (transient-infix-set obj nil)))))
-      (cl-call-next-method obj value))))
+    (oset obj value val-or-nil)))
 
 (defclass finito--search-prefix (transient-prefix) nil)
 
