@@ -955,7 +955,9 @@ sPlease input a unique identifier (used in place of an isbn):")
 If either FROM or TO are specified, use these dates instead of the default of
 the past year.
 
-Example: `(let ((finito-montage-image-columns 16)) (finito-summary \"2021-01-01\" \"2099-01-01\"))'."
+Example:
+`(let ((finito-montage-image-columns 16))
+   (finito-summary \"2021-01-01\" \"2099-01-01\"))'."
   (interactive)
   (-let (((default-from . default-to) (finito--get-summary-from-to)))
     (finito-summary-in-period (or from default-from) (or to default-to))))
