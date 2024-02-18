@@ -185,6 +185,23 @@ BOOK should be the book (as an alist) to rate and RATING the rating."
                                (s-replace "\"" "'" .isbn)
                                (s-replace "\"" "'" .img-uri))))))
 
+(defun finito--review-book-request-plist (book review)
+  "Return a plist with headers and body for an add review request.
+
+BOOK should be the book (as an alist) to review and REVIEW the rating strin."
+  `(:headers ,finito--headers
+             :data ,(format "{\"query\":\"%s\", \"variables\": %s}"
+                            finito--review-book-mutation
+                            (let-alist book
+                              (format
+                               finito--review-book-mutation-variables
+                               review
+                               (s-replace "\"" "'" .title)
+                               (finito--seq-to-json-list .authors)
+                               (s-replace "\"" "'" .description)
+                               (s-replace "\"" "'" .isbn)
+                               (s-replace "\"" "'" .img-uri))))))
+
 (defun finito--start-reading-request-plist (book &optional start-date)
   "Return a plist with headers and body for a start reading request.
 

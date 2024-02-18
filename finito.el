@@ -820,6 +820,18 @@ maximum of MAX-RESULTS results."
               (alist-get 'title book)
               rating)))))
 
+(defun finito-review-book-at-point ()
+  "Add a review for the book at point.
+
+Note this overwrites any existing review."
+  (interactive)
+  (finito--wait-for-server-then
+   (let ((book (finito--book-at-point))
+         (review (read-string "Review: ")))
+     (finito--replace-book-at-point-from-request
+      (finito--review-book-request-plist book review)
+      (format "Added review for '%s'" (alist-get 'title book))))))
+
 (defun finito-start-book-at-point (&optional date)
   "Mark the book at point as currently reading.
 

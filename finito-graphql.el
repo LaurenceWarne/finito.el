@@ -188,6 +188,29 @@
      }
    }")
 
+(defconst finito--review-book-mutation
+  (graphql-mutation
+   (:arguments
+    (($review . String!)
+     ($book . BookInput!))
+    (addBookReview
+     :arguments ((review . ($ review))
+                 (book . ($ book)))
+     title authors description isbn thumbnailUri
+     review startedReading lastRead))))
+
+(defconst finito--review-book-mutation-variables
+  "{
+     \"review\": \"%s\",
+     \"book\": {
+       \"title\": \"%s\",
+       \"authors\": %s,
+       \"description\": \"%s\",
+       \"isbn\": \"%s\",
+       \"thumbnailUri\": \"%s\"
+     }
+   }")
+
 (defconst finito--start-reading-mutation
   (graphql-mutation
    (:arguments

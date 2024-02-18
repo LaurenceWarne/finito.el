@@ -42,6 +42,8 @@ You can install it from melpa:
   :demand t
   ;; The main entry point for finito commands
   :bind ("C-c b" . finito)
+  ;; Optional, but can improve the aesthetics of book descriptions
+  :hook (finito-view-mode . visual-line-mode)
   :config
   ;; Downloads the server asynchronously, you can also download the server
   ;; jar manually from the releases page:
