@@ -94,6 +94,7 @@ Most of the features can be navigated through via the transient prefix command `
 | `w`   | Copy the title of the book at point to the kill ring                       |
 | `g`   | Refresh the buffer                                                         |
 | `M`   | Toggle display of minimal mode                                             |
+| `l`   | Edit the last search                                                       |
 | `C-m` | Open the "My Books" collection                                             |
 | `C-r` | Open the "Currently Reading" collection                                    |
 
@@ -114,7 +115,6 @@ Most of the features can be navigated through via the transient prefix command `
 
 | Key | Action                                                |
 |-----|-------------------------------------------------------|
-| `l` | Edit the last search                                  |
 | `d` | Toggle display of descriptions for the current buffer |
 
 (in addition to all the [base bindings](#bindings-available-in-all-finito-view-buffers))

@@ -470,6 +470,7 @@ request is successful"
     (define-key map "d" #'finito-toggle-show-descriptions)
     (define-key map "M" #'finito-toggle-minimal)
     (define-key map "g" #'revert-buffer)
+    (define-key map "l" #'finito-replay-search)
     (define-key map (kbd "C-m") #'finito-open-my-books-collection)
     (define-key map (kbd "C-r") #'finito-open-currently-reading-collection)
     map))
@@ -486,7 +487,6 @@ The following commands are available in this mode:
 (defvar finito-search-view-mode-map
   (let ((map (make-sparse-keymap)))
     (suppress-keymap map t)
-    (define-key map "l" #'finito-replay-search)
     map))
 
 (define-derived-mode finito-search-view-mode
