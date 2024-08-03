@@ -159,11 +159,11 @@ to the last value used for OBJ."
   :class 'finito--search-prefix
   :incompatible '(("isbn=" "author=") ("isbn=" "title=") ("isbn=" "max results="))
   ["By Keywords"
-   (finito--title-arg :description "Title" :prompt "Title: ")
-   (finito--author-arg :description "Author" :prompt "Author: ")
-   (finito--max-results-arg :description "Max Results" :prompt "Max results: ")]
+   (finito--title-arg :description "Title" :prompt "Title: " :always-read t)
+   (finito--author-arg :description "Author" :prompt "Author: " :always-read t)
+   (finito--max-results-arg :description "Max Results" :prompt "Max results: " :always-read t)]
   ["Direct Lookup"
-   (finito--isbn-arg :description "ISBN" :prompt "ISBN: ")]
+   (finito--isbn-arg :description "ISBN" :prompt "ISBN: " :always-read t)]
   ["Actions"
    ("C" "Copy Curl"     finito-search-request-curl-dbg)
    ("s" "Search"        finito-search-request)])
