@@ -396,12 +396,11 @@ request is successful"
          ((_ _ from-year) (calendar-current-date -30)))
     (cons (format "%s-01-01" from-year) (format "%s-%02d-%02d" year month day))))
 
-(defun finito--set-show-description-for-collection (collection flag)
-  "Set show description to FLAG for COLLECTION."
-  (if (member collection (mapcar #'car finito-show-description-alist))
-      (setf (cdr (assoc finito--collection finito-show-description-alist)) flag)
-    (setq finito-show-description-alist
-          `((,collection . ,flag) . ,finito-show-description-alist))))
+(defun finito--set-show-attribute-for-collection (alist collection flag)
+  "Set show the attribute implied by ALIST to FLAG for COLLECTION."
+  (if (member collection (mapcar #'car alist))
+      (setf (cdr (assoc finito--collection alist)) flag)
+    (setq alist `((,collection . ,flag) . ,alist))))
 
 (defun finito--init-summary-buffer (summary-alist)
   "Create a summary buffer using data from SUMMARY-ALIST."
@@ -468,9 +467,11 @@ request is successful"
     (define-key map "e" #'finito-series-at-point)
     (define-key map "w" #'finito-title-of-book-at-point)
     (define-key map "d" #'finito-toggle-show-descriptions)
+    (define-key map "W" #'finito-toggle-show-reviews)
     (define-key map "M" #'finito-toggle-minimal)
     (define-key map "g" #'revert-buffer)
     (define-key map "l" #'finito-replay-search)
+    (define-key map "R" #'finito-review-book-at-point)
     (define-key map (kbd "C-m") #'finito-open-my-books-collection)
     (define-key map (kbd "C-r") #'finito-open-currently-reading-collection)
     map))
@@ -826,11 +827,20 @@ maximum of MAX-RESULTS results."
 Note this overwrites any existing review."
   (interactive)
   (finito--wait-for-server-then
-   (let ((book (finito--book-at-point))
-         (review (read-string "Review: ")))
-     (finito--replace-book-at-point-from-request
-      (finito--review-book-request-plist book review)
-      (format "Added review for '%s'" (alist-get 'title book))))))
+   (let* ((book (finito--book-at-point))
+          (buf (generate-new-buffer (format "%s Review" (alist-get 'title book)))))
+     (with-current-buffer buf
+       (local-set-key
+        (kbd "C-c C-c")
+        (lambda () (interactive)
+          (finito--make-request
+           (finito--review-book-request-plist
+            book
+            (buffer-substring-no-properties (point-min) (point-max)))
+           (lambda (&rest _) (format "Added review for '%s'" (alist-get 'title book))))
+          (kill-buffer-and-window))))
+     (pop-to-buffer buf '(display-buffer-below-selected . nil))
+     (message "Use C-c C-c to submit the review"))))
 
 (defun finito-start-book-at-point (&optional date)
   "Mark the book at point as currently reading.
@@ -1015,6 +1025,7 @@ Example:
      (kill-new title)
      (message "Copied '%s' to the kill ring" title))))
 
+;; The setq-local make these next two hard to DRY
 (defun finito-toggle-show-descriptions ()
   "Toggle display of descriptions."
   (interactive)
@@ -1026,12 +1037,38 @@ Example:
                                 nil
                                 'equal))))
     (cond ((bound-and-true-p finito--collection)
-           (finito--set-show-description-for-collection finito--collection
-                                                        (not alist-val)))
+           (finito--set-show-attribute-for-collection
+            finito-show-description-alist
+            finito--collection
+            (not alist-val)))
           ((boundp 'finito--show-descriptions)
            (setq finito--show-descriptions (not local-val)))
           (t (setq-local finito--show-descriptions
                          (not finito-show-descriptions-default))))
+    (let ((node (ewoc-locate finito--ewoc)))
+      (ewoc-refresh finito--ewoc)
+      (ewoc-goto-node finito--ewoc node))
+    (org-display-inline-images)))
+
+(defun finito-toggle-show-reviews ()
+  "Toggle display of reviews."
+  (interactive)
+  (let ((local-val (bound-and-true-p finito--show-reviews))
+        (alist-val (when (bound-and-true-p finito--collection)
+                     (alist-get finito--collection
+                                finito-show-review-alist
+                                finito-show-reviews-default
+                                nil
+                                'equal))))
+    (cond ((bound-and-true-p finito--collection)
+           (finito--set-show-attribute-for-collection
+            finito-show-review-alist
+            finito--collection
+            (not alist-val)))
+          ((boundp 'finito--show-reviews)
+           (setq finito--show-reviews (not local-val)))
+          (t (setq-local finito--show-reviews
+                         (not finito-show-reviews-default))))
     (let ((node (ewoc-locate finito--ewoc)))
       (ewoc-refresh finito--ewoc)
       (ewoc-goto-node finito--ewoc node))

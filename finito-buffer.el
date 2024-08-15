@@ -88,6 +88,11 @@
   "Face for the average rating in a summary buffer."
   :group 'finito)
 
+(defface finito-review
+  '((t :foreground "grey"))
+  "Face for the content of a user book review."
+  :group 'finito)
+
 ;;; Custom variables
 
 (defcustom finito-use-image-uris
@@ -118,6 +123,15 @@ This can be overridden locally on a buffer by buffer basis via the
   :group 'finito
   :type 'boolean)
 
+(defcustom finito-show-reviews-default
+  nil
+  "If non-nil, write reviews when displaying books in a finito buffer.
+
+This can be overridden locally on a buffer by buffer basis via the
+\"v\" key, or alternatively via the `finito--show-reviews' local variable."
+  :group 'finito
+  :type 'boolean)
+
 ;;; Constants
 
 (defconst finito--summary-recommended-text
@@ -132,6 +146,9 @@ This can be overridden locally on a buffer by buffer basis via the
 
 (defvar finito-show-description-alist nil)
 (cl-pushnew 'finito-show-description-alist savehist-additional-variables)
+
+(defvar finito-show-review-alist nil)
+(cl-pushnew 'finito-show-review-alist savehist-additional-variables)
 
 ;;; Buffer local variables
 
@@ -157,6 +174,10 @@ Its nodes should be alists of the form returned by
 (defvar-local finito--show-descriptions
   nil
   "An override that can be used to show/hide descriptions in all finito buffers.")
+
+(defvar-local finito--show-reviews
+  nil
+  "An override that can be used to show/hide user reviews in all finito buffers.")
 
 ;;; Classes for working with buffers
 
@@ -246,6 +267,20 @@ BOOK-ALIST is an alist of the format returned by `finito--create-book-alist'"
     (overlay-put (make-overlay (- (point) 2) (- (point) (length description) 2))
                  'face
                  'finito-book-descriptions)))
+
+(cl-defmethod finito-insert-review ((_ finito-book-writer) review)
+  "Insert REVIEW into the current buffer."
+  (when (or (and (bound-and-true-p finito--collection)
+                 (alist-get finito--collection
+                            finito-show-review-alist
+                            finito-show-reviews-default
+                            nil
+                            'equal))
+            (bound-and-true-p finito--show-reviews))
+    (insert review "\n")
+    (overlay-put (make-overlay (- (point) 2) (- (point) (length review) 2))
+                 'face
+                 'finito-book-reviews)))
 
 (cl-defmethod finito-use-pagination ((_ finito-book-writer))
   "Return non-nil if pagination should be used alongside this writer."
