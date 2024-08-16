@@ -396,11 +396,11 @@ request is successful"
          ((_ _ from-year) (calendar-current-date -30)))
     (cons (format "%s-01-01" from-year) (format "%s-%02d-%02d" year month day))))
 
-(defun finito--set-show-attribute-for-collection (alist collection flag)
-  "Set show the attribute implied by ALIST to FLAG for COLLECTION."
+(defun finito--set-show-attribute-for-collection (alist-sym alist collection flag)
+  "Set show the attribute implied by ALIST and ALIST-SYM to FLAG for COLLECTION."
   (if (member collection (mapcar #'car alist))
       (setf (cdr (assoc finito--collection alist)) flag)
-    (setq alist `((,collection . ,flag) . ,alist))))
+    (set alist-sym `((,collection . ,flag) . ,alist))))
 
 (defun finito--init-summary-buffer (summary-alist)
   "Create a summary buffer using data from SUMMARY-ALIST."
@@ -1038,6 +1038,7 @@ Example:
                                 'equal))))
     (cond ((bound-and-true-p finito--collection)
            (finito--set-show-attribute-for-collection
+            'finito-show-description-alist
             finito-show-description-alist
             finito--collection
             (not alist-val)))
@@ -1062,6 +1063,7 @@ Example:
                                 'equal))))
     (cond ((bound-and-true-p finito--collection)
            (finito--set-show-attribute-for-collection
+            'finito-show-review-alist
             finito-show-review-alist
             finito--collection
             (not alist-val)))

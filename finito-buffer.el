@@ -208,7 +208,8 @@ BOOK-ALIST is an alist of the format returned by `finito--create-book-alist'"
                                    (finito-insert-started-reading writer .started-reading)))
        ((eq it 'last-read) (when .last-read
                              (finito-insert-last-read writer .last-read)))
-       ((eq it 'description) (finito-insert-description writer .description))))))
+       ((eq it 'description) (finito-insert-description writer .description))
+       ((eq it 'review) (finito-insert-description writer .review))))))
 
 (cl-defmethod finito-insert-title ((_ finito-book-writer) title)
   "Insert TITLE into the current buffer."
