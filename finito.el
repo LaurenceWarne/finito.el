@@ -288,6 +288,7 @@ isbn
 img-uri
 image-file-name
 rating
+review
 started-reading
 last-read"
   (let-alist book-response
@@ -302,6 +303,7 @@ last-read"
             (cons 'img-uri .thumbnailUri)
             (cons 'image-file-name image-file-name)
             (cons 'rating .rating)
+            (cons 'review .review)
             (cons 'started-reading .startedReading)
             (cons 'last-read .lastRead)))))
 

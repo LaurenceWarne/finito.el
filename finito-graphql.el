@@ -44,7 +44,7 @@
                  (maxResults . ($ maxResults))
                  (langRestrict . ($ langRestrict)))
      title authors description isbn thumbnailUri
-     rating startedReading lastRead))))
+     rating review startedReading lastRead))))
 
 ;; We don't add quotes around %s since null is a value that could potentially
 ;; be used, and we shouldn't quote that
@@ -63,7 +63,7 @@
     (book
      :arguments ((isbn . ($ isbn)))
      title authors description isbn thumbnailUri
-     rating startedReading lastRead))))
+     rating review startedReading lastRead))))
 
 (defconst finito--isbn-query-variables "{\"isbn\": \"%s\"}")
 
@@ -76,7 +76,7 @@
      :arguments ((name . ($ name))
                  (booksPagination . ($ booksPagination)))
      (books title authors description isbn thumbnailUri
-            rating startedReading lastRead)
+            rating review startedReading lastRead)
      (pageInfo totalBooks)))))
 
 (defconst finito--collection-query-variables
@@ -174,7 +174,7 @@
      :arguments ((rating . ($ rating))
                  (book . ($ book)))
      title authors description isbn thumbnailUri
-     rating startedReading lastRead))))
+     rating review startedReading lastRead))))
 
 (defconst finito--rate-book-mutation-variables
   "{
@@ -197,7 +197,7 @@
      :arguments ((review . ($ review))
                  (book . ($ book)))
      title authors description isbn thumbnailUri
-     review startedReading lastRead))))
+     rating review startedReading lastRead))))
 
 (defconst finito--review-book-mutation-variables
   "{
@@ -220,7 +220,7 @@
      :arguments ((date . ($ date))
                  (book . ($ book)))
      title authors description isbn thumbnailUri
-     rating startedReading lastRead))))
+     rating review startedReading lastRead))))
 
 (defconst finito--start-reading-mutation-variables
   "{
@@ -243,7 +243,7 @@
      :arguments ((date . ($ date))
                  (book . ($ book)))
      title authors description isbn thumbnailUri
-     rating startedReading lastRead))))
+     rating review startedReading lastRead))))
 
 (defconst finito--finish-reading-mutation-variables
   "{
@@ -292,7 +292,7 @@
     (series
      :arguments ((book . ($ book)))
      title authors description isbn thumbnailUri
-     rating startedReading lastRead))))
+     rating review startedReading lastRead))))
 
 (defconst finito--series-query-variables
   "{

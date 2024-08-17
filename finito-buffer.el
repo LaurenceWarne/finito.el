@@ -53,6 +53,20 @@
   "Face for book descriptions."
   :group 'finito)
 
+(defface finito-book-reviews
+  '((t :foreground "grey"
+       :inherit default))
+  "Face for book reviews."
+  :group 'finito)
+
+(defface finito-book-review-header
+  '((t :foreground "grey"
+       :weight bold
+       :underline t
+       :inherit default))
+  "Face for book review headers."
+  :group 'finito)
+
 (defface finito-rating
   '((t :foreground "gold"
        :weight bold))
@@ -183,7 +197,7 @@ Its nodes should be alists of the form returned by
 
 (defclass finito-book-writer ()
   ((insert-order :initarg :books-offset
-                 :initform '(title image author rating started-reading last-read description)
+                 :initform '(title image author rating started-reading last-read description review)
                  :type list
                  :custom '(repeat symbol)
                  :documentation "The order of which to insert books attributes"))
@@ -209,7 +223,7 @@ BOOK-ALIST is an alist of the format returned by `finito--create-book-alist'"
        ((eq it 'last-read) (when .last-read
                              (finito-insert-last-read writer .last-read)))
        ((eq it 'description) (finito-insert-description writer .description))
-       ((eq it 'review) (finito-insert-description writer .review))))))
+       ((eq it 'review) (finito-insert-review writer .review))))))
 
 (cl-defmethod finito-insert-title ((_ finito-book-writer) title)
   "Insert TITLE into the current buffer."
@@ -278,10 +292,16 @@ BOOK-ALIST is an alist of the format returned by `finito--create-book-alist'"
                             nil
                             'equal))
             (bound-and-true-p finito--show-reviews))
-    (insert review "\n")
-    (overlay-put (make-overlay (- (point) 2) (- (point) (length review) 2))
-                 'face
-                 'finito-book-reviews)))
+    (when review
+      (let ((review-header "Review:"))
+        (insert review-header)
+        (overlay-put (make-overlay (point) (- (point) (length review-header)))
+                     'face
+                     'finito-book-review-header)
+        (insert " " review "\n")
+        (overlay-put (make-overlay (- (point) 1) (- (point) (length review) 1))
+                     'face
+                     'finito-book-reviews)))))
 
 (cl-defmethod finito-use-pagination ((_ finito-book-writer))
   "Return non-nil if pagination should be used alongside this writer."
