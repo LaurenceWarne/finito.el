@@ -213,7 +213,8 @@ Occurrences of `.buffer-text' will be replaced by:
                             (thumbnailUri . "https://random-url")
                             (rating . nil)
                             (startedReading . nil)
-                            (lastRead . nil))))
+                            (lastRead . nil)
+                            (review . nil))))
       (expect (finito--create-book-alist response-alist)
               :to-equal
               finito--stub-book))))
