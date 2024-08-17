@@ -20,6 +20,7 @@
     (img-uri . "https://random-url")
     (image-file-name . "cache/directory/footitleisbn.jpeg")
     (rating . nil)
+    (review . nil)
     (started-reading . nil)
     (last-read . nil)))
 
@@ -190,6 +191,7 @@ Occurrences of `.buffer-text' will be replaced by:
                             (isbn . "isbn")
                             (thumbnailUri . "https://random-url")
                             (rating . 3)
+                            (review . "some review")
                             (startedReading . "some-date")
                             (lastRead . "some other date"))))
       (expect (finito--create-book-alist response-alist)
@@ -201,6 +203,7 @@ Occurrences of `.buffer-text' will be replaced by:
                 (img-uri . "https://random-url")
                 (image-file-name . "cache/directory/footitleisbn.jpeg")
                 (rating . 3)
+                (review . "some review")
                 (started-reading . "some-date")
                 (last-read . "some other date")))))
 
@@ -212,9 +215,9 @@ Occurrences of `.buffer-text' will be replaced by:
                             (isbn . "isbn")
                             (thumbnailUri . "https://random-url")
                             (rating . nil)
+                            (review . nil)
                             (startedReading . nil)
-                            (lastRead . nil)
-                            (review . nil))))
+                            (lastRead . nil))))
       (expect (finito--create-book-alist response-alist)
               :to-equal
               finito--stub-book))))
@@ -420,7 +423,8 @@ GNU Emacs is awesome!
               (funcall callback)))
 
     (spy-on 'finito--collection-request-plist :and-call-through)
-    (spy-on 'finito--process-books-data :and-return-value nil))
+    (spy-on 'finito--process-books-data :and-call-fake
+            (lambda (_date _init-obj) (get-buffer-create "finito test"))))
 
   (it "opens collection"
     (finito-open-collection)
@@ -444,7 +448,8 @@ GNU Emacs is awesome!
               (funcall callback)))
 
     (spy-on 'finito--collection-request-plist :and-call-through)
-    (spy-on 'finito--process-books-data :and-return-value nil))
+    (spy-on 'finito--process-books-data :and-call-fake
+            (lambda (_date _init-obj) (get-buffer-create "finito test"))))
 
   (it "opens my books collection"
     (finito-open-my-books-collection)
@@ -467,7 +472,8 @@ GNU Emacs is awesome!
               (funcall callback)))
 
     (spy-on 'finito--collection-request-plist :and-call-through)
-    (spy-on 'finito--process-books-data :and-return-value nil))
+    (spy-on 'finito--process-books-data :and-call-fake
+            (lambda (_date _init-obj) (get-buffer-create "finito test"))))
 
   (it "opens currently reading collection"
     (finito-open-currently-reading-collection)

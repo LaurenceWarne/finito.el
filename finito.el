@@ -7,7 +7,7 @@
 ;; Version: 0.2.0
 ;; Keywords: outlines
 ;; URL: https://github.com/LaurenceWarne/finito.el
-;; Package-Requires: ((emacs "27.1") (dash "2.17.0") (request "0.3.2") (f "0.2.0") (s "1.12.0") (transient "0.3.0") (graphql "0.1.1") (async "1.9.3"))
+;; Package-Requires: ((emacs "27.1") (dash "2.19.1") (request "0.3.2") (f "0.2.0") (s "1.12.0") (transient "0.3.0") (graphql "0.1.1") (async "1.9.3"))
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -201,7 +201,7 @@ as a symbol."
     :sync sync))
 
 (defun finito--process-books-data (data init-obj)
-  "Insert the books data DATA into a buffer.
+  "Insert the books data DATA into a buffer, and return the buffer.
 
 Use INIT-OBJ, an instance of `finito-buffer-info' to initialize the buffer."
   (make-directory finito-img-cache-directory t)
@@ -225,7 +225,7 @@ Use INIT-OBJ, an instance of `finito-buffer-info' to initialize the buffer."
              (proc-books))))))
 
 (defun finito--prepare-buffer (init-obj callback)
-  "Prepare a finito buffer.
+  "Prepare a finito buffer and return it.
 
 Prepare a finito buffer using INIT-OBJ which should be a `finito-buffer-info'
 instance, then call CALLBACK with an ewoc, which should use it to insert text
@@ -247,7 +247,8 @@ in some way, and then apply some final configuration to the buffer."
           (toggle-truncate-lines -1))
         (goto-char (point-min))
         (org-display-inline-images)))
-    (display-buffer buf '(display-buffer-same-window . nil))))
+    (display-buffer buf '(display-buffer-same-window . nil))
+    buf))
 
 (defun finito--download-images (books)
   "Download the images for BOOKS."
@@ -338,8 +339,8 @@ BOOK-ALIST should be of the form returned by `finito--create-book-alist'."
   (browse-url
    (concat "https://openlibrary.org/isbn/" (alist-get 'isbn book-alist))))
 
-(defun finito--open-specified-collection (collection &optional sync offset)
-  "Open the collection COLLECTION in a view buffer.
+(defun finito--open-specified-collection (collection &optional sync offset callback)
+  "Open the collection COLLECTION in a view buffer and call CALLBACK.
 
 If SYNC it non-nil, perform all actions synchronously.
 OFFSET is the offset of the books in collection."
@@ -347,15 +348,17 @@ OFFSET is the offset of the books in collection."
    (finito--collection-request-plist
     collection (and (finito--use-pagination) finito-collection-books-limit) (or offset 0))
    (lambda (response)
-     (finito--process-books-data
-      (cdar response)
-      (finito-collection-buffer-info
-       :title collection
-       :mode #'finito-collection-view-mode
-       :buf-name (concat "Collection: " collection)
-       :buf-name-unique t
-       :books-offset (or offset 0)
-       :total-books (or (ignore-errors (cdadar (last response))) 0))))
+     (with-current-buffer
+         (finito--process-books-data
+          (cdar response)
+          (finito-collection-buffer-info
+           :title collection
+           :mode #'finito-collection-view-mode
+           :buf-name (concat "Collection: " collection)
+           :buf-name-unique t
+           :books-offset (or offset 0)
+           :total-books (or (ignore-errors (cdadar (last response))) 0)))
+       (when callback (funcall callback))))
    :sync sync))
 
 (defun finito--remove-book-region ()
@@ -787,11 +790,15 @@ maximum of MAX-RESULTS results."
                        0))
          (request-backend 'url-retrieve))
      (kill-current-buffer)
-     (finito--open-specified-collection collection t)
-     (unless (ignore-errors (ewoc-goto-node
-                             finito--ewoc (ewoc-nth finito--ewoc node-idx)))
-       (goto-char (min old-point (point-max))))
-     (message "Refreshed collection '%s'" collection))))
+     (finito--open-specified-collection
+      collection
+      t
+      nil
+      (lambda ()
+        (unless (ignore-errors (ewoc-goto-node
+                                finito--ewoc (ewoc-nth finito--ewoc node-idx)))
+          (goto-char (min old-point (point-max))))
+        (message "Refreshed collection '%s'" collection))))))
 
 (defun finito-search-revert (&optional _ignore-auto _noconfirm)
   "Refresh the current search, _IGNORE-AUTO and _NOCONFIRM are ignored."
@@ -830,6 +837,7 @@ Note this overwrites any existing review."
   (interactive)
   (finito--wait-for-server-then
    (let* ((book (finito--book-at-point))
+          (coll-buf (current-buffer))
           (buf (generate-new-buffer (format "%s Review" (alist-get 'title book)))))
      (with-current-buffer buf
        (local-set-key
@@ -840,7 +848,9 @@ Note this overwrites any existing review."
             book
             (buffer-substring-no-properties (point-min) (point-max)))
            (lambda (&rest _) (format "Added review for '%s'" (alist-get 'title book))))
-          (kill-buffer-and-window))))
+          (kill-buffer-and-window)
+          (with-current-buffer coll-buf
+            (revert-buffer)))))
      (pop-to-buffer buf '(display-buffer-below-selected . nil))
      (message "Use C-c C-c to submit the review"))))
 
