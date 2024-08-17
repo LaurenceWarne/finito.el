@@ -20,7 +20,11 @@ jobs:
           - 28.2
           - 29.1
           - 29.2
-
+        exclude:
+          # See https://github.com/purcell/nix-emacs-ci/issues/267
+          - os: macos-latest
+            emacs_version: 27.2
+            
     steps:
     - name: Set up Emacs
       uses: purcell/setup-emacs@master
