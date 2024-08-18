@@ -292,7 +292,7 @@ BOOK-ALIST is an alist of the format returned by `finito--create-book-alist'"
                             nil
                             'equal))
             (bound-and-true-p finito--show-reviews))
-    (when review
+    (when (and review (not (s-blank-p review)))
       (let ((review-header "Review:"))
         (insert review-header)
         (overlay-put (make-overlay (point) (- (point) (length review-header)))

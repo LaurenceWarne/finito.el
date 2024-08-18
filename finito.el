@@ -173,6 +173,7 @@ CALLBACK is called with the parsed json if the request is successful.
 If SYNC is non-nil make the request synchronous.  If errors are detected
 in the graphql response body, then call GRAPHQL-ERROR with the first error
 as a symbol."
+  (when finito--debug (message "Finito request content: '%s'" request-plist))
   (request (finito--host-uri)
     :type "POST"
     :headers (plist-get request-plist :headers)
@@ -840,17 +841,20 @@ Note this overwrites any existing review."
           (coll-buf (current-buffer))
           (buf (generate-new-buffer (format "%s Review" (alist-get 'title book)))))
      (with-current-buffer buf
+       ;; TODO make a major mode
        (local-set-key
         (kbd "C-c C-c")
         (lambda () (interactive)
           (finito--make-request
            (finito--review-book-request-plist
             book
-            (buffer-substring-no-properties (point-min) (point-max)))
-           (lambda (&rest _) (format "Added review for '%s'" (alist-get 'title book))))
-          (kill-buffer-and-window)
-          (with-current-buffer coll-buf
-            (revert-buffer)))))
+            (json-encode-string (buffer-substring-no-properties (point-min) (point-max))))
+           (lambda (&rest _)
+             (with-current-buffer coll-buf (revert-buffer))
+             (format "Added review for '%s'" (alist-get 'title book))))
+          (kill-buffer-and-window)))
+       (when-let ((review (alist-get 'review book)))
+         (insert review)))
      (pop-to-buffer buf '(display-buffer-below-selected . nil))
      (message "Use C-c C-c to submit the review"))))
 

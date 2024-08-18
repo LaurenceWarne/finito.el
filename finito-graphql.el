@@ -201,7 +201,7 @@
 
 (defconst finito--review-book-mutation-variables
   "{
-     \"review\": \"%s\",
+     \"review\": %s,
      \"book\": {
        \"title\": \"%s\",
        \"authors\": %s,
