@@ -47,12 +47,13 @@
 (require 'outline)
 (require 'request)
 (require 's)
+(require 'subr-x)
+(require 'transient)
 
 (require 'finito-buffer)
 (require 'finito-core)
 (require 'finito-request)
 (require 'finito-server)
-(require 'finito-view)
 
 ;;; Custom variables
 
@@ -148,6 +149,12 @@ montage-path"
   :group 'finito
   :type 'boolean)
 
+(defcustom finito-save-last-search
+  t
+  "If non-nil, save the arguments of the last `finito-search'."
+  :group 'finito
+  :type 'boolean)
+
 ;;; Constants
 
 (defconst finito--montage-large-image-width 128)
@@ -163,7 +170,9 @@ montage-path"
 
 (defvar finito--parallel-img-download t)
 
-;;; Misc functions
+(defvar finito--sort-asc-alist '(("ascending" . true) ("descending" . false)))
+
+;;; Internal functions
 
 (cl-defun finito--make-request
     (request-plist callback &key sync graphql-error)
@@ -323,22 +332,6 @@ The returned alist will match the format returned by
   (unless (ewoc-nth finito--ewoc 0) (error "No books in the current buffer!"))
   (ewoc-data (ewoc-locate finito--ewoc)))
 
-(defun finito--select-collection (callback &optional collection-filter sync)
-  "Prompt for a collection, and then call CALLBACK with that collection.
-
-If COLLECTION-FILTER is specified, only include collections in the prompt
-for which COLLECTION-FILTER applied to the collection name evaluates to a
-non-nil value.  If SYNC is non-nil, make the request synchronous."
-  (finito--make-request
-   (finito--collections-request-plist)
-   (lambda (response)
-     (let* ((all-collections (-filter (or collection-filter (-const t))
-                                      (-map #'cdar response)))
-            ;; TODO check if any collections exist first
-            (chosen-collection (completing-read "Choose: " all-collections)))
-       (funcall callback chosen-collection)))
-   :sync sync))
-
 (defun finito--browse-function (book-alist)
   "Open an openlibrary page of a book, using the isbn in BOOK-ALIST.
 
@@ -456,6 +449,38 @@ request is successful"
       (setq cur-node (ewoc-next ewoc cur-node))
       (cl-incf idx))
     (and (eq node cur-node) idx)))
+
+(defun finito--extract-collections-from-response (response &optional collection-filter)
+  "Extract collections data from RESPONSE, further filtering output collections by COLLECTION-FILTER."
+  (-filter (or collection-filter (-const t))
+           (-map #'cdar response)))
+
+(defun finito--select-collection (callback &optional collection-filter sync)
+  "Prompt for a collection, and then call CALLBACK with that collection.
+
+If COLLECTION-FILTER is specified, only include collections in the prompt
+for which COLLECTION-FILTER applied to the collection name evaluates to a
+non-nil value.  If SYNC is non-nil, make the request synchronous."
+  (finito--make-request
+   (finito--collections-request-plist)
+   (lambda (response)
+     (let* ((all-collections (finito--extract-collections-from-response
+                              response
+                              collection-filter))
+            ;; TODO check if any collections exist first
+            (chosen-collection (completing-read "Choose: " all-collections)))
+       (funcall callback chosen-collection)))
+   :sync sync))
+
+(defun finito--transient-select-collection (_prompt _initial-input _history)
+  "Choose a collection."
+  (let ((response (finito--make-request
+                   (finito--collections-request-plist)
+                   #'ignore
+                   :sync t)))
+    (completing-read "Choose: "
+                     (finito--extract-collections-from-response
+                      (alist-get 'collections (alist-get 'data (request-response-data response)))))))
 
 ;;; Modes
 
@@ -720,6 +745,8 @@ maximum of MAX-RESULTS results."
                               nil
                               nil
                               #'string=)))
+     (when (xor sort-asc preferred-sort)
+       (user-error "Both of sort ascending and preferred sort must be set if at least one is"))
      (finito--make-request
       (finito--update-collection-request-plist
        chosen-collection new-name preferred-sort sort-asc)
@@ -1106,6 +1133,165 @@ Example:
             finito-detailed-writer-instance
           finito-minimal-writer-instance))
   (revert-buffer))
+
+;;; Transients
+
+(defclass finito--transient-argument (transient-argument)
+  ((plist-key :initarg :plist-key)))
+
+(cl-defmethod transient-format-value ((obj finito--transient-argument))
+  "Format OBJ and return the result."
+  (let ((value (oref obj value)))
+    (propertize (if (listp value) (mapconcat #'identity value ",")
+                  value)
+                'face (if value
+                          'transient-value
+                        'transient-inactive-value))))
+
+(cl-defmethod transient-init-value ((obj finito--transient-argument))
+  "Initialize the value of OBJ using the value of the current prefix."
+  (let* ((prefix-plist (oref transient--prefix value))
+         (val-or-nil (plist-get prefix-plist (oref obj plist-key))))
+    (oset obj value val-or-nil)))
+
+(defclass finito--search-prefix (transient-prefix) nil)
+
+(cl-defmethod transient--history-push ((obj finito--search-prefix))
+  "Push the current value of OBJ to its entry in `transient-history'."
+  (let ((key (transient--history-key obj)))
+    (setf (alist-get key transient-history)
+          (let ((args (finito--transient-args-plist (oref obj command))))
+            (cons args (delete args (alist-get key transient-history)))))))
+
+(cl-defmethod transient-init-value :after ((obj finito--search-prefix))
+  "Set the value of OBJ from history if applicable.
+
+If OBJ has an empty value and `finito-save-last-search' is non-nil, switch
+to the last value used for OBJ."
+  (transient--history-init obj)
+  (when (and finito-save-last-search
+             (not (oref obj value))
+             (cdr (oref obj history)))
+    (let ((transient--prefix obj))
+      (transient-history-prev))))
+
+;;; Infix Arguments
+
+(transient-define-argument finito--title-arg ()
+  :class 'finito--transient-argument
+  :key "t"
+  :plist-key ':title
+  :argument "title=")
+
+(transient-define-argument finito--author-arg ()
+  :class 'finito--transient-argument
+  :key "a"
+  :plist-key ':author
+  :argument "author=")
+
+(transient-define-argument finito--isbn-arg ()
+  :class 'finito--transient-argument
+  :key "i"
+  :plist-key ':isbn
+  :argument "isbn=")
+
+(transient-define-argument finito--max-results-arg ()
+  :class 'finito--transient-argument
+  :key "n"
+  :plist-key ':max-results
+  :argument "max results="
+  :reader #'transient-read-number-N+)
+
+(transient-define-argument finito--collection-name-arg ()
+  :class 'finito--transient-argument
+  :key "c"
+  :plist-key ':name
+  :argument "name="
+  :reader #'finito--transient-select-collection)
+
+(transient-define-argument finito--new-collection-name-arg ()
+  :class 'finito--transient-argument
+  :key "n"
+  :plist-key ':new-name
+  :argument "new name=")
+
+(transient-define-argument finito--sort-arg ()
+  :class 'finito--transient-argument
+  :key "s"
+  :plist-key ':sort
+  :argument "Sort="
+  :choices '("Date Added" "Author" "Title"))
+
+(transient-define-argument finito--sort-asc ()
+  :class 'finito--transient-argument
+  :key "o"
+  :plist-key ':sort-ascending
+  :argument "Sort Ascending="
+  :choices (-map #'car finito--sort-asc-alist))
+
+;;; Prefixes
+
+;;;###autoload (autoload 'finito "finito-view" nil t)
+(transient-define-prefix finito ()
+  "Search for books."
+  ["Actions"
+   ("m" "📚 My Books"           finito-open-my-books-collection)
+   ("r" "📖 Currently Reading"  finito-open-currently-reading-collection)
+   ("R" "📕 Read"               finito-open-read-collection)
+   ("s" "🔍 Search"             finito-search)
+   ("o" "📁 Open a Collection"  finito-open-collection)
+   ("c" "🚐 Collection Actions" finito-collection)])
+
+(transient-define-prefix finito-search ()
+  "Search for books."
+  :class 'finito--search-prefix
+  :incompatible '(("isbn=" "author=") ("isbn=" "title=") ("isbn=" "max results="))
+  ["By Keywords"
+   (finito--title-arg :description "Title" :prompt "Title: " :always-read t)
+   (finito--author-arg :description "Author" :prompt "Author: " :always-read t)
+   (finito--max-results-arg :description "Max Results" :prompt "Max results: " :always-read t)]
+  ["Direct Lookup"
+   (finito--isbn-arg :description "ISBN" :prompt "ISBN: " :always-read t)]
+  ["Actions"
+   ("C" "Copy Curl"     finito-search-request-curl-dbg)
+   ("s" "Search"        finito-search-request)])
+
+(transient-define-prefix finito-collection ()
+  "Search for books."
+  ["Actions"
+   ("n" "Create a new Collection" finito-create-collection)
+   ("o" "Open a Collection"       finito-open-collection)
+   ("u" "Update a Collection"     finito-update-collection)
+   ("d" "Delete a Collection"     finito-delete-collection)
+   ("i" "Import a Collection"     ignore)
+   ("e" "Export a Collection"     ignore)])
+
+(transient-define-prefix finito-update-collection ()
+  "Search for books."
+  ["Attributes"
+   ;; TODO read this using `finito--select-collection'
+   (finito--collection-name-arg
+    :description "Name"
+    :prompt "Name: ")
+   (finito--new-collection-name-arg
+    :description "New Name"
+    :prompt "New name: ")
+   (finito--sort-arg
+    :description "Sort Books By"
+    :prompt "Sort Books By: ")
+   (finito--sort-asc
+    :description "Sort Ascending"
+    :prompt "Ascending: ")]
+  ["Actions"
+   ("u" "Update" finito-update-collection-request)])
+
+;; Has to be defined here to pass byte-compile for some reason
+(defun finito--transient-args-plist (prefix)
+  "Return the infixes of PREFIX as a plist."
+  (-flatten-n 1 (--map (list (oref it plist-key)
+                             (oref it value))
+                       (-filter #'finito--transient-argument-p
+                                (transient-suffixes prefix)))))
 
 (provide 'finito)
 ;;; finito.el ends here
