@@ -251,11 +251,17 @@ in some way, and then apply some final configuration to the buffer."
     (display-buffer buf '(display-buffer-same-window . nil))
     buf))
 
+(defun finito--url-copy-file-log-error (url newname)
+  "Copy URL to NEWNAME like `url-copy-file', but catch and log any errors."
+  (condition-case nil
+      (url-copy-file url newname)
+    (error (message "Error downloading thumbnail '%s'" url))))
+
 (defun finito--download-images (books)
   "Download the images for BOOKS."
   (--each
       (--remove (f-exists-p (alist-get 'image-file-name it)) books)
-    (let-alist it (url-copy-file .img-uri .image-file-name))))
+    (let-alist it (finito--url-copy-file-log-error .img-uri .image-file-name))))
 
 (defun finito--download-images-par (books callback)
   "Download the images for BOOKS in parallel and then call CALLBACK."
@@ -269,7 +275,7 @@ in some way, and then apply some final configuration to the buffer."
                   'handles
                   (async-start
                    `(lambda ()
-                      (url-copy-file ,.img-uri ,.image-file-name)
+                      (ignore-errors (url-copy-file ,.img-uri ,.image-file-name))
                       ,.image-file-name)
                    (lambda (path)
                      (message "Downloaded '%s'" path)
