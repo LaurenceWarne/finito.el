@@ -303,6 +303,19 @@ period"
                              montage-large-image-rating-threshold
                              (if include-added "true" "false")))))
 
+(defun finito--goodreads-import-request-plist (content)
+  "Return a plist with headers and body for a Goodreads import request.
+
+CONTENT should be a CSV string corresponding to a goodreads export"
+  `(:headers ,finito--headers
+             :data ,(format "{\"query\":\"%s\", \"variables\": %s}"
+                            finito--import-query
+                            (format
+                             finito--import-query-variables
+                             (json-encode "Goodreads")
+                             (json-encode content)
+                             (json-encode finito-language)))))
+
 (defun finito--seq-to-json-list (seq)
   "Return SEQ as an escaped json list."
   (--> (append seq nil)

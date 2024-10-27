@@ -319,6 +319,28 @@
                  (includeAdded . ($ includeAdded)))
      read added averageRating montage))))
 
+(defconst finito--import-query
+  (graphql-mutation
+   (:arguments
+    (($importType . PortType!)
+     ($content . String!)
+     ($langRestrict . String))
+    (import
+     :arguments ((importType . ($ importType))
+                 (content . ($ content))
+                 (langRestrict . ($ langRestrict)))
+     (successful title)
+     (partiallySuccessful title)
+     (unsuccessful title)))))
+
+(defconst finito--import-query-variables
+  "{
+      \"importType\": %s,
+      \"content\": %s,
+      \"langRestrict\": %s
+   }")
+
+
 (defconst finito--summary-query-variables
   "{
      \"from\": %s,

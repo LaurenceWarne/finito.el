@@ -451,7 +451,9 @@ request is successful"
     (and (eq node cur-node) idx)))
 
 (defun finito--extract-collections-from-response (response &optional collection-filter)
-  "Extract collections data from RESPONSE, further filtering output collections by COLLECTION-FILTER."
+  "Extract collections data from RESPONSE.
+
+Output collections are further filtered by COLLECTION-FILTER."
   (-filter (or collection-filter (-const t))
            (-map #'cdar response)))
 
@@ -1133,6 +1135,23 @@ Example:
             finito-detailed-writer-instance
           finito-minimal-writer-instance))
   (revert-buffer))
+
+(defun finito-goodreads-import (csv-file)
+  "Import the Goodreads export CSV-FILE.
+
+In order to create an export, visit URL `https://www.goodreads.com/review/import'."
+  (interactive "fSelect output CSV file: ")
+  (finito--wait-for-server-then
+   (message "Making request, this may take a while for large files!")
+   (finito--make-request
+    (finito--goodreads-import-request-plist
+     (f-read-text csv-file))
+    (lambda (response)
+      (let-alist response
+        (message "Finito import complete, Successful: %s, partially successful: %s, failed: %s"
+                 (length .sucessful)
+                 (length .partiallySuccessful)
+                 (length .unsuccessful)))))))
 
 ;;; Transients
 
