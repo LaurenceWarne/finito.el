@@ -311,13 +311,27 @@
     (($from . DateTime)
      ($to . DateTime)
      ($montageInput . MontageInput)
-     ($includeAdded . Boolean))
+     ($includeAdded . Boolean!))
     (summary
      :arguments ((from . ($ from))
                  (to . ($ to))
                  (montageInput . ($ montageInput))
                  (includeAdded . ($ includeAdded)))
      read added averageRating montage))))
+
+(defconst finito--summary-query-variables
+  "{
+     \"from\": %s,
+     \"to\": %s,
+     \"montageInput\": {
+         \"columns\": %s,
+         \"largeImageWidth\": %s,
+         \"largeImageHeight\": %s,
+         \"largeImgScaleFactor\": %s,
+         \"largeImageRatingThreshold\": %s
+     },
+     \"includeAdded\": %s
+   }")
 
 (defconst finito--import-query
   (graphql-mutation
@@ -338,21 +352,6 @@
       \"importType\": %s,
       \"content\": %s,
       \"langRestrict\": %s
-   }")
-
-
-(defconst finito--summary-query-variables
-  "{
-     \"from\": %s,
-     \"to\": %s,
-     \"montageInput\": {
-         \"columns\": %s,
-         \"largeImageWidth\": %s,
-         \"largeImageHeight\": %s,
-         \"largeImgScaleFactor\": %s,
-         \"largeImageRatingThreshold\": %s
-     },
-     \"includeAdded\": %s
    }")
 
 (defun finito--books-pagination-input (limit offset)
