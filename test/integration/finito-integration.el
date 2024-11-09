@@ -19,12 +19,11 @@
 (defun finito--download-sync ()
   "Download a finito server synchronously."
   (unless (file-exists-p finito--server-path)
-    (let ((request-backend 'url-retrieve))
+    (let* ((request-backend 'url-retrieve)
+           (uri (concat finito--download-url "v" finito-server-version "/" finito--jar-name)))
       (make-directory finito-server-directory t)
-      (thread-first
-        (concat finito--download-url "v" finito-server-version)
-        (concat "/" finito--jar-name)
-        (url-copy-file finito--server-path)))))
+      (message "Downloading server jar from %s to %s" uri finito--server-path)
+      (url-copy-file uri finito--server-path))))
 
 (describe "integration"
   :var* ((search-buffer-string "Book Search")
@@ -32,21 +31,20 @@
 
   (before-all
     (let* ((dir (f-expand default-directory))
-           (finito-test-config-home (f-join dir ".eldev/test-config-home"))
-           (finito-test-data-home (f-join dir ".eldev/test-data-home"))
+           (finito-test-config-home (f-join dir "/tmp/finito-test-config-home"))
+           (finito-test-data-home (f-join dir "/tmp/finito-test-data-home"))
            (conf-path (f-join finito-test-config-home "libro-finito" "service.conf"))
            (db-path (f-join finito-test-data-home "libro-finito" "db.sqlite"))
            (finito--base-uri finito--test-uri))
       (with-environment-variables (("XDG_CONFIG_HOME" finito-test-config-home)
                                    ("XDG_DATA_HOME" finito-test-data-home))
-        (f-mkdir finito-test-config-home finito-test-data-home)
+        (make-directory (f-parent conf-path) t)
         (ignore-errors (f-delete db-path) (f-delete conf-path))
+        (f-touch conf-path)
         (f-write-text (format "port=%s,default-collection=\"My Books\"" finito--test-port) 'utf-8 conf-path)
         (finito--download-sync)
         (finito-start-server-if-not-already)
-        (sit-for 5)
-        (with-current-buffer "finito"
-          (print (buffer-substring-no-properties (point-min) (point-max)))))))
+        (sit-for 5))))
 
   (it "Search, add book, open collection"
     ;; https://github.com/jorgenschaefer/emacs-buttercup/issues/127
