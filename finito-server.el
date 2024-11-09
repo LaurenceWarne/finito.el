@@ -51,12 +51,6 @@
   :group 'finito
   :type 'directory)
 
-(defcustom finito-config-directory
-  (f-expand "~/.config/libro-finito/")
-  "The directory of the server config file and sqlite db."
-  :group 'finito
-  :type 'directory)
-
 (defcustom finito-server-version
   finito-server-minimum-required-version
   "The finito server version to use."
@@ -139,9 +133,7 @@ appears to be running at `finito--host-uri'/health"
            (command (concat "java "
                             finito--jvm-args
                             " -jar "
-                            finito--server-path
-                            " --config "
-                            finito-config-directory))
+                            finito--server-path))
            (proc (start-process-shell-command "finito" buf command)))
       (setq finito--server-process proc))))
 
