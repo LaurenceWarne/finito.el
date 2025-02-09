@@ -28,6 +28,7 @@
 ;;; Code:
 
 (require 'dash)
+(require 'json)
 (require 's)
 
 (require 'finito-core)

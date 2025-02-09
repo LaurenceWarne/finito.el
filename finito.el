@@ -43,6 +43,7 @@
 (require 'dash)
 (require 'ewoc)
 (require 'f)
+(require 'json)
 (require 'org)
 (require 'outline)
 (require 'request)
