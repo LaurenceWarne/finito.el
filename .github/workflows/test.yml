@@ -19,6 +19,7 @@ jobs:
           - 27.2
           - 28.2
           - 29.4
+          - 30.2
         exclude:
           # See https://github.com/purcell/nix-emacs-ci/issues/267
           - os: macos-latest
