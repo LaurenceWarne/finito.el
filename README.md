@@ -1,6 +1,6 @@
 # finito.el
 
-[![MELPA](https://melpa.org/packages/finito-badge.svg)](https://melpa.org/#/finito) [![Min Emacs Version](https://img.shields.io/badge/Emacs-27+-7F5AB6?logo=gnu-emacs)](https://www.gnu.org/software/emacs/) [![Version](https://img.shields.io/github/v/tag/laurencewarne/finito.el?label=release)](CHANGELOG.md)
+[![MELPA](https://melpa.org/packages/finito-badge.svg)](https://melpa.org/#/finito) [![Min Emacs Version](https://img.shields.io/badge/Emacs-28+-7F5AB6?logo=gnu-emacs)](https://www.gnu.org/software/emacs/) [![Version](https://img.shields.io/github/v/tag/laurencewarne/finito.el?label=release)](CHANGELOG.md)
 
 `finito.el` allows for the management of books and reading lists from within Emacs.  Books are presented in modified org mode buffers, and books along with user collections can be viewed/queried using [transient](https://github.com/magit/transient).
 

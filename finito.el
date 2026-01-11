@@ -7,7 +7,7 @@
 ;; Version: 0.2.0
 ;; Keywords: outlines
 ;; URL: https://github.com/LaurenceWarne/finito.el
-;; Package-Requires: ((emacs "27.1") (dash "2.19.1") (request "0.3.2") (f "0.2.0") (s "1.12.0") (transient "0.3.0") (graphql "0.1.1") (async "1.9.3"))
+;; Package-Requires: ((emacs "28.1") (dash "2.19.1") (request "0.3.2") (f "0.2.0") (s "1.12.0") (transient "0.3.0") (graphql "0.1.1") (async "1.9.3"))
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
